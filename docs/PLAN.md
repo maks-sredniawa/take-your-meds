@@ -14,18 +14,31 @@ per phase, no task lists. The detail is written when the phase opens, not now. T
 was extracted from and the first app built from it settled on exactly this split independently.
 [`phase-template.md`](phase-template.md) is the shape a phase file settled into; copy it on the day.
 
-<!--
-    A skeleton. Replace the phases with yours; keep the four rules at the bottom unless you have a
-    reason, because each of them was paid for by an app built from this template.
--->
-
 ## Status
 
-- [ ] **Phase 0** — Skeleton: the placeholder domain gone, the palette and the mark chosen
-- [ ] **Phase P** — The pipeline: repository setup, upload key, Play entry, secrets, a green internal upload
-- [ ] **Phase 1** — *(the smallest version of the app's one mechanism, working on the phone)*
-- [ ] **Phase 2** — *(safe to hand to a stranger)* ← **the door: closed testing opens here**
-- [ ] **Phase N** — Ship shape: listing, screenshots, the App content answers
+- [ ] **Phase 0** — Skeleton: Items become Medicines with an Amount and a Note; the photo pipeline
+  and the manual backup export/restore stripped, platform Auto Backup in their place (Room and the
+  reminder machinery stay); the palette and the mark. ADR-0002, 0003 and 0005 get their amendments
+  as their modules change
+- [ ] **Phase P** — The pipeline: upload key, Play entry, Play secrets, a green internal upload
+- [ ] **Phase 1** — The mechanism on the phone: a Medicine with one or more Times every day; a
+  Reminder at the minute through an exact alarm, falling back when the grant is refused (ADR-0010);
+  Taken and Snooze on the notification; Today showing each Dose as Due, Taken or Missed (ADR-0009).
+  Asks: notifications and exact alarms, when the first Schedule is saved. Readings: a Reminder on
+  time in deep Doze, after a reboot, after an app update, and with the exact-alarm grant refused
+- [ ] **Phase 2** — Safe for a stranger ← **the door: closed testing opens here.** The Follow-up and
+  Missed; Skip; editing a Schedule or deleting a Medicine without rewriting past Doses; the setup
+  screen for battery optimisation and autostart, with what a refusal costs; first run; the
+  not-a-medical-device line (ADR-0011). It freezes the `applicationId`, `minSdk` and the permission set,
+  and brings ADR-0001's 1.0 rule forward to the door: a tester's Dose history is real, so every
+  schema change after it carries a tested migration. Readings: Xiaomi with and without autostart — the one reading that
+  needs a real phone
+- [ ] **Phase 3** — Schedules beyond daily: chosen weekdays, every N days, an End date; As-needed
+  Medicines; History per Medicine. The first schema migration, under ADR-0001's gate
+- [ ] **Phase 4** — Supply: a count per Medicine, decreased by each Taken Dose, and a running-low
+  Reminder
+- [ ] **Phase N** — Ship shape: listing in English and Polish, screenshots, the Health apps
+  declaration, Data safety ("no data collected"), the App content answers
 
 ---
 
@@ -83,8 +96,15 @@ to settings screens whose result cannot be read back reliably — `appops` has b
 **Every ask waits for the moment the feature needing it is switched on. The phase that introduces an
 ask owns its hand-off, its re-read, and what the user sees when the answer is no.**
 
-Write the table for your app — the ask, the moment it is made, the phase that owns it — and put it
-here, so a later phase cannot quietly move an ask forward to "get it out of the way".
+| Ask | Moment it is made | Phase |
+| --- | --- | --- |
+| Notifications (`POST_NOTIFICATIONS`, API 33+) | the first Schedule is saved, from the app's own screen | 1 |
+| Exact alarms (`SCHEDULE_EXACT_ALARM`, off by default on API 34+) | right after notifications, as a hand-off to system settings; re-read with `canScheduleExactAlarms()` | 1 |
+| Battery optimisation exemption | the setup screen, offered after the first Reminder has fired | 2 |
+| Autostart (Xiaomi and kin) | the same setup screen; cannot be re-read, so the row states what a refusal costs and claims nothing | 2 |
+
+No ask comes before the user has a Medicine with a Schedule, and an As-needed Medicine asks for
+nothing.
 
 **The third clause is the one that gets left out, and it is the one that generates support mail.**
 These denials nearly all fail *silently*: a denied notification permission leaves a foreground
@@ -108,12 +128,25 @@ introduces the behaviour owns saying so.
 
 ## Phase 0 — Skeleton
 
-*(one paragraph)*
+The template's Items become Medicines (name, Amount, Note), so the placeholder domain is gone before
+anything is built on it. Photos go: a Medicine has no picture, and the camera-free media pipeline is
+weight with a Data safety answer attached. The manual export/restore and the custom `BackupAgent` go
+with it, because their reason was media (ADR-0005); platform Auto Backup and device-to-device
+transfer carry the database to a new phone. Room stays, because Doses are history read by day and by
+Medicine (ADR-0009). The reminder machinery stays and is what phase 1 builds on. The palette and the
+mark are chosen here, and the mark becomes the icon on maksforge.com and in the profile README.
 
 ## Phase P — The pipeline
 
-*(one paragraph — `DOD.md`'s "Before the first upload" is most of it)*
+`DOD.md`'s *Before the first upload*: the upload key and its off-machine backup, the Play entry for
+`com.maksforge.takeyourmeds`, the Play secrets, and a green internal upload of phase 0's build.
+`RELEASE_PLEASE_TOKEN` and the repository ruleset are already in place (2026-11-11).
 
 ## Not in this plan
 
-*(what the app will deliberately never do, so a phase cannot quietly grow it back)*
+- **A drug database, interaction checks, dosing advice or any reading of the Amount** (ADR-0011).
+- **Sharing with a caregiver, accounts, sync or a web view.** Each needs a server or `INTERNET`
+  (ADR-0008).
+- **Health Connect or any other export of Doses to another app.** It would make the Doses leave the
+  app's own storage, which is the one promise the listing makes.
+- **Streaks, scores or adherence percentages.** "Missed" is a state, not a grade (`CONTEXT.md`).
