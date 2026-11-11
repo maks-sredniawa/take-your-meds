@@ -15,6 +15,12 @@ or a Follow-up. The alarm carries the time it was armed for, and each firing pos
 every unanswered Dose whose Reminder time falls between that time and now, so two Medicines at 9:00,
 or a fallback alarm landing after a later Dose, post every Dose they cover.
 
+A re-plan after a boot, an update or a clock change has no armed time to start from, because the
+alarm that would have covered the gap is gone. It first posts a Reminder for every Dose still Due
+(its Reminder time passed, unanswered, not yet Missed), so a phone switched off over 9:00 still
+reminds at power-on. A Reminder's notification id is derived from its Dose, so posting it again
+replaces it rather than stacking a second one.
+
 Each firing, answer, Snooze, edit, boot, update, clock or time-zone change (`TIME_SET`,
 `TIMEZONE_CHANGED`) and change of the exact-alarm grant
 (`ACTION_SCHEDULE_EXACT_ALARM_PERMISSION_STATE_CHANGED`) re-plans it. Revoking the grant cancels the
