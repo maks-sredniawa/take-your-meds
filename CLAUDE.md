@@ -4,8 +4,7 @@ A medication reminder for Android, for anyone who takes medicine on a schedule. 
 medicines with a dose and times; the app notifies at each time, records a dose as taken, snoozed or
 missed, and shows today's doses. The constraint that shapes everything: **health data never leaves
 the phone** — no account, no server, no `INTERNET` permission, and no medical advice (no drug
-database, interactions or dosing). The plan before this repo existed is
-`~/repos/local/ideas/take-your-meds.md`.
+database, interactions or dosing).
 
 - **Vocabulary:** [`CONTEXT.md`](CONTEXT.md) — use these terms in code and UI.
 - **Decisions and why:** [`docs/adr/`](docs/adr/) — read before changing anything they cover.

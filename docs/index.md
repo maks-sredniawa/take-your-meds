@@ -1,9 +1,9 @@
 ---
 layout: default
-title: <App name>
+title: Take your meds
 ---
 
-# <App name>
+# Take your meds
 
 <!--
     The site root, published from `docs/` at maksforge.com/<repo>/. It exists for two reasons: Play's listing
