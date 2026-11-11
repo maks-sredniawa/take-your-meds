@@ -61,3 +61,9 @@ the user's patience on nudges that do not need any of it. If everything is urgen
   user**. Creating a channel quiet is a decision with no second attempt.
 - Testing any of this on a vendor ROM requires reading the autostart state first. A run against an
   unknown one proves nothing either way — `scripts/device-gate.py` reads it.
+
+## Amendment, 2026-11-11
+
+The daily sweep also re-arms the next Reminder's exact alarm (ADR-0010). Revoking
+`SCHEDULE_EXACT_ALARM` cancels the app's alarms and stops it with no broadcast, so without the sweep
+no Reminder would fire until the user opened the app.

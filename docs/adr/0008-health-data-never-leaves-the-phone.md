@@ -31,8 +31,9 @@ declared and the Data safety answer changes for everybody.
 
 ## Consequences
 
-- A lost phone without Android backup loses the history. Phase 0 relies on Auto Backup and transfer;
-  the app says so once, in Settings.
+- A lost phone without Android backup loses the history. Phase 0 drops the manual export and keeps
+  `AppBackupAgent` for the database (checkpointed, ADR-0005), so Auto Backup and transfer are the
+  only off-phone copies; the app says so once, in Settings.
 - Support cannot see anything. A problem report is whatever the user chooses to write in the mail
   hand-off.
 - Any later feature that needs the network needs a new ADR that supersedes this one, not an exception
