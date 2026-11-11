@@ -74,7 +74,7 @@ There is no account and no sign-in. Would change: a feature behind a login.
 ## Content rating
 
 **The IARC questionnaire.** Answered _<date>_, category _<category>_, rating contact
-`<support email>` — the listing's address, so there is one address to keep alive, not two. Every
+`take-your-meds.support@maksforge.com` — the listing's address, so there is one address to keep alive, not two. Every
 question answered No gives Everyone (ESRB) and PEGI 3.
 
 The category is *All other app types* unless the app's purpose is something the questionnaire names.
@@ -179,10 +179,10 @@ captures no audio, so say so in the declaration if the service's job is a sound.
 
 - **Category:** _<category>_, and why not the obvious neighbour.
 - **Tags:** _<tags>_.
-- **Contact email:** `<support email>`, public on the listing and the same address
+- **Contact email:** `take-your-meds.support@maksforge.com`, public on the listing and the same address
   `SupportHandoff.kt` compiles in. The Console field changes without a release; the app's copy needs
   one.
-- **Privacy policy:** `https://maksforge.com/<repo>/privacy-policy`, served from `docs/` by
+- **Privacy policy:** `https://maksforge.com/take-your-meds/privacy-policy`, served from `docs/` by
   maksforge.com. It updates within about 15 minutes of a merge to `main`, with no release, which is why it has to be right before the
   app it describes ships rather than after.
 

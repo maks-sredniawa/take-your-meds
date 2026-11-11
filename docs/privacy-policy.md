@@ -88,4 +88,4 @@ in the repository.
 
 ## Contact
 
-**<support email>**
+**take-your-meds.support@maksforge.com**

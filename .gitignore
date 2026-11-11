@@ -34,3 +34,4 @@ __pycache__/
 fastlane/report.xml
 fastlane/README.md
 fastlane/metadata/
+.kotlin/
