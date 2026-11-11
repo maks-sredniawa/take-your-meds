@@ -17,18 +17,20 @@ was extracted from and the first app built from it settled on exactly this split
 ## Status
 
 - [ ] **Phase 0** — Skeleton: Items become Medicines with an Amount and a Note; the photo pipeline
-  and the manual backup export/restore stripped, platform Auto Backup in their place (Room and the
-  reminder machinery stay); the palette and the mark. ADR-0002, 0003 and 0005 get their amendments
-  as their modules change
+  and the manual backup export/restore stripped, `AppBackupAgent` kept for the database alone (Room
+  and the reminder machinery stay); the `reminders` channel raised to high importance; the tip ask
+  counted in Taken Doses; the palette and the mark. ADR-0002, 0003, 0005 and 0007 get their
+  amendments as their modules change
 - [ ] **Phase P** — The pipeline: upload key, Play entry, Play secrets, a green internal upload
 - [ ] **Phase 1** — The mechanism on the phone: a Medicine with one or more Times every day; a
   Reminder at the minute through an exact alarm, falling back when the grant is refused (ADR-0010);
-  Taken and Snooze on the notification; Today showing each Dose as Due, Taken or Missed (ADR-0009).
+  Taken and Snooze on the notification; Today showing each Dose as Due or Taken (ADR-0009).
   Asks: notifications and exact alarms, when the first Schedule is saved. Readings: a Reminder on
   time in deep Doze, after a reboot, after an app update, and with the exact-alarm grant refused
 - [ ] **Phase 2** — Safe for a stranger ← **the door: closed testing opens here.** The Follow-up and
-  Missed; Skip; editing a Schedule or deleting a Medicine without rewriting past Doses; the setup
-  screen for battery optimisation and autostart, with what a refusal costs; first run; the
+  Missed; Skip; editing a Schedule without rewriting past Doses, and deleting a Medicine with its
+  answered Doses kept in History; the setup screen for battery optimisation and autostart, with what
+  a refusal costs; first run; the
   not-a-medical-device line (ADR-0011). It freezes the `applicationId`, `minSdk` and the permission set,
   and brings ADR-0001's 1.0 rule forward to the door: a tester's Dose history is real, so every
   schema change after it carries a tested migration. Readings: Xiaomi with and without autostart — the one reading that
@@ -130,11 +132,17 @@ introduces the behaviour owns saying so.
 
 The template's Items become Medicines (name, Amount, Note), so the placeholder domain is gone before
 anything is built on it. Photos go: a Medicine has no picture, and the camera-free media pipeline is
-weight with a Data safety answer attached. The manual export/restore and the custom `BackupAgent` go
-with it, because their reason was media (ADR-0005); platform Auto Backup and device-to-device
-transfer carry the database to a new phone. Room stays, because Doses are history read by day and by
-Medicine (ADR-0009). The reminder machinery stays and is what phase 1 builds on. The palette and the
-mark are chosen here, and the mark becomes the icon on maksforge.com and in the profile README.
+weight with a Data safety answer attached. The manual export/restore goes with it, because its
+reason was media; ADR-0005 gets an amendment for the manual half going. `AppBackupAgent` stays,
+stripped to the database: static backup rules cannot checkpoint Room's WAL, which is the agent's
+reason (ADR-0005). It still leaves preferences out, so the tip's once-per-install state stays per
+install (ADR-0007). Auto Backup and device-to-device transfer carry the database to a new phone.
+Room stays, because Doses are history read by day and by Medicine (ADR-0009). The reminder machinery
+stays and is what phase 1 builds on; its `reminders` channel goes to high importance here, before
+Phase P's first upload fixes it on any phone (ADR-0010). The tip ask's measure of use becomes ten
+Taken Doses instead of ten Items (`TIP_ASK_AFTER_ITEMS`), since few users have ten Medicines. The
+palette and the mark are chosen here, and the mark becomes the icon on maksforge.com and in the
+profile README.
 
 ## Phase P — The pipeline
 

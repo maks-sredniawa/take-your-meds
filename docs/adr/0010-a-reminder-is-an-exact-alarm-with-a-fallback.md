@@ -9,18 +9,29 @@ calendars.
 
 ## Decision
 
-**Each next Dose is one exact alarm** (`setExactAndAllowWhileIdle`), scheduled from ADR-0009's
-derivation: only the earliest upcoming Dose across all Medicines has an alarm, and each firing, answer,
-Snooze, edit, boot and update recomputes it. With the grant refused it falls back to
-`setAndAllowWhileIdle`, and Today shows a banner saying Reminders may be late, with the hand-off to
-grant it.
+**One exact alarm** (`setExactAndAllowWhileIdle`), scheduled from ADR-0009's derivation, is armed
+for the earliest upcoming Reminder time across all Medicines: a Dose's Time, a stored Snooze's end
+or a Follow-up. The alarm carries the time it was armed for, and each firing posts a Reminder for
+every unanswered Dose whose Reminder time falls between that time and now, so two Medicines at 9:00,
+or a fallback alarm landing after a later Dose, post every Dose they cover.
 
-**`SCHEDULE_EXACT_ALARM` only**, asked as phase 1's table says. `USE_EXACT_ALARM` is never declared.
+Each firing, answer, Snooze, edit, boot, update, clock or time-zone change (`TIME_SET`,
+`TIMEZONE_CHANGED`) and change of the exact-alarm grant
+(`ACTION_SCHEDULE_EXACT_ALARM_PERMISSION_STATE_CHANGED`) re-plans it. Revoking the grant cancels the
+alarm and stops the app with no broadcast, so ADR-0003's daily sweep re-arms it as the backstop.
+With the grant refused it falls back to `setAndAllowWhileIdle`, and Today shows a banner saying
+Reminders may be late, with the hand-off to grant it.
 
-**The Reminder channel is created at high importance** and once, because importance can only be
-lowered afterwards (ADR-0003).
+**`SCHEDULE_EXACT_ALARM` only**, asked when `docs/PLAN.md`'s asks table (rule 4) says.
+`USE_EXACT_ALARM` is never declared.
 
-Snooze and the Follow-up are further exact alarms on the same recomputation, not separate jobs.
+**The `reminders` channel is raised to high importance in phase 0**, before Phase P's first upload,
+because importance is fixed at creation and can only be lowered afterwards (ADR-0003). Raising it
+under the same id is simpler than a new id: nothing has been uploaded yet, and a phone holding an
+earlier build is reinstalled.
+
+Snooze and the Follow-up are Reminder times on the same alarm, not separate jobs. A Snooze's end is
+read from its stored row (ADR-0009), so a re-plan keeps it.
 
 ## Alternatives
 
