@@ -14,8 +14,8 @@
 remote_theme: maks-sredniawa/pages-theme
 plugins:
   - jekyll-remote-theme
-title: Starter
-description: <One line about the app>
+title: Take your meds
+description: Reminds you to take your meds, with everything kept on your phone. No ads, no tracking.
 maksforge:
-  icon: /assets/icons/android-starter.webp
-  status: oss
+  icon: /assets/icons/take-your-meds.webp
+  status: building

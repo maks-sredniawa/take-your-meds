@@ -41,7 +41,7 @@ ART = Path(__file__).parent
 
 # The strings this graphic is *about*, keyed by listing-language tag (None is the default language).
 # Edit them; everything else is layout. Translate from the English, per docs/translator-brief.md.
-APP_NAME = "Starter"
+APP_NAME = "Take your meds"
 COPY = {
     None: ("One line about your app", "Private  ·  Offline  ·  No ads  ·  Free"),
 }
