@@ -111,7 +111,7 @@ note; the feature it made possible is. A release where nothing user-visible chan
 heading — rename it and say so in one line, so the decision is deliberate rather than made by
 default.
 
-### 0.1.0 — the first build
+### 0.2.0 — the first build (0.1.0 was never released)
 
 **English** — 18/500:
 
