@@ -1,4 +1,4 @@
-package app.takeyourmeds.ui.items
+package app.takeyourmeds.ui.medicines
 
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -21,24 +21,23 @@ import app.takeyourmeds.ui.appViewModelExtras
 import app.takeyourmeds.ui.common.DetailScaffold
 
 @Composable
-fun ItemEditorScreen(
-    itemId: String?,
+fun MedicineEditorScreen(
+    medicineId: String?,
     onDone: () -> Unit,
     modifier: Modifier = Modifier,
-    viewModel: ItemEditorViewModel =
-        viewModel(factory = ItemEditorViewModel.factoryFor(itemId), extras = appViewModelExtras()),
+    viewModel: MedicineEditorViewModel =
+        viewModel(factory = MedicineEditorViewModel.factoryFor(medicineId), extras = appViewModelExtras()),
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
 
-    // Leave once the save has landed — not when the button is pressed. The difference matters: the
-    // write is asynchronous, and navigating first would cancel the `viewModelScope` coroutine doing
-    // it. That is the classic way an editor silently loses the last save.
+    // Leave once the save has landed, not when the button is pressed: navigating first would cancel
+    // the `viewModelScope` coroutine doing the write.
     LaunchedEffect(state.saved) {
         if (state.saved) onDone()
     }
 
     DetailScaffold(
-        title = stringResource(if (itemId == null) R.string.item_add else R.string.action_edit),
+        title = stringResource(if (medicineId == null) R.string.medicine_add else R.string.action_edit),
         onBack = onDone,
         modifier = modifier,
     ) { contentModifier ->
@@ -46,16 +45,25 @@ fun ItemEditorScreen(
             modifier = contentModifier.verticalScroll(rememberScrollState()).padding(Spacing.base),
         ) {
             OutlinedTextField(
-                value = state.title,
-                onValueChange = viewModel::setTitle,
-                label = { Text(stringResource(R.string.item_title_label)) },
+                value = state.name,
+                onValueChange = viewModel::setName,
+                label = { Text(stringResource(R.string.medicine_name_label)) },
                 singleLine = true,
                 modifier = Modifier.fillMaxWidth(),
             )
             OutlinedTextField(
-                value = state.notes,
-                onValueChange = viewModel::setNotes,
-                label = { Text(stringResource(R.string.item_notes_label)) },
+                value = state.amount,
+                onValueChange = viewModel::setAmount,
+                label = { Text(stringResource(R.string.medicine_amount_label)) },
+                supportingText = { Text(stringResource(R.string.medicine_amount_hint)) },
+                singleLine = true,
+                modifier = Modifier.fillMaxWidth().padding(top = Spacing.snug),
+            )
+            OutlinedTextField(
+                value = state.note,
+                onValueChange = viewModel::setNote,
+                label = { Text(stringResource(R.string.medicine_note_label)) },
+                supportingText = { Text(stringResource(R.string.medicine_note_hint)) },
                 minLines = 3,
                 modifier = Modifier.fillMaxWidth().padding(top = Spacing.snug),
             )

@@ -18,9 +18,9 @@ import org.junit.runner.RunWith
  * disappears with the process, which is why no cleanup between tests is needed beyond [close].
  */
 @RunWith(AndroidJUnit4::class)
-class ItemDaoTest {
+class MedicineDaoTest {
     private lateinit var database: AppDatabase
-    private lateinit var dao: ItemDao
+    private lateinit var dao: MedicineDao
 
     @Before
     fun open() {
@@ -34,23 +34,25 @@ class ItemDaoTest {
                 // dispatcher does not provide. Only ever in a test.
                 .allowMainThreadQueries()
                 .build()
-        dao = database.itemDao()
+        dao = database.medicineDao()
     }
 
     @After
     fun close() = database.close()
 
     @Test
-    fun insertedItemsComeBackNewestFirst() =
+    fun insertedMedicinesComeBackNewestFirst() =
         runTest {
-            val older = ItemEntity(title = "older", createdAt = java.time.Instant.ofEpochMilli(1_000))
-            val newer = ItemEntity(title = "newer", createdAt = java.time.Instant.ofEpochMilli(2_000))
+            val older =
+                MedicineEntity(name = "older", amount = "1 tablet", createdAt = java.time.Instant.ofEpochMilli(1_000))
+            val newer =
+                MedicineEntity(name = "newer", amount = "1 tablet", createdAt = java.time.Instant.ofEpochMilli(2_000))
             // Inserted in the wrong order on purpose: the ORDER BY is the thing under test, and a
             // test that inserts in display order passes with no ORDER BY at all.
             dao.insert(older)
             dao.insert(newer)
 
-            assertEquals(listOf("newer", "older"), dao.all().map { it.title })
+            assertEquals(listOf("newer", "older"), dao.all().map { it.name })
         }
 
     @Test
@@ -59,7 +61,7 @@ class ItemDaoTest {
             // This is what makes "screens collect a Flow and never call refresh" true, so it is
             // worth asserting rather than assuming.
             assertEquals(0, dao.observeAll().first().size)
-            dao.insert(ItemEntity(title = "one"))
+            dao.insert(MedicineEntity(name = "one", amount = "5 ml"))
             assertEquals(1, dao.observeAll().first().size)
         }
 
@@ -67,12 +69,21 @@ class ItemDaoTest {
     fun anInstantSurvivesTheRoundTripThroughTheConverter() =
         runTest {
             val at = java.time.Instant.ofEpochMilli(1_712_345_678_901)
-            dao.insert(ItemEntity(id = "fixed", title = "t", createdAt = at))
+            dao.insert(MedicineEntity(id = "fixed", name = "n", amount = "a", createdAt = at))
             assertEquals(at, dao.observeById("fixed").first()?.createdAt)
         }
 
     @Test
-    fun anAbsentRowIsNullRatherThanAnEmptyItem() =
+    fun anAbsentNoteStaysNullAndTheAmountComesBackVerbatim() =
+        runTest {
+            dao.insert(MedicineEntity(id = "m", name = "Vitamin D", amount = "1 capsule, or 2 in winter"))
+            val read = dao.observeById("m").first()
+            assertEquals("1 capsule, or 2 in winter", read?.amount)
+            assertNull(read?.note)
+        }
+
+    @Test
+    fun anAbsentRowIsNullRatherThanAnEmptyMedicine() =
         runTest {
             assertNull(dao.observeById("nobody").first())
         }

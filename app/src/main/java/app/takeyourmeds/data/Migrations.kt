@@ -23,7 +23,7 @@ val APP_MIGRATIONS: Array<Migration> = arrayOf()
  *     val MIGRATION_1_2 =
  *         object : Migration(1, 2) {
  *             override fun migrate(db: SupportSQLiteDatabase) {
- *                 db.execSQL("ALTER TABLE `items` ADD COLUMN `favourite` INTEGER NOT NULL DEFAULT 0")
+ *                 db.execSQL("ALTER TABLE `medicines` ADD COLUMN `favourite` INTEGER NOT NULL DEFAULT 0")
  *             }
  *         }
  *

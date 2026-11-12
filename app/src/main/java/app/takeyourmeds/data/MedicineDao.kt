@@ -22,12 +22,12 @@ import kotlinx.coroutines.flow.Flow
  * requires a coroutine scope, which is why the repository takes one.
  */
 @Dao
-interface ItemDao {
-    @Query("SELECT * FROM items ORDER BY createdAt DESC")
-    fun observeAll(): Flow<List<ItemEntity>>
+interface MedicineDao {
+    @Query("SELECT * FROM medicines ORDER BY createdAt DESC")
+    fun observeAll(): Flow<List<MedicineEntity>>
 
-    @Query("SELECT * FROM items WHERE id = :id")
-    fun observeById(id: String): Flow<ItemEntity?>
+    @Query("SELECT * FROM medicines WHERE id = :id")
+    fun observeById(id: String): Flow<MedicineEntity?>
 
     /**
      * A one-shot read, for code with no UI to update — a worker deciding whether
@@ -35,23 +35,23 @@ interface ItemDao {
      * flow's first emission is a subscription that has to be torn down again, and in a worker that
      * is a lifecycle to get wrong.
      */
-    @Query("SELECT * FROM items ORDER BY createdAt DESC")
-    suspend fun all(): List<ItemEntity>
+    @Query("SELECT * FROM medicines ORDER BY createdAt DESC")
+    suspend fun all(): List<MedicineEntity>
 
-    @Query("SELECT COUNT(*) FROM items")
+    @Query("SELECT COUNT(*) FROM medicines")
     suspend fun count(): Int
 
     // REPLACE rather than ABORT because the editor saves an edited row through here too. With a
     // UUID primary key a conflict only happens when it is genuinely the same row.
     @Insert(onConflict = OnConflictStrategy.REPLACE)
-    suspend fun insert(item: ItemEntity)
+    suspend fun insert(medicine: MedicineEntity)
 
     @Update
-    suspend fun update(item: ItemEntity)
+    suspend fun update(medicine: MedicineEntity)
 
     @Delete
-    suspend fun delete(item: ItemEntity)
+    suspend fun delete(medicine: MedicineEntity)
 
-    @Query("DELETE FROM items")
+    @Query("DELETE FROM medicines")
     suspend fun deleteAll()
 }

@@ -11,27 +11,27 @@ class TipAskTest {
 
     private fun due(
         asked: Boolean = false,
-        items: Int = TIP_ASK_AFTER_ITEMS,
+        takenDoses: Int = TIP_ASK_AFTER_TAKEN_DOSES,
         now: Instant = monthLater,
-    ) = tipAskDue(asked, items, installedAt, now)
+    ) = tipAskDue(asked, takenDoses, installedAt, now)
 
     @Test
-    fun `due once installed a month with enough recorded`() {
+    fun `due once installed a month with enough Taken Doses`() {
         assertTrue(due())
     }
 
     @Test
     fun `not due a millisecond short of the month`() {
-        assertFalse(due(items = 1_000, now = monthLater.minusMillis(1)))
+        assertFalse(due(takenDoses = 1_000, now = monthLater.minusMillis(1)))
     }
 
     @Test
-    fun `not due one item short`() {
-        assertFalse(due(items = TIP_ASK_AFTER_ITEMS - 1, now = monthLater.plus(TIP_ASK_AFTER)))
+    fun `not due one Taken Dose short`() {
+        assertFalse(due(takenDoses = TIP_ASK_AFTER_TAKEN_DOSES - 1, now = monthLater.plus(TIP_ASK_AFTER)))
     }
 
     @Test
     fun `never again once answered`() {
-        assertFalse(due(asked = true, items = 1_000, now = monthLater.plus(TIP_ASK_AFTER)))
+        assertFalse(due(asked = true, takenDoses = 1_000, now = monthLater.plus(TIP_ASK_AFTER)))
     }
 }

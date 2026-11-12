@@ -788,8 +788,8 @@ def relaunch() -> None:
 # it is exactly the question "is a top-level destination on screen?" — and [HOME_TAB] is the bar's
 # first item, the one the back stack is rooted at. Naming them here rather than inline is what lets
 # a locale run translate them with the rest of the table.
-TAB_BAR = "Items"
-HOME_TAB = "Items"
+TAB_BAR = "Medicines"
+HOME_TAB = "Medicines"
 
 # The top-level destinations, named so [tap] can tell a tab from anything else it is asked to
 # press. Two things follow from being on this list, and both are about a tab label being a *short*
@@ -1456,30 +1456,30 @@ SCENES = [
     ),
 
     # --- a wiped install: the empty states, which no seeded run can show ------------------------
-    Scene("items-empty", "tab", [("wipe", "")], suite="empty"),
+    Scene("medicines-empty", "tab", [("wipe", "")], suite="empty"),
 
     # --- the tabs ------------------------------------------------------------------------------
-    Scene("items", "tab", []),
-    Scene("items-bottom", "tab", [("swipe_end", "")]),
+    Scene("medicines", "tab", []),
+    Scene("medicines-bottom", "tab", [("swipe_end", "")]),
     Scene("settings", "tab", [("tap", "Settings")]),
     Scene("settings-bottom", "tab", [("tap", "Settings"), ("swipe_end", "")]),
 
     # --- detail screens: no bottom bar, so the navigation-bar inset is the app's own problem ----
-    Scene("item-detail", "detail", [("tap", "First item")]),
+    Scene("medicine-detail", "detail", [("tap", "Metformin")]),
     Scene("support", "detail", [("tap", "Settings"), ("tap", "Help and feedback")]),
     Scene("licences", "detail", [("tap", "Settings"), ("tap", "Open-source licences")]),
     Scene("licences-bottom", "detail", [("tap", "Settings"), ("tap", "Open-source licences"), ("swipe_end", "")]),
 
     # --- forms: the keyboard is an inset too, and this is where `imePadding` is proved ----------
-    Scene("item-editor", "form", [("tap", "Add an item")]),
-    Scene("item-editor-bottom", "form", [("tap", "Add an item"), ("swipe_end", "")]),
+    Scene("medicine-editor", "form", [("tap", "Add a medicine")]),
+    Scene("medicine-editor-bottom", "form", [("tap", "Add a medicine"), ("swipe_end", "")]),
     Scene(
-        "item-editor-keyboard",
+        "medicine-editor-keyboard",
         "form",
         # Focus the first field and wait for the keyboard to finish animating in. This is the scene
         # that catches a window being *panned* instead of resized — the top bar, Save button and all,
         # slides off the top of the screen and only a screenshot shows it.
-        [("tap", "Add an item"), ("tap_field", "0"), ("wait", "1.5")],
+        [("tap", "Add a medicine"), ("tap_field", "0"), ("wait", "1.5")],
     ),
 ]
 

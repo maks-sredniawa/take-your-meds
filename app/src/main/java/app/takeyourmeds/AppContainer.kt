@@ -7,10 +7,12 @@ import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.preferencesDataStore
 import app.takeyourmeds.data.AppPreferences
-import app.takeyourmeds.data.ItemRepository
+import app.takeyourmeds.data.MedicineRepository
 import app.takeyourmeds.data.buildAppDatabase
 import app.takeyourmeds.tip.TipJar
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.flowOf
 import java.time.Instant
 
 /**
@@ -53,7 +55,10 @@ class AppContainer(
      */
     private val database by lazy { buildAppDatabase(appContext) }
 
-    val items by lazy { ItemRepository(database.itemDao()) }
+    val medicines by lazy { MedicineRepository(database.medicineDao()) }
+
+    /** The tip ask's measure of use (ADR-0007). Nothing is Taken before phase 1's `DoseRecord`. */
+    val takenDoseCount: Flow<Int> = flowOf(0)
 
     /**
      * The tip (ADR-0007). Here rather than in a `ViewModel` because a purchase can finish after the

@@ -50,7 +50,7 @@ const val APP_DATABASE_FILE = "takeyourmeds.db"
  * with a fully green test run behind it. Verify an upgrade on a phone, not only in a test.
  */
 @Database(
-    entities = [ItemEntity::class],
+    entities = [MedicineEntity::class],
     version = APP_SCHEMA_VERSION,
     // Room writes the schema JSON these migrations are transcribed from. Committed, and shipped
     // inside the androidTest APK so MigrationTestHelper can read them on the device.
@@ -58,7 +58,7 @@ const val APP_DATABASE_FILE = "takeyourmeds.db"
 )
 @TypeConverters(Converters::class)
 abstract class AppDatabase : RoomDatabase() {
-    abstract fun itemDao(): ItemDao
+    abstract fun medicineDao(): MedicineDao
 }
 
 /**

@@ -2,11 +2,11 @@
   "formatVersion": 1,
   "database": {
     "version": 1,
-    "identityHash": "89bf66f6cadea77f6f908d6671c2cae6",
+    "identityHash": "2a3ed7e22694898abc9cfb93c4f369a6",
     "entities": [
       {
-        "tableName": "items",
-        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` TEXT NOT NULL, `title` TEXT NOT NULL, `notes` TEXT, `createdAt` INTEGER NOT NULL, PRIMARY KEY(`id`))",
+        "tableName": "medicines",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` TEXT NOT NULL, `name` TEXT NOT NULL, `amount` TEXT NOT NULL, `note` TEXT, `createdAt` INTEGER NOT NULL, PRIMARY KEY(`id`))",
         "fields": [
           {
             "fieldPath": "id",
@@ -15,14 +15,20 @@
             "notNull": true
           },
           {
-            "fieldPath": "title",
-            "columnName": "title",
+            "fieldPath": "name",
+            "columnName": "name",
             "affinity": "TEXT",
             "notNull": true
           },
           {
-            "fieldPath": "notes",
-            "columnName": "notes",
+            "fieldPath": "amount",
+            "columnName": "amount",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "note",
+            "columnName": "note",
             "affinity": "TEXT"
           },
           {
@@ -40,20 +46,20 @@
         },
         "indices": [
           {
-            "name": "index_items_createdAt",
+            "name": "index_medicines_createdAt",
             "unique": false,
             "columnNames": [
               "createdAt"
             ],
             "orders": [],
-            "createSql": "CREATE INDEX IF NOT EXISTS `index_items_createdAt` ON `${TABLE_NAME}` (`createdAt`)"
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_medicines_createdAt` ON `${TABLE_NAME}` (`createdAt`)"
           }
         ]
       }
     ],
     "setupQueries": [
       "CREATE TABLE IF NOT EXISTS room_master_table (id INTEGER PRIMARY KEY,identity_hash TEXT)",
-      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, '89bf66f6cadea77f6f908d6671c2cae6')"
+      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, '2a3ed7e22694898abc9cfb93c4f369a6')"
     ]
   }
 }

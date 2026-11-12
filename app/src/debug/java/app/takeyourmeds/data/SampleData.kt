@@ -1,33 +1,35 @@
 package app.takeyourmeds.data
 
+import java.time.Instant
+
 /**
- * Rows to develop and screenshot against. Debug-only.
- *
- * **Deterministic on purpose** — the same titles in the same order every time. A seeder that
- * randomises produces a different screenshot on every run, which makes an image diff useless and
- * turns a screenshot suite from a check into decoration.
+ * Rows to develop and screenshot against. **Deterministic on purpose**, creation times included: a
+ * seeder that varies produces a different screenshot on every run, which makes an image diff useless.
  */
 object SampleData {
-    private val titles =
+    private val medicines =
         listOf(
-            "First item",
-            "Second item",
-            "An item with a longer title, to see how a row wraps",
+            MedicineEntity(name = "Metformin", amount = "1 tablet", note = "With breakfast"),
+            MedicineEntity(name = "Vitamin D", amount = "1 capsule"),
+            MedicineEntity(name = "Salbutamol inhaler", amount = "2 puffs"),
+            MedicineEntity(
+                name = "Amoxicillin oral suspension, the bottle from the weekend pharmacy",
+                amount = "5 ml",
+                note = "The bottle in the fridge",
+            ),
+            MedicineEntity(name = "Magnesium", amount = "2 tablets", note = "In the evening"),
         )
 
-    suspend fun seed(repository: ItemRepository) {
+    private val newest = Instant.parse("2026-11-01T09:00:00Z")
+
+    suspend fun seed(repository: MedicineRepository) {
         wipe(repository)
-        for ((index, title) in titles.withIndex()) {
-            repository.save(
-                ItemEntity(
-                    title = title,
-                    notes = if (index == 0) "Some notes, so the list has two lines in it." else null,
-                ),
-            )
+        medicines.forEachIndexed { index, medicine ->
+            repository.save(medicine.copy(createdAt = newest.minusSeconds(index.toLong())))
         }
     }
 
-    suspend fun wipe(repository: ItemRepository) {
-        for (item in repository.all()) repository.delete(item)
+    suspend fun wipe(repository: MedicineRepository) {
+        for (medicine in repository.all()) repository.delete(medicine)
     }
 }
