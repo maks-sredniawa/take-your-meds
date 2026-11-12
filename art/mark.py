@@ -1,8 +1,8 @@
 """The mark: the single definition of this app's identity, a capsule with a check punched through it.
 
-Both generators import it (`make-launcher-icon.py`
-emits it as `VectorDrawable` path data, `make-feature-graphic.py` rasterises it with PIL), so
-whatever you put here cannot drift into being two different marks.
+Both generators import it (`make-launcher-icon.py` emits it as `VectorDrawable` path data,
+`make-feature-graphic.py` rasterises it with PIL), so whatever you put here cannot drift into being
+two different marks.
 
 The way to replace it: draw or generate a concept image, run `python3 art/trace-mark.py <image>`,
 and paste the curves it prints over MARK and HOLE below. Nothing else in the pipeline changes.
@@ -31,7 +31,7 @@ from dataclasses import dataclass
 # `primary` darkened for contrast as the ground and it read as mud; then a gradient, whose middle is
 # the same mud at 44dp. What survived was a flat mid-tone role (`surfaceVariant`) under a light-ish
 # ink (`primary`). Judge the ground at launcher size on a real home screen, light and dark.
-GROUND = (0x29, 0x69, 0x55)  # the light scheme's `primary`; green stays green when darkened
+GROUND = (0x29, 0x69, 0x55)  # the light scheme's `primary`
 MARK_INK = (0xFB, 0xF9, 0xF1)  # the light scheme's `surface`
 
 

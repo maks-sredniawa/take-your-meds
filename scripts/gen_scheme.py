@@ -19,7 +19,7 @@ from hct import TonalPalette, argb_from_hex, hex_from_argb, xyz_from_argb
 
 SEED_PRIMARY = "3E7D68"    # Sage
 SEED_SECONDARY = "6A7F76"  # Grey sage
-SEED_TERTIARY = "A87A1E"   # Amber: Missed and the late-Reminder banner, caution without alarm red
+SEED_TERTIARY = "A87A1E"   # Amber: caution without alarm red
 SEED_NEUTRAL = "E3E1DA"    # Warm paper
 
 PACKAGE = "app.takeyourmeds"  # the Kotlin package root; bootstrap.py rewrites this
