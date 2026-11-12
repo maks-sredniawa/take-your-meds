@@ -53,7 +53,7 @@
     <string name="settings_restore">Przywróć ustawienia domyślne</string>
     <string name="settings_restore_hint">Motyw, kolory, przypomnienia i język</string>
     <string name="settings_restore_confirm_title">Przywrócić ustawienia domyślne?</string>
-    <string name="settings_restore_confirm_body">Motyw, kolory, przypomnienia i język wrócą do wartości początkowych. Twoje rzeczy i kopie zapasowe zostaną bez zmian. Tego nie można cofnąć.</string>
+    <string name="settings_restore_confirm_body">Motyw, kolory, przypomnienia i język wrócą do wartości początkowych. Twoje rzeczy zostaną bez zmian. Tego nie można cofnąć.</string>
     <string name="settings_restore_confirm">Przywróć</string>
     <string name="settings_about">O aplikacji</string>
     <string name="settings_support">Pomoc i opinie</string>

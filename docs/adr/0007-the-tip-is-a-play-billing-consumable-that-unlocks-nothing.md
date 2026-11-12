@@ -34,8 +34,9 @@ Billing, and it unlocks nothing.**
   Play, the debug `applicationId` or products not yet created all leave it absent rather than broken.
   And one card on the home screen, **once per install**, to someone who has had the app 30 days and
   recorded ten items (`tip/TipAsk.kt`); either button answers it for good on that install. The
-  answer is a preference, and `AppBackupAgent` backs up only the database and the thumbnails
-  (ADR-0005), so a user who moves phones is asked once more, a month after the move.
+  answer is a preference, and `AppBackupAgent` backs up only the database (ADR-0005;
+  the thumbnails left with the photo pipeline, 2026-11-12), so a user who moves phones is asked
+  once more, a month after the move.
 - **Prices come from Play only.** The UI shows `formattedPrice`; a literal "5 zł" would be wrong
   everywhere outside Poland.
 - **The wording is "tip the developer"**, never "donate" or "support the project": it is a payment to
