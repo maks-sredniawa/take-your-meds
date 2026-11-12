@@ -17,7 +17,7 @@ import app.takeyourmeds.R
  * cannot share a level. The direction is what makes the choice permanent: **Android lets the user
  * lower a channel and never lets the app raise one again.** Creating a channel at `IMPORTANCE_LOW`
  * is making the mute decision on their behalf, in the one direction that cannot be undone. Start at
- * `DEFAULT` unless you have a reason.
+ * `DEFAULT` unless you have a reason; [Reminders] is `HIGH` for the one in ADR-0010.
  *
  * Kotlin note: enum entries carrying constructor arguments make this a small lookup table rather
  * than the bare constants a JS enum gives you — the same shape as `TopLevelDestination`.
@@ -39,7 +39,7 @@ enum class ReminderChannel(
         "reminders",
         R.string.channel_reminders_name,
         R.string.channel_reminders_description,
-        NotificationManager.IMPORTANCE_DEFAULT,
+        NotificationManager.IMPORTANCE_HIGH,
     ),
 }
 
