@@ -66,7 +66,7 @@ amendment to ADR-0002 says where.
 | --- | --- | --- | --- |
 | **A** | **The strip** — photos and the manual backup out, the agent down to the database | `refactor:` | — |
 | **B** | **Medicines** — the domain, its screens, both languages, the seeder and the nightly's scenes | `feat:` | A |
-| **C** | **The `reminders` channel at high importance** | `feat:` | — |
+| **C** | **The `reminders` channel at high importance** | `feat:` | — **done 2026-11-12** |
 | **D** | **The palette and the mark** — and the app on maksforge.com | `feat:` | the owner's choice — **done 2026-11-12** |
 
 No gate: nothing in this phase can veto the rest. Every removal is the template's own documented
@@ -147,9 +147,10 @@ ADR-0007's measure is use, and before phase 1 nothing is used. ADR-0007 gets the
 
 ## 4. The `reminders` channel (C)
 
-`ReminderChannels.kt` creates `reminders` at `IMPORTANCE_HIGH` (ADR-0010), so a Reminder heads up
-and sounds. Same id: nothing has been uploaded, and a phone holding an earlier build is reinstalled
-rather than upgraded, because importance cannot be raised on an existing channel.
+**Done 2026-11-12.** `ReminderChannels.kt` creates `reminders` at `IMPORTANCE_HIGH` (ADR-0010), so a
+Reminder heads up and sounds. Same id: nothing has been uploaded, and a phone holding an earlier
+build is reinstalled rather than upgraded, because importance cannot be raised on an existing
+channel.
 
 ## 5. The palette and the mark (D)
 
@@ -199,8 +200,8 @@ On the emulator (`emulator-test`), fresh install of the debug build unless the r
 
 | # | Reading | Command | Result |
 | --- | --- | --- | --- |
-| R1a | The merged manifest asks for no `CAMERA` | `python3 scripts/aab-permissions.py` against `bundleRelease` | |
-| R1b | The merged manifest carries no `FileProvider` and no `SEND` or `SEND_MULTIPLE` query (`SENDTO` stays: *Report a problem*) | `./gradlew assembleDebug`, then `$ANDROID_HOME/cmdline-tools/latest/bin/apkanalyzer manifest print app/build/outputs/apk/debug/app-debug.apk \| grep -E 'FileProvider\|action\.SEND(_MULTIPLE)?"'` prints nothing | |
+| R1a | The merged manifest asks for no `CAMERA` | `python3 scripts/aab-permissions.py` against `bundleRelease` | **8 permissions, no `CAMERA`** (against `bundleDebug`: no upload key exists yet, 2026-11-12) |
+| R1b | The merged manifest carries no `FileProvider` and no `SEND` or `SEND_MULTIPLE` query (`SENDTO` stays: *Report a problem*) | `./gradlew assembleDebug`, then `$ANDROID_HOME/cmdline-tools/latest/bin/apkanalyzer manifest print app/build/outputs/apk/debug/app-debug.apk \| grep -E 'FileProvider\|action\.SEND(_MULTIPLE)?"'` prints nothing | **Nothing: no `FileProvider`, no `SEND` query** (2026-11-12) |
 | R2 | `reminders` exists at importance 4 (HIGH) on a fresh install, once the sweep has run: the sweep creates it, not process start | install, open the app once, read the sweep's job id from `adb shell dumpsys jobscheduler`, `adb shell cmd jobscheduler run -f -n androidx.work.systemjobscheduler <pkg> <id>`, confirm `WM-WorkerWrapper: Starting work` in logcat (`CLAUDE.md`, *Environment notes*), then `adb shell dumpsys notification --noredact \| grep "mId='reminders'"` | **mImportance=4** (API 36 and API 26 emulators, 2026-11-12, PR #6's run) |
 | R3 | Medicines survive a backup and restore through the agent | add two, `adb shell bmgr backupnow <pkg>`, uninstall, reinstall, `adb shell bmgr restore <token> <pkg>`, open the app | |
 | R4 | The Medicines screens render edge to edge in both languages, light and dark | `python3 scripts/edge-to-edge.py` | |
