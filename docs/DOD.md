@@ -40,6 +40,9 @@ close. Whenever `APP_SCHEMA_VERSION` changes, all five hold before the release g
       and write the reason beside `minSdk` in `app/build.gradle.kts`, where the next person to touch it reads it.
 - [x] **Replace the placeholder mark.** A capsule with a check punched through it, 2026-11-12;
       provenance in `art/README.md`.
+- [ ] **Read the themed launcher icon.** Unthemed is read (API 33 emulator, 2026-11-12); themed is
+      not, as the emulator's launcher tints no icon: it needs Pixel Launcher or a real phone.
+      Phase 0, R5.
 - [x] **Replace the placeholder domain.** Items became Medicines with an Amount and a Note,
       2026-11-12; schema 1 redefined, not migrated. Phase 0, §2.
 - [x] **Rewrite `scripts/edge-to-edge.py`'s SCENES.** They walk the Medicines list, detail and

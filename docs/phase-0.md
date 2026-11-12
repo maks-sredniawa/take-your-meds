@@ -3,9 +3,9 @@
 Sequence lives in [`PLAN.md`](PLAN.md); the live worklist lives in [`DOD.md`](DOD.md). Relies on
 ADR-0001 (schema 1 is redefined, not migrated: nothing has shipped), ADR-0005 and ADR-0010 (the
 `reminders` channel), and amends ADR-0002, ADR-0005 and ADR-0007. ADR-0003 needs no phase-0
-amendment, though `PLAN.md` lists one: its 2026-11-11 amendment already records the sweep re-arming
-the alarm, and raising the channel is ADR-0010's decision. [`CONTEXT.md`](../CONTEXT.md) is
-owed nothing: Medicine, Amount and Note are already there, and this phase uses no other domain word.
+amendment: its 2026-11-11 amendment already records the sweep re-arming the alarm, and raising the
+channel is ADR-0010's decision. [`CONTEXT.md`](../CONTEXT.md) is owed nothing: Medicine, Amount and
+Note are already there, and this phase uses no other domain word.
 
 **What closing this phase means.** Today the app is the template renamed: a list of Items with a
 title, notes and a picture, a manual backup screen, and a quiet reminders channel. After it, the app
@@ -15,9 +15,9 @@ database alone; the `reminders` channel exists at high importance on a fresh ins
 launcher, the Play icon and maksforge.com show the app's own mark in its own palette. Every one of
 those is a question a device or an artifact answers (*Readings*).
 
-`PLAN.md`'s paragraph holds, with one correction besides ADR-0003 above: the tip ask's measure is
-ten Taken Doses, and Taken Doses do not exist until phase 1's `DoseRecord`. Phase 0 renames the
-measure and moves the card; phase 1 gives it a count (§3).
+`PLAN.md`'s paragraph holds, with one correction: the tip ask's measure is ten Taken Doses, and
+Taken Doses do not exist until phase 1's `DoseRecord`. Phase 0 renames the measure and moves the
+card; phase 1 gives it a count (§3).
 
 ---
 
