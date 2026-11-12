@@ -60,6 +60,7 @@ MARGIN = CROP + VISIBLE_MARGIN  # 108px from the canvas edge to any content, bot
 MARK_SIZE = 190
 MARK_CY = 215
 MIN_GAP = 24  # the copy must clear the mark by this much; render() checks it
+WORDMARK_MAX = 104  # a longer app name shrinks below this to clear the mark
 
 FONT_DIR = Path("/usr/share/fonts/truetype/noto")
 FONT_BOLD = FONT_DIR / "NotoSans-Bold.ttf"
@@ -161,7 +162,10 @@ def render(out_file, tagline_text, features_text):
     draw_mark(base, cx=W - MARGIN - MARK_SIZE / 2, cy=MARK_CY, size=MARK_SIZE)
 
     d = ImageDraw.Draw(base)
-    wordmark = ImageFont.truetype(str(FONT_BOLD), 104 * S)
+    room = mark_left - MIN_GAP - MARGIN
+    full = ImageFont.truetype(str(FONT_BOLD), WORDMARK_MAX * S)
+    wordmark_size = min(WORDMARK_MAX, int(WORDMARK_MAX * room * S / d.textlength(APP_NAME, font=full)))
+    wordmark = ImageFont.truetype(str(FONT_BOLD), wordmark_size * S)
     tagline = ImageFont.truetype(str(FONT_REG), 31 * S)
     features = ImageFont.truetype(str(FONT_REG), 25 * S)
 

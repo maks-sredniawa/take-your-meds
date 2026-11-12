@@ -17,10 +17,10 @@ is the one with the widest reach.
 import sys
 from hct import TonalPalette, argb_from_hex, hex_from_argb, xyz_from_argb
 
-SEED_PRIMARY = "4C6FA5"    # Slate blue
-SEED_SECONDARY = "6B7A8F"  # Muted steel
-SEED_TERTIARY = "9A6BA5"   # Heather
-SEED_NEUTRAL = "DCDFE4"    # Cool grey
+SEED_PRIMARY = "3E7D68"    # Sage
+SEED_SECONDARY = "6A7F76"  # Grey sage
+SEED_TERTIARY = "A87A1E"   # Amber: Missed and the late-Reminder banner, caution without alarm red
+SEED_NEUTRAL = "E3E1DA"    # Warm paper
 
 PACKAGE = "app.takeyourmeds"  # the Kotlin package root; bootstrap.py rewrites this
 
