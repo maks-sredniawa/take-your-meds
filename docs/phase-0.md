@@ -2,7 +2,9 @@
 
 Sequence lives in [`PLAN.md`](PLAN.md); the live worklist lives in [`DOD.md`](DOD.md). Relies on
 ADR-0001 (schema 1 is redefined, not migrated: nothing has shipped), ADR-0005 and ADR-0010 (the
-`reminders` channel), and amends ADR-0002, ADR-0005 and ADR-0007. [`CONTEXT.md`](../CONTEXT.md) is
+`reminders` channel), and amends ADR-0002, ADR-0005 and ADR-0007. ADR-0003 needs no phase-0
+amendment, though `PLAN.md` lists one: its 2026-11-11 amendment already records the sweep re-arming
+the alarm, and raising the channel is ADR-0010's decision. [`CONTEXT.md`](../CONTEXT.md) is
 owed nothing: Medicine, Amount and Note are already there, and this phase uses no other domain word.
 
 **What closing this phase means.** Today the app is the template renamed: a list of Items with a
@@ -13,9 +15,9 @@ database alone; the `reminders` channel exists at high importance on a fresh ins
 launcher, the Play icon and maksforge.com show the app's own mark in its own palette. Every one of
 those is a question a device or an artifact answers (*Readings*).
 
-`PLAN.md`'s paragraph holds, with one correction: the tip ask's measure is ten Taken Doses, and
-Taken Doses do not exist until phase 1's `DoseRecord`. Phase 0 renames the measure and moves the card;
-phase 1 gives it a count (§3).
+`PLAN.md`'s paragraph holds, with one correction besides ADR-0003 above: the tip ask's measure is
+ten Taken Doses, and Taken Doses do not exist until phase 1's `DoseRecord`. Phase 0 renames the
+measure and moves the card; phase 1 gives it a count (§3).
 
 ---
 
@@ -86,6 +88,7 @@ departure: `AppBackupAgent` stays, because static backup rules cannot checkpoint
 | --- | --- |
 | `media/`, `MediaFilesTest`, `res/xml/file_paths.xml`, the `FileProvider`; `coil.compose`, `exifinterface` | `AppBackupAgent`, `onFullBackup` staging only the checkpointed database |
 | `ui/backup/`, Settings' *Backup* row, the `backup_*` strings | `data/backup/WalCheckpoint.kt` and the database install on restore |
+| `FileSwap.kt`'s media half (`mediaFilesIn`, `installFile`, the media `.part` sweep); the `test/…/data/backup/` tests of what goes (`BackupManifestTest`, `BackupRestorerTest`, `BackupScopeTest`, `AutoBackupTest`'s thumbnail-budget and marker cases) | `FileSwap.kt`'s `installDatabase` |
 | `BackupExporter`, `BackupManifest`, `BackupRestorer`, `BackupScope`; the thumbnail budget and the auto-backup and over-quota markers, whose only reader was the Backup screen | `kotlinx.serialization` (Navigation 3) |
 | `ui/common/Share.kt`, `ShareBook.kt` and their tests, `revokeUnpickedShare()`, `ShareChosenReceiver`, the `SEND` `<queries>` | `ui/common/Intents.kt`, `Surfaces.kt` |
 | `scripts/upgrade-diff.py`; `ManifestWiringTest`'s share case | `ManifestWiringTest`'s boot and update cases |
@@ -107,9 +110,11 @@ sentences in the same commit (`optional-modules.md`, *Around the code* 4).
 | `createdAt` | `Instant` | indexed; the list's order |
 
 **Schema 1 is redefined, not migrated.** `APP_SCHEMA_VERSION` stays 1 and `app/schemas/*/1.json` is
-re-exported: no install holds the `items` shape, so there is nothing to migrate from. This is the
-last time that is true; ADR-0001's rule binds from the first upload, and `PLAN.md` brings its 1.0
-clause forward to phase 2.
+re-exported: nothing has shipped, so there is nothing to migrate from. This is the last time that is
+true; ADR-0001's rule binds from the first upload, and `PLAN.md` brings its 1.0 clause forward to
+phase 2. A device or emulator holding the template's schema 1 uninstalls the app before B's build
+goes on, rather than upgrading: the shape changes while the version stays 1, so Room fails the
+identity-hash check on open, and the destructive fallback does not cover that.
 
 `ui/items/` becomes `ui/medicines/` (list, detail, editor), the routes follow, and the tab is
 *Medicines* until phase 1 puts Today in front of it. The debug seeder seeds a handful of Medicines;
@@ -165,8 +170,7 @@ already said `status: building`.
 
 No safety value enters in this phase: a Medicine is stored text, and the first value that decides
 whether a Reminder fires is phase 1's Dose derivation. `TipAskTest` follows the rename, and
-`ItemDaoTest` becomes `MedicineDaoTest`, which keeps CI's instrumented job from failing on zero
-tests now that `MediaFilesTest` and the share test are gone.
+`ItemDaoTest` follows it to `MedicineDaoTest`.
 
 ## Documents this phase amends
 
@@ -195,8 +199,9 @@ On the emulator (`emulator-test`), fresh install of the debug build unless the r
 
 | # | Reading | Command | Result |
 | --- | --- | --- | --- |
-| R1 | The merged manifest carries no `FileProvider`, no `SEND` query and no `CAMERA` | `python3 scripts/aab-permissions.py` against `bundleRelease` | |
-| R2 | `reminders` exists at importance 4 (HIGH) on a fresh install | `adb shell dumpsys notification \| grep -A3 'id=reminders'` | |
+| R1a | The merged manifest asks for no `CAMERA` | `python3 scripts/aab-permissions.py` against `bundleRelease` | |
+| R1b | The merged manifest carries no `FileProvider` and no `SEND` or `SEND_MULTIPLE` query (`SENDTO` stays: *Report a problem*) | `./gradlew assembleDebug`, then `$ANDROID_HOME/cmdline-tools/latest/bin/apkanalyzer manifest print app/build/outputs/apk/debug/app-debug.apk \| grep -E 'FileProvider\|action\.SEND(_MULTIPLE)?"'` prints nothing | |
+| R2 | `reminders` exists at importance 4 (HIGH) on a fresh install, once the sweep has run: the sweep creates it, not process start | install, open the app once, read the sweep's job id from `adb shell dumpsys jobscheduler`, `adb shell cmd jobscheduler run -f -n androidx.work.systemjobscheduler <pkg> <id>`, confirm `WM-WorkerWrapper: Starting work` in logcat (`CLAUDE.md`, *Environment notes*), then `adb shell dumpsys notification --noredact \| grep "mId='reminders'"` | **mImportance=4** (API 36 and API 26 emulators, 2026-11-12, PR #6's run) |
 | R3 | Medicines survive a backup and restore through the agent | add two, `adb shell bmgr backupnow <pkg>`, uninstall, reinstall, `adb shell bmgr restore <token> <pkg>`, open the app | |
 | R4 | The Medicines screens render edge to edge in both languages, light and dark | `python3 scripts/edge-to-edge.py` | |
 | R5 | The launcher shows the new mark, themed and unthemed | screenshot of the app drawer, API 33+ themed icons on | **Unthemed: the mark, check as a hole** (API 33 emulator, 2026-11-12). **Themed: not readable** — the emulator's launcher tinted no icon at all; needs Pixel Launcher or a real phone |
