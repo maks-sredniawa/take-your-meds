@@ -16,20 +16,21 @@ was extracted from and the first app built from it settled on exactly this split
 
 ## Status
 
-- [ ] **Phase 0** — Skeleton: Items become Medicines with an Amount and a Note; the photo pipeline
+- [x] **Phase 0** — Skeleton, done 2026-11-12 ([`phase-0.md`](phase-0.md)): Items become Medicines with an Amount and a Note; the photo pipeline
   and the manual backup export/restore stripped, `AppBackupAgent` kept for the database alone (Room
   and the reminder machinery stay); the `reminders` channel raised to high importance; the tip ask
-  counted in Taken Doses; the palette and the mark. ADR-0002, 0003, 0005 and 0007 get their
-  amendments as their modules change
+  counted in Taken Doses; the palette and the mark. ADR-0002, 0005 and 0007 amended; ADR-0003 needed
+  none. The themed launcher icon is still unread: the emulator's launcher tints no icon
 - [ ] **Phase P** — The pipeline: upload key, Play entry, Play secrets, a green internal upload
 - [ ] **Phase 1** — The mechanism on the phone: a Medicine with one or more Times every day; a
   Reminder at the minute through an exact alarm, falling back when the grant is refused (ADR-0010);
-  Taken and Snooze on the notification; Today showing each Dose as Due or Taken (ADR-0009).
+  Taken and Snooze on the notification; Today showing each Dose as Due or Taken (ADR-0009); how
+  old a Due Dose may be before a re-plan stops re-posting its Reminder, since Missed waits for phase 2.
   Asks: notifications and exact alarms, when the first Schedule is saved. Readings: a Reminder on
   time in deep Doze, after a reboot, after an app update, and with the exact-alarm grant refused
 - [ ] **Phase 2** — Safe for a stranger ← **the door: closed testing opens here.** The Follow-up and
   Missed; Skip; editing a Schedule without rewriting past Doses, and deleting a Medicine with its
-  answered Doses kept in History; the setup screen for battery optimisation and autostart, with what
+  answered Doses kept in History, behind a confirmation that says it cannot be undone (`CONTEXT.md`); the setup screen for battery optimisation and autostart, with what
   a refusal costs; first run; the
   not-a-medical-device line (ADR-0011). It freezes the `applicationId`, `minSdk` and the permission set,
   and brings ADR-0001's 1.0 rule forward to the door: a tester's Dose history is real, so every
