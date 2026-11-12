@@ -40,8 +40,9 @@ point is answering "did I take it?" about any day.
 ## Consequences
 
 - Today and History are queries plus a derivation, not a table read. A Dose's state is a pure function
-  of Schedules, `DoseRecord`s, a day and the clock, and its Reminder time adds the `Snooze` rows; and it is the safety value this app has: **the phase that
-  introduces it introduces its test** (`docs/PLAN.md`, rule 3: *A phase proves itself on the phone,
+  of Schedules, `DoseRecord`s, a day and the clock, and its Reminder time also reads the `Snooze`
+  rows. That function is the safety value this app has: **the phase that introduces it introduces its
+  test** (`docs/PLAN.md`, rule 3: *A phase proves itself on the phone,
   not in a test*), including a Time near midnight, a daylight-saving change, a time-zone change and a
   Schedule edited mid-day.
 - Schedule edits never touch `DoseRecord`, so the first migration (phase 3) is additive.
