@@ -1,15 +1,11 @@
 package app.takeyourmeds.ui.items
 
-import androidx.activity.compose.rememberLauncherForActivityResult
-import androidx.activity.result.PickVisualMediaRequest
-import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
-import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -41,13 +37,6 @@ fun ItemEditorScreen(
         if (state.saved) onDone()
     }
 
-    // Photo Picker, not a storage permission. It hands back a Uri for one file the user chose, needs
-    // no permission at all, and is the only image path Play does not ask questions about.
-    val pickImage =
-        rememberLauncherForActivityResult(ActivityResultContracts.PickVisualMedia()) { uri ->
-            if (uri != null) viewModel.setImage(uri)
-        }
-
     DetailScaffold(
         title = stringResource(if (itemId == null) R.string.item_add else R.string.action_edit),
         onBack = onDone,
@@ -70,16 +59,6 @@ fun ItemEditorScreen(
                 minLines = 3,
                 modifier = Modifier.fillMaxWidth().padding(top = Spacing.snug),
             )
-            OutlinedButton(
-                onClick = {
-                    pickImage.launch(
-                        PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly),
-                    )
-                },
-                modifier = Modifier.fillMaxWidth().padding(top = Spacing.snug),
-            ) {
-                Text(stringResource(R.string.item_pick_image))
-            }
             Button(
                 onClick = viewModel::save,
                 enabled = state.canSave,

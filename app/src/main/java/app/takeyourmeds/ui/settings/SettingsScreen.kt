@@ -54,7 +54,6 @@ import app.takeyourmeds.work.rememberNotificationPermissionAsk
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SettingsScreen(
-    onOpenBackup: () -> Unit,
     onOpenLicences: () -> Unit,
     onOpenSupport: () -> Unit,
     modifier: Modifier = Modifier,
@@ -166,7 +165,6 @@ fun SettingsScreen(
             }
 
             SectionHeader(stringResource(R.string.settings_data))
-            LinkRow(stringResource(R.string.settings_backup), LinkTarget.Inside, onClick = onOpenBackup)
             RestoreDefaultsRow(onRestore = viewModel::restoreDefaults)
 
             SectionHeader(stringResource(R.string.settings_about))

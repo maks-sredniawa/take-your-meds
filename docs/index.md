@@ -31,7 +31,7 @@ what it does not do. This section costs nothing and is the one people remember.>
 ## Your data stays on your device
 
 There is no backend to send anything to. Everything lives in the app's private storage on your phone,
-and backups go to storage you choose. The details are in the
+and Android's own backup goes to your own Google account. The details are in the
 
 **[Privacy Policy](privacy-policy.md)**.
 

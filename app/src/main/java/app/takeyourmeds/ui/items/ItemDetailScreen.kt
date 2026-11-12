@@ -1,7 +1,6 @@
 package app.takeyourmeds.ui.items
 
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
@@ -23,7 +22,6 @@ import app.takeyourmeds.R
 import app.takeyourmeds.theme.Spacing
 import app.takeyourmeds.ui.appViewModelExtras
 import app.takeyourmeds.ui.common.DetailScaffold
-import coil3.compose.AsyncImage
 
 @Composable
 fun ItemDetailScreen(
@@ -37,10 +35,10 @@ fun ItemDetailScreen(
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
 
-    // A row can vanish underneath this screen — deleted here, or restored over by a backup. Leaving
-    // rather than rendering an empty detail screen is the honest response, and it is a
-    // `LaunchedEffect` rather than an `if` in the body because navigating during composition is a
-    // side effect and Compose will run the body more than once.
+    // A row can vanish underneath this screen when it is deleted here. Leaving rather than rendering
+    // an empty detail screen is the honest response, and it is a `LaunchedEffect` rather than an
+    // `if` in the body because navigating during composition is a side effect and Compose will run
+    // the body more than once.
     LaunchedEffect(state.gone) {
         if (state.gone) onDeleted()
     }
@@ -63,16 +61,6 @@ fun ItemDetailScreen(
             Column(
                 modifier = contentModifier.verticalScroll(rememberScrollState()).padding(Spacing.base),
             ) {
-                item.imagePath?.let { path ->
-                    // Coil renders a missing file as its error painter rather than throwing, which
-                    // is the "missing media is a placeholder, never a crash" house rule for free. A
-                    // restored backup may legitimately lack the image files.
-                    AsyncImage(
-                        model = viewModel.resolve(path),
-                        contentDescription = null,
-                        modifier = Modifier.fillMaxWidth().padding(bottom = Spacing.base),
-                    )
-                }
                 item.notes?.takeIf(String::isNotBlank)?.let { notes ->
                     Text(notes, style = MaterialTheme.typography.bodyLarge)
                 }

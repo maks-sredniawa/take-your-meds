@@ -318,20 +318,8 @@ dependencies {
     // Consumes a cleared tip whenever the app comes to the foreground — see MainApplication.
     implementation(libs.androidx.lifecycle.process)
 
-    // The export manifest inside a backup zip. JSON rather than a hand-rolled format, because the
-    // manifest is what a restore's promise is sourced from. Enums serialise by *name*, which is the
-    // same rule the database's converters follow.
+    // Reads the bundled licences report on the Licences screen.
     implementation(libs.kotlinx.serialization.json)
-
-    // Reading the camera's orientation tag so it can be baked into the pixels. The androidx one,
-    // not android.media.ExifInterface — it reads from an InputStream, which is what a content://
-    // Uri from the photo picker gives you.
-    implementation(libs.androidx.exifinterface)
-    androidTestImplementation(libs.androidx.exifinterface)
-
-    // Images on screen. Coil renders a missing file as its `error` painter rather than throwing,
-    // which is the "missing media is a placeholder, never a crash" house rule for free.
-    implementation(libs.coil.compose)
 
     testImplementation(libs.junit)
     testImplementation(libs.kotlinx.coroutines.test)

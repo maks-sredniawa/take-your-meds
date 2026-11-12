@@ -9,13 +9,11 @@ import androidx.lifecycle.viewmodel.viewModelFactory
 import app.takeyourmeds.MainApplication
 import app.takeyourmeds.data.ItemEntity
 import app.takeyourmeds.data.ItemRepository
-import app.takeyourmeds.media.MediaFiles
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
-import java.io.File
 
 data class ItemDetailUiState(
     val item: ItemEntity? = null,
@@ -31,7 +29,6 @@ data class ItemDetailUiState(
 class ItemDetailViewModel(
     itemId: String,
     private val repository: ItemRepository,
-    private val media: MediaFiles,
 ) : ViewModel() {
     private var current: ItemEntity? = null
 
@@ -43,14 +40,8 @@ class ItemDetailViewModel(
                 ItemDetailUiState(item = item, gone = item == null)
             }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), ItemDetailUiState())
 
-    /** Absolute path for a stored relative one. The file may legitimately be missing. */
-    fun resolve(relativePath: String): File = media.resolve(relativePath)
-
     fun delete() {
         val item = current ?: return
-        // `viewModelScope` so the coroutine is cancelled if the screen goes away — except that a
-        // delete that is half done is worse than one that is not started, which is why the repository
-        // does the file and the row in an order whose interruption is survivable.
         viewModelScope.launch { repository.delete(item) }
     }
 
@@ -64,7 +55,7 @@ class ItemDetailViewModel(
             viewModelFactory {
                 initializer {
                     val app = this[APPLICATION_KEY] as MainApplication
-                    ItemDetailViewModel(itemId, app.container.items, app.container.media)
+                    ItemDetailViewModel(itemId, app.container.items)
                 }
             }
     }

@@ -6,24 +6,12 @@ import java.time.Instant
 import java.time.ZoneOffset
 import java.time.format.DateTimeFormatter
 
-/** Where preserved copies land, relative to `filesDir` — alongside the media directories. */
+/** Where preserved copies land, relative to `filesDir`. */
 const val PRESERVED_DIRECTORY = "preserved"
 
 /** How a preserved copy is named. Settings matches on these to find them again. */
 internal const val PRESERVED_PREFIX = "db-"
 internal const val PRESERVED_SUFFIX = ".db"
-
-/**
- * How a **pre-restore snapshot** is named (ADR-0005) — the other occupant of `preserved/`, and the
- * one with the opposite properties: current schema, restorable in one tap, where a wipe copy is at a
- * stale schema and unrestorable by design.
- *
- * Named for what it is rather than for its scope, so a listing can say which row is which. It sits
- * beside the wipe copies deliberately: `preserved/` is the directory this app never prunes, and both
- * occupants are recovery artifacts.
- */
-internal const val SNAPSHOT_PREFIX = "before-restore-"
-internal const val SNAPSHOT_SUFFIX = ".zip"
 
 /**
  * In WAL mode the most recent writes may live only in a sidecar, so a copy of the `.db` alone can be

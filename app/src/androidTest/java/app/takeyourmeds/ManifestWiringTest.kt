@@ -6,7 +6,6 @@ import android.content.Intent
 import android.content.pm.PackageManager
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.platform.app.InstrumentationRegistry
-import app.takeyourmeds.ui.common.ShareChosenReceiver
 import app.takeyourmeds.work.BootReceiver
 import app.takeyourmeds.work.PackageReplacedReceiver
 import org.junit.Assert.assertFalse
@@ -41,12 +40,6 @@ class ManifestWiringTest {
                 .requestedPermissions
                 .orEmpty()
         assertTrue(Manifest.permission.RECEIVE_BOOT_COMPLETED in requested)
-    }
-
-    @Test
-    fun the_share_receiver_is_private() {
-        val receiver = ComponentName(context, ShareChosenReceiver::class.java)
-        assertFalse(context.packageManager.getReceiverInfo(receiver, 0).exported)
     }
 
     private fun assertPrivateReceiverHears(

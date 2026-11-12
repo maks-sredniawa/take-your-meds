@@ -24,11 +24,11 @@
 #     `Class.forName(… + "_Impl")` lookup. `AppDatabase_Impl` stays unrenamed. The DAOs are renamed,
 #     which is fine — nothing looks them up by name.
 #
-#   * **kotlinx.serialization** — the backup manifest and every Nav3 route key. The library ships R8
+#   * **kotlinx.serialization** — the licences report and every Nav3 route key. The library ships R8
 #     rules preserving the `Companion` field and the `serializer()` method, which is the reflective
 #     path `serializer(KClass)` takes. Renaming the *classes* is harmless: a `@Serializable` class's
-#     `serialName` is a string literal baked in at compile time, so the JSON in a user's archive does
-#     not change shape when R8 renames the class that reads it.
+#     `serialName` is a string literal baked in at compile time, so the JSON it reads does not change
+#     shape when R8 renames the class that reads it.
 #
 #   * **Enums stored by name** — the house rule, and the one that could silently rewrite history.
 #     R8 renames the constant *fields* but never the name string handed to the enum constructor,

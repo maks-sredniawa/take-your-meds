@@ -50,9 +50,6 @@
         is a try/catch around `ActivityNotFoundException`. What visibility *does* block is
         `resolveActivity`, which would answer "no mail app" on every phone that has one. Nothing
         performs such a pre-check today; these entries exist so one added later cannot silently lie.
-
-        The two SEND entries are load-bearing: ui/common/Share.kt lists the apps that take a share
-        through them, to grant each its read access ahead of the share sheet.
     -->
     <queries>
         <package android:name="com.miui.securitycenter" />
@@ -68,14 +65,6 @@
         <intent>
             <action android:name="android.intent.action.VIEW" />
             <data android:scheme="https" />
-        </intent>
-        <intent>
-            <action android:name="android.intent.action.SEND" />
-            <data android:mimeType="*/*" />
-        </intent>
-        <intent>
-            <action android:name="android.intent.action.SEND_MULTIPLE" />
-            <data android:mimeType="*/*" />
         </intent>
     </queries>
 
@@ -115,28 +104,6 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-
-        <receiver
-            android:name=".ui.common.ShareChosenReceiver"
-            android:exported="false" />
-
-        <!--
-            The camera app writes the photo it takes into a file we own, and hands back a Uri for
-            it. A file:// Uri has been illegal to pass across apps since Android 7, so this provider
-            vends a content:// one instead, scoped to the single cache directory in file_paths.xml.
-            Photo Picker needs none of this — it hands us a Uri of its own — but "take a photo"
-            does. No CAMERA permission is declared on purpose: declaring it would make a camera
-            *required* at install time, and firing the system camera intent needs none.
-        -->
-        <provider
-            android:name="androidx.core.content.FileProvider"
-            android:authorities="${applicationId}.fileprovider"
-            android:exported="false"
-            android:grantUriPermissions="true">
-            <meta-data
-                android:name="android.support.FILE_PROVIDER_PATHS"
-                android:resource="@xml/file_paths" />
-        </provider>
 
         <!--
             **WorkManager initialises on demand, not at process start.** Removing its entry from
