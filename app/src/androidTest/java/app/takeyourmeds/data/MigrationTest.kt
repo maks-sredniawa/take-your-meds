@@ -21,11 +21,11 @@ import org.junit.runner.RunWith
  * @Test
  * fun migrate1To2() {
  *     helper.createDatabase(TEST_DB, 1).apply {
- *         execSQL("INSERT INTO items (id, title, createdAt) VALUES ('a', 'kept', 1)")
+ *         execSQL("INSERT INTO medicines (id, name, amount, createdAt) VALUES ('a', 'kept', '1 tablet', 1)")
  *         close()
  *     }
  *     val db = helper.runMigrationsAndValidate(TEST_DB, 2, true, MIGRATION_1_2)
- *     db.query("SELECT title FROM items WHERE id = 'a'").use {
+ *     db.query("SELECT name FROM medicines WHERE id = 'a'").use {
  *         assertTrue(it.moveToFirst())
  *         assertEquals("kept", it.getString(0))   // ← rows, not shapes
  *     }

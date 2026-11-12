@@ -1,4 +1,4 @@
-package app.takeyourmeds.ui.items
+package app.takeyourmeds.ui.medicines
 
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
@@ -26,44 +26,38 @@ import androidx.compose.ui.res.stringResource
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import app.takeyourmeds.R
+import app.takeyourmeds.data.MedicineEntity
 import app.takeyourmeds.theme.Spacing
 import app.takeyourmeds.ui.appViewModelExtras
 import app.takeyourmeds.ui.common.EmptyState
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun ItemsScreen(
-    onOpenItem: (String) -> Unit,
-    onAddItem: () -> Unit,
+fun MedicinesScreen(
+    onOpenMedicine: (String) -> Unit,
+    onAddMedicine: () -> Unit,
     onOpenSupport: () -> Unit,
     modifier: Modifier = Modifier,
-    viewModel: ItemsViewModel =
-        viewModel(factory = ItemsViewModel.Factory, extras = appViewModelExtras()),
+    viewModel: MedicinesViewModel =
+        viewModel(factory = MedicinesViewModel.Factory, extras = appViewModelExtras()),
 ) {
-    // Kotlin note: `by` unwraps the State object, so `state` reads as the value itself.
-    // `collectAsStateWithLifecycle` subscribes only while the screen is actually on screen — the
-    // Compose equivalent of subscribing in an effect and unsubscribing on unmount. Plain
-    // `collectAsState` would keep collecting while the app is backgrounded.
     val state by viewModel.state.collectAsStateWithLifecycle()
 
     Scaffold(
         modifier = modifier,
-        topBar = { TopAppBar(title = { Text(stringResource(R.string.tab_items)) }) },
+        topBar = { TopAppBar(title = { Text(stringResource(R.string.tab_medicines)) }) },
         floatingActionButton = {
-            FloatingActionButton(onClick = onAddItem) {
-                Icon(Icons.Filled.Add, contentDescription = stringResource(R.string.item_add))
+            FloatingActionButton(onClick = onAddMedicine) {
+                Icon(Icons.Filled.Add, contentDescription = stringResource(R.string.medicine_add))
             }
         },
     ) { insets ->
         when {
-            // Nothing at all during the first read. An empty state shown for one frame and then
-            // replaced by a list is worse than a blank frame: it says "you have nothing", which is
-            // a claim, and it turns out to be false.
             state.loading -> Unit
 
-            state.items.isEmpty() ->
+            state.medicines.isEmpty() ->
                 EmptyState(
-                    message = stringResource(R.string.items_empty),
+                    message = stringResource(R.string.medicines_empty),
                     modifier = Modifier.padding(insets),
                 )
 
@@ -76,9 +70,9 @@ fun ItemsScreen(
                         Text(
                             text =
                                 pluralStringResource(
-                                    R.plurals.items_count,
-                                    state.items.size,
-                                    state.items.size,
+                                    R.plurals.medicines_count,
+                                    state.medicines.size,
+                                    state.medicines.size,
                                 ),
                             style = MaterialTheme.typography.labelLarge,
                             color = MaterialTheme.colorScheme.onSurfaceVariant,
@@ -96,31 +90,41 @@ fun ItemsScreen(
                             )
                         }
                     }
-                    // `key` is what lets Compose recycle the right row when the list reorders. With
-                    // no key it matches by index, so inserting at the top re-renders everything and
-                    // any per-row state moves to the wrong row.
-                    items(state.items, key = { it.id }) { item ->
-                        Card(
-                            modifier =
-                                Modifier
-                                    .fillMaxWidth()
-                                    .padding(bottom = Spacing.tight)
-                                    .clickable { onOpenItem(item.id) },
-                        ) {
-                            Column(modifier = Modifier.padding(Spacing.base)) {
-                                Text(item.title, style = MaterialTheme.typography.titleMedium)
-                                item.notes?.takeIf(String::isNotBlank)?.let { notes ->
-                                    Text(
-                                        text = notes,
-                                        style = MaterialTheme.typography.bodyMedium,
-                                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                                        modifier = Modifier.padding(top = Spacing.hair),
-                                    )
-                                }
-                            }
-                        }
+                    items(state.medicines, key = { it.id }) { medicine ->
+                        MedicineCard(medicine, onClick = { onOpenMedicine(medicine.id) })
                     }
                 }
+        }
+    }
+}
+
+@Composable
+private fun MedicineCard(
+    medicine: MedicineEntity,
+    onClick: () -> Unit,
+) {
+    Card(
+        modifier =
+            Modifier
+                .fillMaxWidth()
+                .padding(bottom = Spacing.tight)
+                .clickable(onClick = onClick),
+    ) {
+        Column(modifier = Modifier.padding(Spacing.base)) {
+            Text(medicine.name, style = MaterialTheme.typography.titleMedium)
+            Text(
+                text = medicine.amount,
+                style = MaterialTheme.typography.bodyMedium,
+                modifier = Modifier.padding(top = Spacing.hair),
+            )
+            medicine.note?.let { note ->
+                Text(
+                    text = note,
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    modifier = Modifier.padding(top = Spacing.hair),
+                )
+            }
         }
     }
 }

@@ -8,7 +8,7 @@
     supplying only `one` and `other` here would be a red build, not a silently wrong app.
 -->
 <resources>
-    <string name="tab_items">Rzeczy</string>
+    <string name="tab_medicines">Leki</string>
     <string name="tab_settings">Ustawienia</string>
 
     <string name="action_back">Wstecz</string>
@@ -17,21 +17,24 @@
     <string name="action_delete">Usuń</string>
     <string name="action_cancel">Anuluj</string>
 
-    <string name="item_add">Dodaj rzecz</string>
-    <string name="item_detail_title">Rzecz</string>
-    <string name="item_title_label">Tytuł</string>
-    <string name="item_notes_label">Notatki</string>
-    <string name="items_empty">Nic tu jeszcze nie ma. Dotknij +, aby dodać pierwszą rzecz.</string>
-    <string name="items_tip_ask_title">Ta aplikacja jest darmowa i taka zostanie</string>
-    <string name="items_tip_ask_body">Jeśli ci się przydaje, możesz zostawić twórcy napiwek. Niczego nie odblokowuje, a na tym telefonie aplikacja więcej o to nie zapyta.</string>
-    <string name="items_tip_ask_accept">Zostaw napiwek</string>
-    <string name="items_tip_ask_decline">Nie, dziękuję</string>
-    <plurals name="items_count">
-        <item quantity="one">%d rzecz</item>
-        <item quantity="few">%d rzeczy</item>
-        <item quantity="many">%d rzeczy</item>
-        <item quantity="other">%d rzeczy</item>
+    <string name="medicine_add">Dodaj lek</string>
+    <string name="medicine_detail_title">Lek</string>
+    <string name="medicine_name_label">Nazwa</string>
+    <string name="medicine_amount_label">Ilość</string>
+    <string name="medicine_amount_hint">Na przykład 1 tabletka, 5 ml</string>
+    <string name="medicine_note_label">Notatka</string>
+    <string name="medicine_note_hint">Na przykład do posiłku</string>
+    <string name="medicines_empty">Nie ma jeszcze leków. Dotknij +, aby dodać pierwszy.</string>
+    <plurals name="medicines_count">
+        <item quantity="one">%d lek</item>
+        <item quantity="few">%d leki</item>
+        <item quantity="many">%d leków</item>
+        <item quantity="other">%d leku</item>
     </plurals>
+    <string name="tip_ask_title">Ta aplikacja jest darmowa i taka zostanie</string>
+    <string name="tip_ask_body">Jeśli ci się przydaje, możesz zostawić twórcy napiwek. Niczego nie odblokowuje, a na tym telefonie aplikacja więcej o to nie zapyta.</string>
+    <string name="tip_ask_accept">Zostaw napiwek</string>
+    <string name="tip_ask_decline">Nie, dziękuję</string>
 
     <string name="settings_appearance">Wygląd</string>
     <string name="settings_theme_system">Systemowy</string>
@@ -53,7 +56,7 @@
     <string name="settings_restore">Przywróć ustawienia domyślne</string>
     <string name="settings_restore_hint">Motyw, kolory, przypomnienia i język</string>
     <string name="settings_restore_confirm_title">Przywrócić ustawienia domyślne?</string>
-    <string name="settings_restore_confirm_body">Motyw, kolory, przypomnienia i język wrócą do wartości początkowych. Twoje rzeczy zostaną bez zmian. Tego nie można cofnąć.</string>
+    <string name="settings_restore_confirm_body">Motyw, kolory, przypomnienia i język wrócą do wartości początkowych. Twoje leki zostaną bez zmian. Tego nie można cofnąć.</string>
     <string name="settings_restore_confirm">Przywróć</string>
     <string name="settings_about">O aplikacji</string>
     <string name="settings_support">Pomoc i opinie</string>

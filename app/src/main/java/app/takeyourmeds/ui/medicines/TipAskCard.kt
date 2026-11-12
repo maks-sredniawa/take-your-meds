@@ -1,4 +1,4 @@
-package app.takeyourmeds.ui.items
+package app.takeyourmeds.ui.medicines
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -20,14 +20,15 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.combine
 import java.time.Instant
 
-internal fun Flow<ItemsUiState>.withTipAsk(
+internal fun Flow<MedicinesUiState>.withTipAsk(
     asked: Flow<Boolean>,
     offers: Flow<List<TipOffer>>,
+    takenDoses: Flow<Int>,
     installedAt: Instant,
-): Flow<ItemsUiState> =
-    combine(this, asked, offers) { state, isAsked, tips ->
+): Flow<MedicinesUiState> =
+    combine(this, asked, offers, takenDoses) { state, isAsked, tips, taken ->
         state.copy(
-            showTipAsk = tips.isNotEmpty() && tipAskDue(isAsked, state.items.size, installedAt, Instant.now()),
+            showTipAsk = tips.isNotEmpty() && tipAskDue(isAsked, taken, installedAt, Instant.now()),
         )
     }
 
@@ -42,9 +43,9 @@ internal fun TipAskCard(
 ) {
     Card(modifier = Modifier.fillMaxWidth().padding(bottom = Spacing.tight)) {
         Column(modifier = Modifier.padding(Spacing.base)) {
-            Text(stringResource(R.string.items_tip_ask_title), style = MaterialTheme.typography.titleMedium)
+            Text(stringResource(R.string.tip_ask_title), style = MaterialTheme.typography.titleMedium)
             Text(
-                text = stringResource(R.string.items_tip_ask_body),
+                text = stringResource(R.string.tip_ask_body),
                 style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                 modifier = Modifier.padding(top = Spacing.hair),
@@ -53,8 +54,8 @@ internal fun TipAskCard(
                 horizontalArrangement = Arrangement.spacedBy(Spacing.tight),
                 modifier = Modifier.padding(top = Spacing.tight),
             ) {
-                TextButton(onClick = onTip) { Text(stringResource(R.string.items_tip_ask_accept)) }
-                TextButton(onClick = onDecline) { Text(stringResource(R.string.items_tip_ask_decline)) }
+                TextButton(onClick = onTip) { Text(stringResource(R.string.tip_ask_accept)) }
+                TextButton(onClick = onDecline) { Text(stringResource(R.string.tip_ask_decline)) }
             }
         }
     }

@@ -1,4 +1,4 @@
-package app.takeyourmeds.ui.items
+package app.takeyourmeds.ui.medicines
 
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.padding
@@ -24,28 +24,25 @@ import app.takeyourmeds.ui.appViewModelExtras
 import app.takeyourmeds.ui.common.DetailScaffold
 
 @Composable
-fun ItemDetailScreen(
-    itemId: String,
+fun MedicineDetailScreen(
+    medicineId: String,
     onEdit: () -> Unit,
     onBack: () -> Unit,
     onDeleted: () -> Unit,
     modifier: Modifier = Modifier,
-    viewModel: ItemDetailViewModel =
-        viewModel(factory = ItemDetailViewModel.factoryFor(itemId), extras = appViewModelExtras()),
+    viewModel: MedicineDetailViewModel =
+        viewModel(factory = MedicineDetailViewModel.factoryFor(medicineId), extras = appViewModelExtras()),
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
 
-    // A row can vanish underneath this screen when it is deleted here. Leaving rather than rendering
-    // an empty detail screen is the honest response, and it is a `LaunchedEffect` rather than an
-    // `if` in the body because navigating during composition is a side effect and Compose will run
-    // the body more than once.
+    // Navigating is a side effect, and Compose may run the body more than once.
     LaunchedEffect(state.gone) {
         if (state.gone) onDeleted()
     }
 
-    val item = state.item
+    val medicine = state.medicine
     DetailScaffold(
-        title = item?.title ?: stringResource(R.string.item_detail_title),
+        title = medicine?.name ?: stringResource(R.string.medicine_detail_title),
         onBack = onBack,
         modifier = modifier,
         actions = {
@@ -57,14 +54,39 @@ fun ItemDetailScreen(
             }
         },
     ) { contentModifier ->
-        if (item != null) {
+        if (medicine != null) {
             Column(
                 modifier = contentModifier.verticalScroll(rememberScrollState()).padding(Spacing.base),
             ) {
-                item.notes?.takeIf(String::isNotBlank)?.let { notes ->
-                    Text(notes, style = MaterialTheme.typography.bodyLarge)
+                LabelledValue(stringResource(R.string.medicine_amount_label), medicine.amount)
+                medicine.note?.let { note ->
+                    LabelledValue(
+                        stringResource(R.string.medicine_note_label),
+                        note,
+                        Modifier.padding(top = Spacing.base),
+                    )
                 }
             }
         }
+    }
+}
+
+@Composable
+private fun LabelledValue(
+    label: String,
+    value: String,
+    modifier: Modifier = Modifier,
+) {
+    Column(modifier = modifier) {
+        Text(
+            text = label,
+            style = MaterialTheme.typography.labelLarge,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+        )
+        Text(
+            text = value,
+            style = MaterialTheme.typography.bodyLarge,
+            modifier = Modifier.padding(top = Spacing.hair),
+        )
     }
 }
