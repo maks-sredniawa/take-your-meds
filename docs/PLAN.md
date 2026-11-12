@@ -22,7 +22,11 @@ was extracted from and the first app built from it settled on exactly this split
   `reminders` channel raised to high importance; the tip ask counted in Taken Doses; the palette and
   the mark. ADR-0002, 0005 and 0007 amended; ADR-0003 needed none. The themed launcher icon is still
   unread: the emulator's launcher tints no icon (`DOD.md`, *Before the first upload*)
-- [ ] **Phase P** — The pipeline: upload key, Play entry, Play secrets, a green internal upload
+- [x] **Phase P** — The pipeline, done 2026-11-12: upload key, Play entry, Play secrets, and 0.2.0
+  (versionCode 22) on internal testing. That bundle went up in the Console, because Play knows no
+  package until it has one (`RELEASING.md`); the service account reads the internal track through the
+  API, and CI's first upload is the next tag. The upload key's NordPass copy is unconfirmed
+  (`DOD.md`, *Before the first upload*)
 - [ ] **Phase 1** — The mechanism on the phone: a Medicine with one or more Times every day; a
   Reminder at the minute through an exact alarm, falling back when the grant is refused (ADR-0010);
   Taken and Snooze on the notification; Today showing each Dose as Due or Taken (ADR-0009); how old
