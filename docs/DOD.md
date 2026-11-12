@@ -40,10 +40,10 @@ close. Whenever `APP_SCHEMA_VERSION` changes, all five hold before the release g
       and write the reason beside `minSdk` in `app/build.gradle.kts`, where the next person to touch it reads it.
 - [x] **Replace the placeholder mark.** A capsule with a check punched through it, 2026-11-12;
       provenance in `art/README.md`.
-- [ ] **Replace the placeholder domain.** `data/ItemEntity.kt` and `ui/items/` — or delete them
-      (above).
-- [ ] **Rewrite `scripts/edge-to-edge.py`'s SCENES** against your screens. Until then the nightly
-      walks screens that do not exist, and `screenshots.py` cannot shoot a listing.
+- [x] **Replace the placeholder domain.** Items became Medicines with an Amount and a Note,
+      2026-11-12; schema 1 redefined, not migrated. Phase 0, §2.
+- [x] **Rewrite `scripts/edge-to-edge.py`'s SCENES.** They walk the Medicines list, detail and
+      editor, 2026-11-12, and `screenshots.py` imports them. Phase 0, R4.
 - [ ] **Make the artifact allowlists yours.** `aab-permissions.py`'s EXPECTED, FORBIDDEN and
       EXPECTED_ORIENTATION describe the template. Run all four `aab-*.py` scripts against a local
       `bundleRelease` **before the first tag** — the first app built from it found its stale table in the publish

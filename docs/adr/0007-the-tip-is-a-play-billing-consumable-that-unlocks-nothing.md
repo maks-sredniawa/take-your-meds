@@ -72,3 +72,11 @@ Billing, and it unlocks nothing.**
 - **One more dependency and one more permission**: the billing library, `lifecycle-process`, and
   `BILLING` in the artifact. The licences screen links Google's terms for the Play services artifacts
   billing brings in; their text is not ours to ship.
+
+## Amendment, 2026-11-12
+
+The home screen's ask measures use in **ten Taken Doses** (`TIP_ASK_AFTER_TAKEN_DOSES`), not ten
+recorded items: few users have ten Medicines, and taking them is what using this app means. The 30
+days and the once-per-install answer stand. The count is `AppContainer.takenDoseCount`, which is
+`flowOf(0)` until phase 1's `DoseRecord` supplies it, so the ask is never due before then. The card
+moved with the home screen to `ui/medicines/`, its strings to `tip_ask_*`.
