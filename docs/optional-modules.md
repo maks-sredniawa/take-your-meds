@@ -139,15 +139,15 @@ are marked.
 
 - `tip/`, `test/…/tip/`; `ui/support/SupportViewModel.kt` and `TipSection.kt`, and in
   `SupportScreen.kt` the `TipSection()` call and the KDoc paragraph that names it
-- The one-time ask: `ui/items/TipAskCard.kt`; `ItemsScreen`'s `onOpenSupport` parameter and its
-  `showTipAsk` item; the `onOpenSupport` the `Items` entry passes in `Navigation.kt`; in
-  `ItemsViewModel`, `showTipAsk`, the `preferences`, `tipJar` and `installedAt` parameters and their
+- The one-time ask: `ui/medicines/TipAskCard.kt`; `MedicinesScreen`'s `onOpenSupport` parameter and its
+  `showTipAsk` item; the `onOpenSupport` the `Medicines` entry passes in `Navigation.kt`; in
+  `MedicinesViewModel`, `showTipAsk`, the `preferences`, `tipJar` and `installedAt` parameters and their
   arguments in `Factory`, the `withTipAsk` line, the `init` block and `answerTipAsk`
 - `AppPreferences.tipAsked` / `markTipAsked`, `Keys.TIP_ASKED` and its place in `Keys.KEPT`, and the
   tip lines in `AppPreferencesTest`
 - `AppContainer.tipJar` and `installedAt` (`applicationScope` keeps its `@Suppress("unused")` for
   this day); `settleTipsOnEveryForeground` and its call in `MainApplication`
-- The `items_tip_ask_*` and `support_tip*` strings, in every language
+- The `tip_ask_*` and `support_tip*` strings, in every language
 - Gradle: `billing.ktx`, `androidx.lifecycle.process` and licensee's `allowUrl` for Google's terms in
   `app/build.gradle.kts`; the `billing` version and the `billing-ktx` and
   `androidx-lifecycle-process` aliases in `libs.versions.toml`
