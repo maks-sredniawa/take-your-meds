@@ -77,3 +77,16 @@ system — for a feature the platform already provides.
   the format.
 - Media is merged rather than replaced on restore: filenames are UUIDs, so a collision means the same
   file, and keeping files the archive does not mention costs disk where deleting them costs photos.
+
+## Amendment, 2026-11-12
+
+The manual half is removed in phase 0, before the first upload: with no media there is nothing the
+automatic level cannot carry. The export and restore, the archive manifest, the Backup screen and its
+markers, the thumbnail budget, the share path and `scripts/upgrade-diff.py` are gone.
+
+`AppBackupAgent` stays, for the reason in *Decision*: static XML cannot checkpoint the WAL. It now
+stages the checkpointed database alone, and `onRestoreFinished` installs it the same way as before
+(`.part`, sidecars deleted, rename). The preferences file stays out, so per-install state such as the
+tip ask (ADR-0007) does not follow the user to a new phone. The Consequences above about quota,
+markers, media, zip slip and the export no longer apply; the ones about the restore's sidecars and the
+notification channel do.

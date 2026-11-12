@@ -2,11 +2,11 @@
   "formatVersion": 1,
   "database": {
     "version": 1,
-    "identityHash": "955f6d5d72f58d7e3f6dfa9edbaf507a",
+    "identityHash": "89bf66f6cadea77f6f908d6671c2cae6",
     "entities": [
       {
         "tableName": "items",
-        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` TEXT NOT NULL, `title` TEXT NOT NULL, `notes` TEXT, `imagePath` TEXT, `createdAt` INTEGER NOT NULL, PRIMARY KEY(`id`))",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` TEXT NOT NULL, `title` TEXT NOT NULL, `notes` TEXT, `createdAt` INTEGER NOT NULL, PRIMARY KEY(`id`))",
         "fields": [
           {
             "fieldPath": "id",
@@ -23,11 +23,6 @@
           {
             "fieldPath": "notes",
             "columnName": "notes",
-            "affinity": "TEXT"
-          },
-          {
-            "fieldPath": "imagePath",
-            "columnName": "imagePath",
             "affinity": "TEXT"
           },
           {
@@ -58,7 +53,7 @@
     ],
     "setupQueries": [
       "CREATE TABLE IF NOT EXISTS room_master_table (id INTEGER PRIMARY KEY,identity_hash TEXT)",
-      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, '955f6d5d72f58d7e3f6dfa9edbaf507a')"
+      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, '89bf66f6cadea77f6f908d6671c2cae6')"
     ]
   }
 }

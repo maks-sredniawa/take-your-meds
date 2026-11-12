@@ -53,3 +53,12 @@ else — and "missing media renders as a placeholder" already covers the other d
 - The crop is blind: there is no crop-and-zoom UI, so re-picking is the user's only recourse. Keep
   the crop centred and predictable.
 - Nothing upscales. A 300 px source is stored at 300 px, not blown up with invented pixels.
+
+## Amendment, 2026-11-12
+
+Removed in phase 0, before the first upload: a Medicine has no picture. `media/MediaFiles.kt`, its
+test, the `FileProvider` and `file_paths.xml`, Coil, `exifinterface` and the editor's picker are gone,
+and so is the image column, which schema 1 was redefined without (nothing had shipped). The
+reasoning above stands for any app that stores images. If a picture of a Medicine is ever wanted,
+take the pipeline back from the `android-starter` template whole, with its own ADR that says why the
+`FileProvider`, the Data safety answer and the privacy policy's photo paragraph are worth carrying.

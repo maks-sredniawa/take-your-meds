@@ -30,7 +30,7 @@ interface ItemDao {
     fun observeById(id: String): Flow<ItemEntity?>
 
     /**
-     * A one-shot read, for code with no UI to update — a backup export, a worker deciding whether
+     * A one-shot read, for code with no UI to update — a worker deciding whether
      * anything is due. Deliberately separate from [observeAll] rather than a `.first()` on it: a
      * flow's first emission is a subscription that has to be torn down again, and in a worker that
      * is a lifecycle to get wrong.
@@ -41,8 +41,8 @@ interface ItemDao {
     @Query("SELECT COUNT(*) FROM items")
     suspend fun count(): Int
 
-    // REPLACE rather than ABORT so a restore can re-insert a row it already has. With a UUID
-    // primary key that only happens when it is genuinely the same row.
+    // REPLACE rather than ABORT because the editor saves an edited row through here too. With a
+    // UUID primary key a conflict only happens when it is genuinely the same row.
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insert(item: ItemEntity)
 

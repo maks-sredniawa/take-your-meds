@@ -16,10 +16,6 @@ import java.io.File
  * `TRUNCATE` rather than `PASSIVE`: a passive checkpoint gives up quietly when a reader is in the
  * way, which would leave exactly the silently-incomplete copy this exists to prevent.
  *
- * **The export and the backup agent share this** (ADR-0005). An export that captures a mid-write
- * database is the same bug as a backup that does, and writing it once, here, is what lets a test
- * watch it happen rather than waiting for a phone to be idle and charging.
- *
  * ⚠️ This is also the trap on the *reading* side: a database file pulled off a device with `adb` and
  * without its `-wal` sidecar is **stale**, so a row you just deleted still reads as present. Pull
  * both, or checkpoint first.
@@ -40,9 +36,9 @@ fun checkpointDatabaseTo(
                     database.rawQuery("PRAGMA wal_checkpoint(TRUNCATE)", null).use { it.moveToFirst() }
                 }
         } catch (e: SQLiteException) {
-            // A checkpoint that could not run is not a reason to refuse the export. The copy below
+            // A checkpoint that could not run is not a reason to skip the backup. The copy below
             // still carries everything committed before the last checkpoint, which is strictly more
-            // than refusing would leave the user with.
+            // than skipping would leave the user with.
         }
     }
     target.parentFile?.mkdirs()

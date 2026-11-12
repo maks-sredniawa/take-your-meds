@@ -1,6 +1,5 @@
 package app.takeyourmeds.data
 
-import androidx.room.ColumnInfo
 import androidx.room.Entity
 import androidx.room.Index
 import androidx.room.PrimaryKey
@@ -12,7 +11,7 @@ import java.util.UUID
  *
  * **This is the placeholder domain — replace it.** It exists so every gate in the repository has
  * something real to bite on: a table for the schema gate, a screen for the screenshot driver,
- * strings for the translation gate, an image path for the media pipeline. Rename it to whatever
+ * strings for the translation gate. Rename it to whatever
  * your app is actually about and the rest of the scaffolding keeps working.
  *
  * ## Two conventions worth keeping when you replace it
@@ -45,14 +44,5 @@ data class ItemEntity(
     val title: String,
     /** Free text. Nullable rather than empty-string-as-absent: the two are genuinely different. */
     val notes: String? = null,
-    /**
-     * Relative to `filesDir` — `images/<uuid>.jpg` — never absolute.
-     *
-     * An absolute path changes across installs and breaks every restored backup, and it is the
-     * single most common way an offline app loses its own media. `MediaFiles` writes this form and
-     * resolves it at read time; nothing else should build one.
-     */
-    @ColumnInfo(name = "imagePath")
-    val imagePath: String? = null,
     val createdAt: Instant = Instant.now(),
 )

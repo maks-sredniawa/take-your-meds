@@ -4,26 +4,19 @@ import android.app.backup.BackupAgent
 import android.app.backup.BackupDataInput
 import android.app.backup.BackupDataOutput
 import android.app.backup.FullBackupDataOutput
-import android.os.Build
 import android.os.ParcelFileDescriptor
 import app.takeyourmeds.data.APP_DATABASE_FILE
-import app.takeyourmeds.data.backup.autoBackupBudget
-import app.takeyourmeds.data.backup.autoBackupFileSet
 import app.takeyourmeds.data.backup.checkpointDatabaseTo
-import app.takeyourmeds.data.backup.clearAutoBackupMarker
 import app.takeyourmeds.data.backup.installDatabase
-import app.takeyourmeds.data.backup.mediaFilesIn
-import app.takeyourmeds.data.backup.writeAutoBackupMarker
-import app.takeyourmeds.data.backup.writeOverQuotaMarker
-import app.takeyourmeds.media.MediaKind
 import java.io.File
-import java.time.Instant
 
 /** Where the checkpointed copy is staged, relative to `filesDir`. */
 private const val STAGING_PATH = "auto-backup-staged.db"
 
 /**
- * Android Auto Backup, taking control of its own file set (ADR-0005).
+ * Android Auto Backup, taking control of its own file set (ADR-0005): the checkpointed database and
+ * nothing else. The preferences file stays out on purpose, so per-install state such as the tip ask
+ * (ADR-0007) does not follow the user to a new phone.
  *
  * **Why an agent rather than `backup_rules.xml`.** Static include/exclude XML cannot checkpoint the
  * write-ahead log, and without that the platform is eligible to copy the live database and its
@@ -44,47 +37,17 @@ private const val STAGING_PATH = "auto-backup-staged.db"
  * is open. That is why the checkpoint below opens its own connection rather than asking Room.
  */
 class AppBackupAgent : BackupAgent() {
-    /**
-     * Back up the checkpointed database and as many thumbnails as fit, newest first.
-     *
-     * Auto Backup has a per-app quota and drops the **whole** backup when it is exceeded, so the
-     * thumbnails are admitted under a budget taken from the quota the transport reports rather than
-     * all of them: a pile of old thumbnails must not take the database down with it. Full-size photos
-     * go only on a device-to-device transfer, which has no quota. The in-app export is where
-     * "everything" lives.
-     *
-     * The marker records the attempt for the Backup screen; [onQuotaExceeded] overwrites it when the
-     * set was rejected anyway. A device-to-device transfer never reaches the Google account, so it
-     * leaves the marker alone.
-     */
     override fun onFullBackup(data: FullBackupDataOutput) {
         val staged = File(filesDir, STAGING_PATH)
         try {
             val databaseFile = getDatabasePath(APP_DATABASE_FILE)
-            if (databaseFile.isFile) checkpointDatabaseTo(databaseFile, staged)
-            val deviceToDeviceTransfer = data.isDeviceToDeviceTransfer()
-            val set =
-                autoBackupFileSet(
-                    stagedDatabase = staged,
-                    thumbnails = mediaFilesIn(filesDir, MediaKind.Thumbnail),
-                    photos = mediaFilesIn(filesDir, MediaKind.Photo),
-                    deviceToDeviceTransfer = deviceToDeviceTransfer,
-                    budget = autoBackupBudget(data.quota),
-                )
-            set.files.forEach { fullBackupFile(it, data) }
-            if (!deviceToDeviceTransfer) writeAutoBackupMarker(filesDir, Instant.now(), set.leftOutThumbnails)
+            if (!databaseFile.isFile) return
+            checkpointDatabaseTo(databaseFile, staged)
+            fullBackupFile(staged, data)
         } finally {
-            // It exists for the duration of the `fullBackupFile` call above, which consumes the
-            // bytes synchronously, so nothing is waiting on it afterwards.
+            // `fullBackupFile` consumes the bytes synchronously, so nothing is waiting on it afterwards.
             staged.delete()
         }
-    }
-
-    override fun onQuotaExceeded(
-        backupDataBytes: Long,
-        quotaBytes: Long,
-    ) {
-        writeOverQuotaMarker(filesDir)
     }
 
     /**
@@ -95,15 +58,11 @@ class AppBackupAgent : BackupAgent() {
      * opened it.
      */
     override fun onRestoreFinished() {
-        clearAutoBackupMarker(filesDir)
         val staged = File(filesDir, STAGING_PATH)
         if (!staged.isFile) return
         installDatabase(staged, getDatabasePath(APP_DATABASE_FILE))
         staged.delete()
     }
-
-    private fun FullBackupDataOutput.isDeviceToDeviceTransfer(): Boolean =
-        Build.VERSION.SDK_INT >= Build.VERSION_CODES.P && (transportFlags and FLAG_DEVICE_TO_DEVICE_TRANSFER) != 0
 
     /** Key/value backup. Never called while `fullBackupOnly="true"`, and a no-op if it ever is. */
     override fun onBackup(

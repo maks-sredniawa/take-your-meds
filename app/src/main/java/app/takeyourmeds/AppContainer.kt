@@ -9,7 +9,6 @@ import androidx.datastore.preferences.preferencesDataStore
 import app.takeyourmeds.data.AppPreferences
 import app.takeyourmeds.data.ItemRepository
 import app.takeyourmeds.data.buildAppDatabase
-import app.takeyourmeds.media.MediaFiles
 import app.takeyourmeds.tip.TipJar
 import kotlinx.coroutines.CoroutineScope
 import java.time.Instant
@@ -34,7 +33,7 @@ internal val Context.preferencesStore: DataStore<Preferences> by preferencesData
  * everything here is already constructor injection.
  *
  * The rule that makes it work: **nothing constructs its own dependencies.** A ViewModel takes a
- * repository, a repository takes a DAO and a `MediaFiles`, and only this file calls a constructor.
+ * repository, a repository takes a DAO, and only this file calls a constructor.
  * The moment a class reaches for a singleton instead, it stops being testable without a device.
  *
  * Lives at the package root with the app shell: like `Navigation.kt`, it describes how the app hangs
@@ -54,9 +53,7 @@ class AppContainer(
      */
     private val database by lazy { buildAppDatabase(appContext) }
 
-    val media by lazy { MediaFiles(appContext) }
-
-    val items by lazy { ItemRepository(database.itemDao(), media) }
+    val items by lazy { ItemRepository(database.itemDao()) }
 
     /**
      * The tip (ADR-0007). Here rather than in a `ViewModel` because a purchase can finish after the

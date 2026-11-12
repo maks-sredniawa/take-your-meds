@@ -1,6 +1,5 @@
 package app.takeyourmeds.ui.items
 
-import android.net.Uri
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.ViewModelProvider.AndroidViewModelFactory.Companion.APPLICATION_KEY
@@ -10,8 +9,6 @@ import androidx.lifecycle.viewmodel.viewModelFactory
 import app.takeyourmeds.MainApplication
 import app.takeyourmeds.data.ItemEntity
 import app.takeyourmeds.data.ItemRepository
-import app.takeyourmeds.media.MediaFiles
-import app.takeyourmeds.media.MediaKind
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -22,7 +19,6 @@ import kotlinx.coroutines.launch
 data class ItemEditorUiState(
     val title: String = "",
     val notes: String = "",
-    val imagePath: String? = null,
     val saving: Boolean = false,
     /** Set once, when the save has landed. The screen watches it and leaves. */
     val saved: Boolean = false,
@@ -34,7 +30,6 @@ data class ItemEditorUiState(
 class ItemEditorViewModel(
     private val itemId: String?,
     private val repository: ItemRepository,
-    private val media: MediaFiles,
 ) : ViewModel() {
     private val _state = MutableStateFlow(ItemEditorUiState())
     val state: StateFlow<ItemEditorUiState> = _state.asStateFlow()
@@ -53,7 +48,6 @@ class ItemEditorViewModel(
                     it.copy(
                         title = item.title,
                         notes = item.notes.orEmpty(),
-                        imagePath = item.imagePath,
                     )
                 }
             }
@@ -67,22 +61,6 @@ class ItemEditorViewModel(
 
     fun setNotes(value: String) = _state.update { it.copy(notes = value) }
 
-    /**
-     * Persist a picked image and point the form at it.
-     *
-     * **Through [MediaFiles], never straight to a file.** It downsamples and re-encodes per kind,
-     * bakes in the EXIF rotation and strips the metadata — including the GPS coordinates a camera
-     * stamps on every shot, which have no business travelling in a backup.
-     */
-    fun setImage(source: Uri) {
-        viewModelScope.launch {
-            val persisted = media.persist(source, MediaKind.Photo)
-            // Replace, so the old file does not linger. Best-effort: the record is what matters.
-            _state.value.imagePath?.let(media::delete)
-            _state.update { it.copy(imagePath = persisted.path) }
-        }
-    }
-
     fun save() {
         val snapshot = _state.value
         if (!snapshot.canSave) return
@@ -92,11 +70,9 @@ class ItemEditorViewModel(
                 existing?.copy(
                     title = snapshot.title.trim(),
                     notes = snapshot.notes.trim().takeIf(String::isNotBlank),
-                    imagePath = snapshot.imagePath,
                 ) ?: ItemEntity(
                     title = snapshot.title.trim(),
                     notes = snapshot.notes.trim().takeIf(String::isNotBlank),
-                    imagePath = snapshot.imagePath,
                 )
             repository.save(item)
             _state.update { it.copy(saving = false, saved = true) }
@@ -108,7 +84,7 @@ class ItemEditorViewModel(
             viewModelFactory {
                 initializer {
                     val app = this[APPLICATION_KEY] as MainApplication
-                    ItemEditorViewModel(itemId, app.container.items, app.container.media)
+                    ItemEditorViewModel(itemId, app.container.items)
                 }
             }
     }

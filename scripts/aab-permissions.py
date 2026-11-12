@@ -121,9 +121,9 @@ FORBIDDEN = {
     # our source. An app that genuinely needs the network moves it to EXPECTED — and
     # rewrites both of those documents in the same commit.
     "android.permission.INTERNET": "no network: a merged one makes the privacy policy and Data safety wrong",
-    # The TakePicture intent needs no permission. Declaring CAMERA would make the
-    # intent *require* it to be granted, and changes the listing.
-    "android.permission.CAMERA": "the camera intent needs none; declaring it changes the listing",
+    # The app has no camera path. A dependency that merged CAMERA would change the
+    # listing and the Data safety answers without a line of our source changing.
+    "android.permission.CAMERA": "no camera path; a merged one changes the listing",
     # Play permits USE_EXACT_ALARM only for alarm clocks and calendars.
     "android.permission.USE_EXACT_ALARM": "Play policy: alarm-clock and calendar apps only; SCHEDULE_EXACT_ALARM instead",
 }
