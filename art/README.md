@@ -19,7 +19,7 @@ out of it. Both generators import it, so the launcher icon, the notification ico
 graphic cannot drift into being different marks.
 
 What ships is a capsule tilted to the upper right with a check punched through it: a Dose answered
-Taken, without a cross, an Rx or anything else that claims medical authority.
+Taken, without a cross, an Rx or anything else that claims medical authority (ADR-0011).
 
 - **Recolouring is two values in `mark.py` and a re-run**: `GROUND` (the icon's field) and
   `MARK_INK` (the mark on it). `make-launcher-icon.py` writes every drawable from them, the
