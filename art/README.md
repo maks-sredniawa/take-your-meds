@@ -6,8 +6,8 @@ the `VectorDrawable`s.
 
 | Asset | Source | State |
 | --- | --- | --- |
-| `mark.py`'s MARK and HOLE curves | your concept image → `trace-mark.py` | **placeholder — replace** |
-| `concept.png` | the image the mark was traced from — **commit it**, with its provenance below | — |
+| `mark.py`'s MARK and HOLE curves | constructed from the geometry under *Provenance* | final |
+| `concept.png` | the concept the mark was chosen from, with its provenance below | committed |
 | `drawable/ic_launcher_{background,foreground,monochrome}.xml`, `drawable/ic_notification.xml`, `mipmap-*`, `play-icon-512.png` | `mark.py` → `make-launcher-icon.py` | generated |
 | `play-feature-graphic.png`, `play-feature-graphic-<tag>.png` (1024×500, one per translated listing; `COPY`) | `mark.py` + `theme/Color.kt` (+ `feature-background.png` if present) → `make-feature-graphic.py` | generated |
 | `play-screenshots/<n>_<scene>-<tag>.png` | `scripts/screenshots.py --build release --numbered` → `pad-screenshot.py` | — |
@@ -18,7 +18,8 @@ the `VectorDrawable`s.
 out of it. Both generators import it, so the launcher icon, the notification icon and the feature
 graphic cannot drift into being different marks.
 
-What ships today is a rounded triangle: deliberately generic, deliberately obviously a placeholder.
+What ships is a capsule tilted to the upper right with a check punched through it: a Dose answered
+Taken, without a cross, an Rx or anything else that claims medical authority (ADR-0011).
 
 - **Recolouring is two values in `mark.py` and a re-run**: `GROUND` (the icon's field) and
   `MARK_INK` (the mark on it). `make-launcher-icon.py` writes every drawable from them, the
@@ -91,5 +92,5 @@ it came from in the provenance table below, like the concept image.
 
 | File | Where it came from | Licence / terms |
 | --- | --- | --- |
-| `concept.png` | *(your drawing, or an image model and whose prompt)* | |
+| `concept.png` and `mark.py` | Drawn for this app as plain geometry: a 176×92 stadium rotated −45°, and a 13-wide round-capped check through (−24, 2), (−7, 19), (26, −16) punched out of it as one outline. No traced, stock or font art | the app's own, as `LICENSE` |
 | `feature-background.png` | *(if used)* | |

@@ -1,7 +1,6 @@
-"""The placeholder mark: the single definition of this app's identity.
+"""The mark: the single definition of this app's identity, a capsule with a check punched through it.
 
-**Replace this file.** It draws a rounded triangle with a hole punched through it — deliberately
-generic, deliberately obviously a placeholder. Both generators import it (`make-launcher-icon.py`
+Both generators import it (`make-launcher-icon.py`
 emits it as `VectorDrawable` path data, `make-feature-graphic.py` rasterises it with PIL), so
 whatever you put here cannot drift into being two different marks.
 
@@ -32,8 +31,8 @@ from dataclasses import dataclass
 # `primary` darkened for contrast as the ground and it read as mud; then a gradient, whose middle is
 # the same mud at 44dp. What survived was a flat mid-tone role (`surfaceVariant`) under a light-ish
 # ink (`primary`). Judge the ground at launcher size on a real home screen, light and dark.
-GROUND = (0x2B, 0x4C, 0x7E)  # the icon's flat field — `primary`, darkened for contrast at icon sizes
-MARK_INK = (0xFF, 0xFB, 0xFF)  # the mark on that field — the light scheme's `surface`
+GROUND = (0x29, 0x69, 0x55)  # the light scheme's `primary`; green stays green when darkened
+MARK_INK = (0xFB, 0xF9, 0xF1)  # the light scheme's `surface`
 
 
 @dataclass(frozen=True)
@@ -51,20 +50,28 @@ class Subpath:
     hole: bool = False
 
 
-# A rounded triangle pointing right. One outer contour.
 MARK = (
-    "M-27.48,-73.6"
-        "C-39.92,-80.78 -50,-74.96 -50,-60.6C-50,-20.2 -50,20.2 -50,60.6"
-        "C-50,74.96 -39.92,80.78 -27.48,73.6C7.51,53.4 42.49,33.2 77.48,13"
-        "C89.92,5.82 89.92,-5.82 77.48,-13C42.49,-33.2 7.51,-53.4 -27.48,-73.6"
+    "M-2.83,-62.23C15.14,-80.19 44.26,-80.19 62.23,-62.23"
+        "C80.19,-44.26 80.19,-15.14 62.23,2.83"
+        "C42.43,22.63 22.63,42.43 2.83,62.23"
+        "C-15.14,80.19 -44.26,80.19 -62.23,62.23"
+        "C-80.19,44.26 -80.19,15.14 -62.23,-2.83"
+        "C-42.43,-22.63 -22.63,-42.43 -2.83,-62.23"
         "Z"
 )
 
-# The hole punched through it.
+# A check punched through it, as one outline so the corner is not a double hole.
 HOLE = (
-    "M20,0"
-        "C20,14.36 8.36,26 -6,26C-20.36,26 -32,14.36 -32,0"
-        "C-32,-14.36 -20.36,-26 -6,-26C8.36,-26 20,-14.36 20,0"
+    "M-19.4,-2.6C-15.31,1.49 -11.23,5.58 -7.14,9.67"
+        "C2.33,-0.37 11.8,-10.42 21.27,-20.46"
+        "C23.73,-23.07 27.85,-23.19 30.46,-20.73"
+        "C33.07,-18.27 33.19,-14.15 30.73,-11.54"
+        "C19.73,0.13 8.73,11.79 -2.27,23.46"
+        "C-3.48,24.74 -5.15,25.47 -6.9,25.5"
+        "C-8.66,25.53 -10.35,24.84 -11.6,23.6"
+        "C-17.26,17.93 -22.93,12.26 -28.6,6.6"
+        "C-31.13,4.06 -31.13,-0.06 -28.6,-2.6"
+        "C-26.06,-5.13 -21.94,-5.13 -19.4,-2.6"
         "Z"
 )
 
