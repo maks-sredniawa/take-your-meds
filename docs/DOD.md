@@ -77,16 +77,21 @@ close. Whenever `APP_SCHEMA_VERSION` changes, all five hold before the release g
 - [ ] **Create the upload keystore, outside the repo**, and put its four values in
       `local.properties`. Back it up somewhere that is not this machine: losing it means never being
       able to update the app on Play again. Fill in *The upload key* table in `RELEASING.md` the same
-      day — the fingerprint is what Play asks you to compare.
-- [ ] **Set up the GitHub repository** — `python3 scripts/repo-setup.py` does the ruleset and the
+      day — the fingerprint is what Play asks you to compare. Created and the table filled in,
+      2026-11-12; ticked once `KEYS-2026-11-12.zip` is confirmed in NordPass.
+- [x] **Set up the GitHub repository** — `python3 scripts/repo-setup.py` does the ruleset and the
       merge setting; the release-please PAT is the one step it cannot do, and without it no
       release PR is ever opened. *Setting up a new repository* in [`RELEASING.md`](RELEASING.md).
       **None of this is inherited from the template** — GitHub copies files, never settings — and
       the build stays green while it is all still undone. **Write the PAT's expiry date into this
       item** the day you create it: when it lapses the release PR simply stops appearing.
-- [ ] **Set the five Play secrets and create the service account** (`docs/RELEASING.md`) — the
+      Ruleset 2026-11-11. `RELEASE_PLEASE_TOKEN` is the fine-grained PAT
+      `take-your-meds-release-please`, created 2026-11-12, **expires 2026-12-12**.
+- [x] **Set the five Play secrets and create the service account** (`docs/RELEASING.md`) — the
       service account is the one step CI cannot do for itself. No account permissions; two app
-      permissions, on this app only; no expiry date.
+      permissions, on this app only; no expiry date. 2026-11-12:
+      `take-your-meds-play-ci@take-your-meds-play.iam.gserviceaccount.com`, and the API reads the
+      internal track with it.
 - [ ] **Plan the closed test.** A new personal developer account reaches production only after a
       closed test — at the time of writing 12 testers opted in for 14 continuous days, then an access
       application. Recruit the testers before the build is ready, not after; `publish-play-closed.yml`
@@ -95,9 +100,9 @@ close. Whenever `APP_SCHEMA_VERSION` changes, all five hold before the release g
       list `only-me-Tester`, every closed test the group `testers-community@googlegroups.com` —
       never a per-app group or list. **The first closed release of a never-published app is made in
       the Console**; the workflow takes over after its approval ([`RELEASING.md`](RELEASING.md)).
-- [ ] **Decide the `applicationId` deliberately.** It is fixed the moment the Play entry is created —
+- [x] **Decide the `applicationId` deliberately.** It is fixed the moment the Play entry is created —
       not renameable, not transferable without losing every install and review. A new MaksForge app
-      is `com.maksforge.<app>`.
+      is `com.maksforge.<app>`. `com.maksforge.takeyourmeds`, fixed by the Play entry, 2026-11-12.
 
 ## The tip — open until a real purchase is consumed
 

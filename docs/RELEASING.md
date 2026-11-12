@@ -270,6 +270,13 @@ release rather than the listing. Granting these is the deliberate act that opens
 door. Nothing beyond the two boxes is needed for `publish-play-closed.yml`, which never touches the
 listing, nor for `publish-play.yml`, which sends the AAB and its mapping and nothing else.
 
+⚠ **The first bundle of a new app goes up in the Console, not through CI.** Until a bundle has been
+uploaded by hand, the API answers `Package not found: <applicationId>` to every call, even with the
+service account invited; this app's `v0.2.0` run failed exactly there (2026-11-12). Upload that
+first bundle to internal testing in the Console, which also fixes the package name and turns on Play
+App Signing. Re-running the failed tag afterwards cannot help: its versionCode is now spent, so CI's
+first upload is the next tag.
+
 **Retry before you debug.** Propagation between Play and the API is not instant — a permission
 granted in the Console can take minutes to reach the API, so a first run that 401s is worth simply
 re-running. The first green run of an app built from this template came on the fourth attempt, and
@@ -291,11 +298,11 @@ it is asked for.
 
 | | |
 | --- | --- |
-| File | `~/.keystores/<app>-upload.jks` — **outside the repo**; `*.jks` is gitignored as a second line of defence |
+| File | `~/.keystores/take-your-meds-upload.jks` — **outside the repo**; `*.jks` is gitignored as a second line of defence |
 | Type / alias | PKCS12, alias `upload`. PKCS12 keeps **one** password, so `upload.storePassword` and `upload.keyPassword` are the same string |
-| Key | *(algorithm, size, valid until)* |
-| SHA-256 | *(fingerprint)* |
-| Backed up to | *(somewhere that is not this machine)* |
+| Key | RSA 4096, SHA384withRSA, created 2026-11-12, valid until 2054-03-30 |
+| SHA-256 | `1C:E2:12:04:AB:F4:48:5A:AB:FB:B2:7A:2C:5D:E0:37:0E:44:0A:3B:8D:7B:03:8D:31:35:CF:F0:13:55:99:1F` |
+| Backed up to | `~/.keystores/KEYS-2026-11-12.zip`, the bundle for NordPass |
 
 ```bash
 keytool -genkeypair -v -storetype PKCS12 -keystore ~/.keystores/<app>-upload.jks \
