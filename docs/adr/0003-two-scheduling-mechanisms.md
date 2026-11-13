@@ -56,7 +56,9 @@ the user's patience on nudges that do not need any of it. If everything is urgen
 
 - `BootReceiver` and `PackageReplacedReceiver` exist and do almost nothing, deliberately. The update
   receiver is not optional: a schema-bumping update leaves the database at the old version until
-  something opens it, and every background entry point correctly declines to work over one.
+  something opens it, and the receiver opens it through the registered migration. A background
+  entry point declines only where the launch gate would refuse (`schemaBlocksBackgroundWork()`): a
+  debug build's mismatch, or a version no migration covers.
 - A notification channel's importance is set at creation and **can only be lowered afterwards, by the
   user**. Creating a channel quiet is a decision with no second attempt.
 - Testing any of this on a vendor ROM requires reading the autostart state first. A run against an

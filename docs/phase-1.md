@@ -420,6 +420,13 @@ The re-plan, by trigger:
 A re-plan re-posts only where there was no armed time to start from (ADR-0010). The sweep and the app
 opening do not re-post, so a Reminder the user swiped away stays away until the Follow-up exists.
 
+**An armed alarm that has not landed is not lost by arming again.** The planner stores the instant it
+armed for (`AppPreferences.reminderArmedFor`), and every re-plan that finds it passed first posts
+`dosesToPost(lastArmed, now)`, as that alarm's firing would have, under the same bound below. Arming
+replaces a pending alarm, and a fallback alarm can land up to an hour late, so without this an app
+opening, a Taken, a save or the 09:00 sweep in that hour would drop the 09:00 Reminders. The planner
+arms before it posts, so a Reminder that fails to post cannot leave the chain without an alarm.
+
 **Decided by the owner, 2026-11-13: how old a Due Dose may be before a re-plan stops re-posting its
 Reminder.** **2 hours after its Reminder time, and never once a later Dose of the same Medicine has
 reached its Time**, one constant `DUE_REPOST_LIMIT` that phase 2 adopts as the moment the Follow-up
@@ -439,12 +446,22 @@ Reminder still in the tray does not sound twice. `CATEGORY_REMINDER`. `VISIBILIT
 public version that names no Medicine, which defers to the user's own lock-screen setting: on a phone
 set to hide sensitive content, the lock screen says a Reminder is due and nothing more. Tapping it
 opens Today through an activity `PendingIntent`, never a receiver trampoline (refused from API 31).
+**Decided by the owner, 2026-11-13: the tap does not clear the task.** `SINGLE_TOP` brings the app
+forward and `MainActivity.onNewIntent` puts Today on top of whatever was open, so an unsaved editor is
+still there on Back.
 Taken is a broadcast action to `ReminderActionReceiver` (exported false), whose `Intent` data is a
 `dose:` URI built from the same key: `PendingIntent` equality ignores extras, so two Reminders'
 *Taken* buttons sharing one `Intent` would record the wrong Medicine.
 
 Taken writes the `DoseRecord` with the Medicine's name and Amount copied in (ADR-0009), deletes any
-Snooze, cancels the Reminder and re-plans, all inside `rebuildInBackground`.
+Snooze, cancels the Reminder and re-plans, all inside `rebuildInBackground`. The write and the cancel
+hold the planner's lock, from the notification and from Today alike (`Reminders.answer`), so a re-plan
+that read the Dose before the answer cannot post its Reminder after it.
+
+**Decided by the owner, 2026-11-13: one Reminder per Medicine in the tray.** Posting a Dose's Reminder
+takes the same Medicine's earlier Reminders out of the tray; the earlier Dose stays Due on Today,
+answerable there. The next-Dose cap then holds for what is showing as well as for what is posted, so
+the tray never offers two *Taken* buttons for one Medicine.
 
 The receivers this adds go in `ManifestWiringTest` beside boot and update. No new permission: the
 merged set stays the eight `aab-permissions.py` read in phase 0, R1a, and R10 confirms it.
