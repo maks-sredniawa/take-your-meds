@@ -57,6 +57,7 @@
 
     <!-- Today. A Dose is the occasion, never the Amount (CONTEXT.md). %1$s is a time of day. -->
     <string name="today_empty">Nothing scheduled today. Give a medicine its times in Medicines.</string>
+    <string name="today_none_left">Nothing left today. The next dose is tomorrow.</string>
     <string name="dose_due">Due</string>
     <string name="dose_taken_at">Taken at %1$s</string>
     <string name="dose_snoozed_until">Snoozed until %1$s</string>

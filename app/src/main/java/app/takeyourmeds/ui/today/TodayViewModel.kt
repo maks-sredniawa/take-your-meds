@@ -54,6 +54,12 @@ data class TimeGroup(
     val doses: List<DoseRow>,
 )
 
+/** Why Today has no Dose: no Medicine has Times yet, or every Schedule's next Dose is tomorrow. */
+enum class TodayEmpty {
+    NoTimes,
+    NoneLeftToday,
+}
+
 /**
  * `loading` starts true so the empty state does not flash before the first read lands.
  *
@@ -67,6 +73,7 @@ data class TodayUiState(
     val blocked: Boolean = false,
     val blockedChannel: ReminderChannel? = null,
     val late: Boolean = false,
+    val empty: TodayEmpty = TodayEmpty.NoTimes,
 )
 
 private data class Moment(
@@ -119,6 +126,7 @@ class TodayViewModel(
                 blocked = blocked,
                 blockedChannel = grants.mutedChannel.takeIf { blocked && grants.notificationsAllowed },
                 late = scheduled && !grants.exactAlarmsAllowed,
+                empty = if (scheduled) TodayEmpty.NoneLeftToday else TodayEmpty.NoTimes,
             )
         }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), TodayUiState())
 

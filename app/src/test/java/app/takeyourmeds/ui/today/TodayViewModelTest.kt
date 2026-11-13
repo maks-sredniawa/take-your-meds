@@ -259,4 +259,23 @@ class TodayViewModelTest {
 
             assertEquals(false to false, today.state.value.let { it.blocked to it.late })
         }
+
+    @Test
+    fun `with no Medicine given Times, Today says to give one its Times`() =
+        runTest {
+            schedules.rows.value = emptyList()
+
+            assertEquals(TodayEmpty.NoTimes, today().state.value.empty)
+        }
+
+    @Test
+    fun `with Times that start tomorrow, Today says the next Dose is tomorrow`() =
+        runTest {
+            schedules.rows.value = listOf(schedule("metformin", "08:00", from = at(11)))
+
+            val today = today()
+
+            assertEquals(emptyList<TimeGroup>(), today.state.value.groups)
+            assertEquals(TodayEmpty.NoneLeftToday, today.state.value.empty)
+        }
 }
