@@ -232,6 +232,18 @@ class TodayViewModelTest {
         }
 
     @Test
+    fun `once its end has passed, a Snooze no longer says it is snoozed until then`() =
+        runTest {
+            snoozes.rows.value = listOf(SnoozeEntity("vitamin-d", at(8), until = instant(12, 10)))
+            val today = today()
+
+            tick(instant(12, 10))
+
+            assertEquals(null, today.row("vitamin-d", 8).snoozedUntil)
+            assertEquals(DoseState.Due, today.row("vitamin-d", 8).state)
+        }
+
+    @Test
     fun `blocked notifications and a refused exact grant show both banners, and granting clears them on resume`() =
         runTest {
             val today = today(grants(notifications = false, exact = false))

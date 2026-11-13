@@ -221,7 +221,7 @@ private fun rowOf(
         takenAt = record?.answeredAt?.atZone(moment.zone)?.toLocalTime(),
         snoozedUntil =
             dose.snoozedUntil
-                ?.takeIf { state == DoseState.Due }
+                ?.takeIf { state == DoseState.Due && it > moment.now }
                 ?.atZone(moment.zone)
                 ?.toLocalTime(),
     )
