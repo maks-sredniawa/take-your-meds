@@ -501,7 +501,7 @@ Dose of the current local date from `dosesOn`, in Time order, each showing:
 - the Medicine's name, its Amount and the Time;
 - its state: **Due** (Time passed, unanswered), **Taken** with the answer time, or neither for a
   Dose still ahead, which shows only its Time;
-- for a Due Dose with a pending Snooze, the time it is snoozed until;
+- for a Due Dose with a pending Snooze, the time it is snoozed until, while that time is still ahead;
 - **Mark as taken** on a Due Dose only. A Dose still ahead has no button: an early answer would
   silence its Reminder (§3, `stateAt`). The button appears once the Dose is Due; the Reminder's Taken
   action is unchanged. Marking Taken on Today offers *Undo* in a long-duration snackbar, which
@@ -643,7 +643,8 @@ Device behaviour is not here: whether the alarm fired on its minute is a reading
   firing, the tag-keyed Reminder, the private lock-screen version, and the gate's verdict. The
   posted-through mark, so a queued firing does not post twice what a re-plan already posted (§5).
 - **`CONTEXT.md`**: *Due* is a Dose whose Time has passed unanswered, and a Dose before its Time has
-  no state; *Re-plan* in the domain table as a code word, never in the UI.
+  no state; *Re-plan* in the domain table as a code word, never in the UI; *Snooze* stored until
+  the Dose is answered or the re-plan deletes it as outlived (§7).
 - **`PLAN.md`**: the Phase 1 Status entry closed with its readings; a *Phase 1* paragraph; Phase 3's
   "first schema migration" becomes the second.
 - **`docs/optional-modules.md`**: *Reminders and WorkManager* stops listing Settings' *Reminders*
