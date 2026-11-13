@@ -11,7 +11,6 @@ import app.takeyourmeds.data.DoseRepository
 import app.takeyourmeds.data.MedicineEntity
 import app.takeyourmeds.data.MedicineRepository
 import app.takeyourmeds.work.Reminders
-import app.takeyourmeds.work.Replan
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
@@ -45,11 +44,7 @@ class MedicineDetailViewModel(
 
     fun delete() {
         val medicine = current ?: return
-        viewModelScope.launch {
-            repository.delete(medicine)
-            reminders.cancelMedicine(medicine.id)
-            reminders.replan(Replan.Arm)
-        }
+        viewModelScope.launch { reminders.deleteMedicine(medicine.id) { repository.delete(medicine) } }
     }
 
     companion object {
