@@ -9,6 +9,12 @@ import java.time.LocalDateTime
 import java.time.LocalTime
 import java.time.ZoneId
 
+data class DoseSources(
+    val schedules: List<ScheduleEntity>,
+    val records: List<DoseRecordEntity>,
+    val snoozes: List<SnoozeEntity>,
+)
+
 /** The Schedules, answers and Snoozes a Dose is derived from (ADR-0009). */
 class DoseRepository(
     private val schedules: ScheduleDao,
@@ -41,6 +47,11 @@ class DoseRepository(
         at: LocalDateTime,
     ) = schedules.saveTimes(medicineId, times, at)
 
+    suspend fun sourcesBetween(
+        start: LocalDateTime,
+        end: LocalDateTime,
+    ) = DoseSources(schedules.covering(start, end), records.between(start, end), snoozes.all())
+
     /** The record written, or null when the Dose was already answered and keeps that answer. */
     suspend fun markTaken(
         medicine: MedicineEntity,
@@ -56,7 +67,9 @@ class DoseRepository(
                 medicineName = medicine.name,
                 medicineAmount = medicine.amount,
             )
-        return record.takeIf { records.insert(it) != -1L }
+        val written = record.takeIf { records.insert(it) != -1L }
+        snoozes.delete(medicine.id, scheduledAt)
+        return written
     }
 
     suspend fun undo(record: DoseRecordEntity) =

@@ -1,13 +1,20 @@
 package app.takeyourmeds
 
 import android.Manifest
+import android.app.AlarmManager
 import android.content.ComponentName
 import android.content.Intent
 import android.content.pm.PackageManager
+import android.os.Build
 import androidx.test.ext.junit.runners.AndroidJUnit4
+import androidx.test.filters.SdkSuppress
 import androidx.test.platform.app.InstrumentationRegistry
 import app.takeyourmeds.work.BootReceiver
+import app.takeyourmeds.work.ExactAlarmGrantReceiver
 import app.takeyourmeds.work.PackageReplacedReceiver
+import app.takeyourmeds.work.ReminderActionReceiver
+import app.takeyourmeds.work.ReminderAlarmReceiver
+import app.takeyourmeds.work.TimeChangeReceiver
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Test
@@ -30,6 +37,28 @@ class ManifestWiringTest {
     @Test
     fun the_update_receiver_is_private_and_hears_the_update() {
         assertPrivateReceiverHears(PackageReplacedReceiver::class.java, Intent.ACTION_MY_PACKAGE_REPLACED)
+    }
+
+    @Test
+    fun the_time_receiver_is_private_and_hears_clock_and_zone_changes() {
+        assertPrivateReceiverHears(TimeChangeReceiver::class.java, Intent.ACTION_TIME_CHANGED)
+        assertPrivateReceiverHears(TimeChangeReceiver::class.java, Intent.ACTION_TIMEZONE_CHANGED)
+    }
+
+    @Test
+    @SdkSuppress(minSdkVersion = Build.VERSION_CODES.S)
+    fun the_grant_receiver_is_private_and_hears_the_exact_alarm_grant() {
+        assertPrivateReceiverHears(
+            ExactAlarmGrantReceiver::class.java,
+            AlarmManager.ACTION_SCHEDULE_EXACT_ALARM_PERMISSION_STATE_CHANGED,
+        )
+    }
+
+    @Test
+    fun the_alarm_and_action_receivers_are_private() {
+        for (receiver in listOf(ReminderAlarmReceiver::class.java, ReminderActionReceiver::class.java)) {
+            assertFalse(context.packageManager.getReceiverInfo(ComponentName(context, receiver), 0).exported)
+        }
     }
 
     @Test

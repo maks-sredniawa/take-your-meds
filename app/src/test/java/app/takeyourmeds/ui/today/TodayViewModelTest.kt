@@ -12,9 +12,11 @@ import app.takeyourmeds.data.instant
 import app.takeyourmeds.data.schedule
 import app.takeyourmeds.ui.FakeDoseRecordDao
 import app.takeyourmeds.ui.FakeMedicineDao
+import app.takeyourmeds.ui.FakeReminders
 import app.takeyourmeds.ui.FakeScheduleDao
 import app.takeyourmeds.ui.FakeSnoozeDao
 import app.takeyourmeds.ui.FakeTipAsk
+import app.takeyourmeds.work.Replan
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -40,6 +42,7 @@ class TodayViewModelTest {
     private val schedules = FakeScheduleDao(schedule("vitamin-d", "08:00"), schedule("metformin", "08:00", "20:00"))
     private val records = FakeDoseRecordDao()
     private val snoozes = FakeSnoozeDao()
+    private val reminders = FakeReminders()
 
     private var now: Instant = instant(12)
     private val ticks = MutableStateFlow(now)
@@ -59,6 +62,7 @@ class TodayViewModelTest {
                 medicines = MedicineRepository(medicines),
                 doses = DoseRepository(schedules, records, snoozes),
                 tipAsk = FakeTipAsk(),
+                reminders = reminders,
                 ticks = ticks,
                 now = { now },
                 zone = { WARSAW },
@@ -130,6 +134,17 @@ class TodayViewModelTest {
                     .map { group -> group.doses.map { it.key } },
             )
             assertEquals(listOf(DoseKey("metformin", at(8))), offered)
+        }
+
+    @Test
+    fun `marking a Dose taken here takes its Reminder out of the tray and re-plans`() =
+        runTest {
+            val today = today()
+
+            today.markTaken(DoseKey("metformin", at(8)))
+
+            assertEquals(listOf(DoseKey("metformin", at(8))), reminders.cancelled)
+            assertEquals(listOf<Replan>(Replan.Arm), reminders.replans)
         }
 
     @Test

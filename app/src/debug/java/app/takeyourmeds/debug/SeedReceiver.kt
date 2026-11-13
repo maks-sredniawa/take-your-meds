@@ -5,6 +5,7 @@ import android.content.Context
 import android.content.Intent
 import app.takeyourmeds.MainApplication
 import app.takeyourmeds.data.SampleData
+import app.takeyourmeds.work.Replan
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -16,6 +17,8 @@ import kotlinx.coroutines.launch
  * ```bash
  * adb shell am broadcast -n <pkg>.debug/app.takeyourmeds.debug.SeedReceiver -f 0x00000020 --es variant ""
  * ```
+ *
+ * `today` and `soon` (`--ei minutes 3`) go on top of the plain seed. Every seed re-plans the alarm.
  *
  * ## The two things that make this work from `adb`
  *
@@ -50,11 +53,18 @@ class SeedReceiver : BroadcastReceiver() {
                     // being the same fixture it was last week.
                     "" -> SampleData.seed(app.container.medicines)
                     "today" -> SampleData.seedToday(app.container.medicines, app.container.doses)
+                    "soon" ->
+                        SampleData.seedSoon(
+                            app.container.medicines,
+                            app.container.doses,
+                            intent.getIntExtra("minutes", 3).toLong(),
+                        )
                     else -> {
                         pending.setResult(1, "unknown variant: $variant", null)
                         return@launch
                     }
                 }
+                app.container.reminders.replanNow(Replan.Arm)
                 pending.setResult(0, "seeded", null)
             } catch (e: Throwable) {
                 pending.setResult(1, e.toString(), null)

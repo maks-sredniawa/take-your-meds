@@ -49,6 +49,9 @@
     <string name="dose_mark_taken">Oznacz jako przyjętą</string>
     <string name="dose_marked_taken">Oznaczono jako przyjętą</string>
     <string name="dose_undo">Cofnij</string>
+    <string name="reminder_text">%1$s · dawka o %2$s</string>
+    <string name="reminder_text_public">Dawka do przyjęcia o %1$s</string>
+    <string name="reminder_action_taken">Przyjęto</string>
 
     <string name="tip_ask_title">Ta aplikacja jest darmowa i taka zostanie</string>
     <string name="tip_ask_body">Jeśli ci się przydaje, możesz zostawić twórcy napiwek. Niczego nie odblokowuje, a na tym telefonie aplikacja więcej o to nie zapyta.</string>
@@ -77,7 +80,7 @@
     <string name="settings_restore_confirm">Przywróć</string>
 
     <string name="channel_reminders_name">Przypomnienia</string>
-    <string name="channel_reminders_description">Codzienne sprawdzenie, czy coś jest do zrobienia.</string>
+    <string name="channel_reminders_description">Powiadomienie o każdej godzinie, o której lek jest do przyjęcia.</string>
 
     <string name="schema_mismatch_title">Te dane zapisała inna wersja</string>
     <string name="schema_mismatch_body">Dane na tym telefonie zapisano w wersji %1$d, a ta kompilacja odczytuje wersję %2$d.</string>

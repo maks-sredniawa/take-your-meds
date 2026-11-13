@@ -13,6 +13,7 @@ import app.takeyourmeds.data.buildAppDatabase
 import app.takeyourmeds.tip.HomeTipAsk
 import app.takeyourmeds.tip.PlayHomeTipAsk
 import app.takeyourmeds.tip.TipJar
+import app.takeyourmeds.work.ReminderPlanner
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.Flow
 import java.time.Instant
@@ -46,7 +47,7 @@ internal val Context.preferencesStore: DataStore<Preferences> by preferencesData
 class AppContainer(
     context: Context,
     val preferences: AppPreferences,
-    @Suppress("unused") private val applicationScope: CoroutineScope,
+    private val applicationScope: CoroutineScope,
 ) {
     private val appContext = context.applicationContext
 
@@ -60,6 +61,8 @@ class AppContainer(
     val medicines by lazy { MedicineRepository(database.medicineDao()) }
 
     val doses by lazy { DoseRepository(database.scheduleDao(), database.doseRecordDao(), database.snoozeDao()) }
+
+    val reminders by lazy { ReminderPlanner(appContext, doses, medicines, applicationScope) }
 
     /** The tip ask's measure of use (ADR-0007). */
     val takenDoseCount: Flow<Int> get() = doses.observeTakenCount()

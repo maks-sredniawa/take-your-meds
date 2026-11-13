@@ -2,6 +2,7 @@ package app.takeyourmeds.data
 
 import java.time.Instant
 import java.time.LocalDate
+import java.time.LocalDateTime
 import java.time.LocalTime
 import java.time.ZoneId
 
@@ -61,6 +62,17 @@ object SampleData {
             breakfast,
             breakfast.plusMinutes(4).atZone(ZoneId.systemDefault()).toInstant(),
         )
+    }
+
+    /** On top of [seed]: Vitamin D at one Time [minutes] from now, to read a Reminder posting on its minute. */
+    suspend fun seedSoon(
+        repository: MedicineRepository,
+        doses: DoseRepository,
+        minutes: Long,
+    ) {
+        val vitaminD = repository.all().first { it.name == "Vitamin D" }
+        val now = LocalDateTime.now()
+        doses.saveTimes(vitaminD.id, listOf(now.plusMinutes(minutes).toLocalTime()), now)
     }
 
     suspend fun wipe(repository: MedicineRepository) {

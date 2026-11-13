@@ -17,6 +17,7 @@ import app.takeyourmeds.data.preserveBeforeWipe
 import app.takeyourmeds.data.readUserVersion
 import app.takeyourmeds.data.schemaGateDecision
 import app.takeyourmeds.theme.applyThemeMode
+import app.takeyourmeds.work.Replan
 import app.takeyourmeds.work.ensureSweepEnqueued
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -167,7 +168,7 @@ class MainApplication :
         applicationScope.launch {
             ensureSweepEnqueued(this@MainApplication)
         }
-        settleTipsOnEveryForeground()
+        onEveryForeground()
     }
 
     /**
@@ -177,13 +178,15 @@ class MainApplication :
      * broadcast or the sweep starts the process too, and binding Play for those wakes it for nobody.
      * Behind the gate, because the container holds the tip jar.
      */
-    private fun settleTipsOnEveryForeground() {
+    private fun onEveryForeground() {
         // Kotlin note: an `object :` expression is an anonymous class instance — the listener object
         // JS would pass inline. Added on the main thread, which `ProcessLifecycleOwner` requires.
         ProcessLifecycleOwner.get().lifecycle.addObserver(
             object : DefaultLifecycleObserver {
                 override fun onStart(owner: LifecycleOwner) {
                     applicationScope.launch { container.tipJar.settlePending() }
+                    // Opening the app is what re-arms after a force-stop, which cancels the alarm.
+                    container.reminders.replan(Replan.Arm)
                 }
             },
         )
