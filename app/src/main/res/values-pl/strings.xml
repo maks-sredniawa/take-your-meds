@@ -8,6 +8,7 @@
     supplying only `one` and `other` here would be a red build, not a silently wrong app.
 -->
 <resources>
+    <string name="tab_today">Dziś</string>
     <string name="tab_medicines">Leki</string>
     <string name="tab_settings">Ustawienia</string>
 
@@ -24,6 +25,7 @@
     <string name="medicine_amount_hint">Na przykład 1 tabletka, 5 ml</string>
     <string name="medicine_note_label">Notatka</string>
     <string name="medicine_note_hint">Na przykład do posiłku</string>
+    <string name="medicine_times">Codziennie o %1$s</string>
     <string name="medicines_empty">Nie ma jeszcze leków. Dotknij +, aby dodać pierwszy.</string>
     <plurals name="medicines_count">
         <item quantity="one">%d lek</item>
@@ -31,6 +33,22 @@
         <item quantity="many">%d leków</item>
         <item quantity="other">%d leku</item>
     </plurals>
+    <string name="schedule_times_label">Godziny</string>
+    <string name="schedule_add_time">Dodaj godzinę</string>
+    <string name="schedule_remove_time">Usuń %1$s</string>
+    <string name="schedule_time_picker_title">Wybierz godzinę</string>
+    <string name="schedule_time_picker_confirm">OK</string>
+    <string name="schedule_every_day">Codziennie</string>
+    <string name="schedule_no_times">Nie ustawiono godzin. Ten lek nie ma przypomnień.</string>
+
+    <string name="today_empty">Na dziś nic nie zaplanowano. Ustaw godziny leku w zakładce Leki.</string>
+    <string name="dose_due">Do przyjęcia</string>
+    <string name="dose_taken_at">Przyjęto o %1$s</string>
+    <string name="dose_snoozed_until">Drzemka do %1$s</string>
+    <string name="dose_mark_taken">Oznacz jako przyjętą</string>
+    <string name="dose_marked_taken">Oznaczono jako przyjętą</string>
+    <string name="dose_undo">Cofnij</string>
+
     <string name="tip_ask_title">Ta aplikacja jest darmowa i taka zostanie</string>
     <string name="tip_ask_body">Jeśli ci się przydaje, możesz zostawić twórcy napiwek. Niczego nie odblokowuje, a na tym telefonie aplikacja więcej o to nie zapyta.</string>
     <string name="tip_ask_accept">Zostaw napiwek</string>

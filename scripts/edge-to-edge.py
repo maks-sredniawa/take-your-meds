@@ -788,8 +788,8 @@ def relaunch() -> None:
 # it is exactly the question "is a top-level destination on screen?" — and [HOME_TAB] is the bar's
 # first item, the one the back stack is rooted at. Naming them here rather than inline is what lets
 # a locale run translate them with the rest of the table.
-TAB_BAR = "Medicines"
-HOME_TAB = "Medicines"
+TAB_BAR = "Today"
+HOME_TAB = "Today"
 
 # The top-level destinations, named so [tap] can tell a tab from anything else it is asked to
 # press. Two things follow from being on this list, and both are about a tab label being a *short*
@@ -803,7 +803,7 @@ HOME_TAB = "Medicines"
 # that is also a button somewhere — and where that happens, [showing_tab] turns it into a *failed
 # scene* rather than a wrong screenshot. That is the division of labour: exactness is the fix, the
 # assertion is what makes the next collision survivable.
-TAB_NEEDLES = (HOME_TAB, "Settings")
+TAB_NEEDLES = (HOME_TAB, "Medicines", "Settings")
 
 # How many times [return_to_home] may press back before it gives up. Six covers the deepest route in
 # the app (Settings → Licences → one licence, plus a dialog and an IME) with room to spare; it is a
@@ -1456,30 +1456,39 @@ SCENES = [
     ),
 
     # --- a wiped install: the empty states, which no seeded run can show ------------------------
-    Scene("medicines-empty", "tab", [("wipe", "")], suite="empty"),
+    Scene("today-empty", "tab", [("wipe", "")], suite="empty"),
+    Scene("medicines-empty", "tab", [("wipe", ""), ("tap", "Medicines")], suite="empty"),
 
     # --- the tabs ------------------------------------------------------------------------------
-    Scene("medicines", "tab", []),
-    Scene("medicines-bottom", "tab", [("swipe_end", "")]),
+    # The seeded Today shows a Dose Taken, Due and still ahead only in the afternoon (SampleData).
+    Scene("today", "tab", []),
+    Scene("today-bottom", "tab", [("swipe_end", "")]),
+    Scene("medicines", "tab", [("tap", "Medicines")]),
+    Scene("medicines-bottom", "tab", [("tap", "Medicines"), ("swipe_end", "")]),
     Scene("settings", "tab", [("tap", "Settings")]),
     Scene("settings-bottom", "tab", [("tap", "Settings"), ("swipe_end", "")]),
 
     # --- detail screens: no bottom bar, so the navigation-bar inset is the app's own problem ----
-    Scene("medicine-detail", "detail", [("tap", "Metformin")]),
+    Scene("medicine-detail", "detail", [("tap", "Medicines"), ("tap", "Metformin")]),
     Scene("support", "detail", [("tap", "Settings"), ("tap", "Help and feedback")]),
     Scene("licences", "detail", [("tap", "Settings"), ("tap", "Open-source licences")]),
     Scene("licences-bottom", "detail", [("tap", "Settings"), ("tap", "Open-source licences"), ("swipe_end", "")]),
 
     # --- forms: the keyboard is an inset too, and this is where `imePadding` is proved ----------
-    Scene("medicine-editor", "form", [("tap", "Add a medicine")]),
-    Scene("medicine-editor-bottom", "form", [("tap", "Add a medicine"), ("swipe_end", "")]),
+    Scene("medicine-editor", "form", [("tap", "Medicines"), ("tap", "Add a medicine")]),
+    Scene("medicine-editor-bottom", "form", [("tap", "Medicines"), ("tap", "Add a medicine"), ("swipe_end", "")]),
+    Scene(
+        "medicine-editor-times",
+        "form",
+        [("tap", "Medicines"), ("tap", "Metformin"), ("tap", "Edit"), ("align_top", "Times")],
+    ),
     Scene(
         "medicine-editor-keyboard",
         "form",
         # Focus the first field and wait for the keyboard to finish animating in. This is the scene
         # that catches a window being *panned* instead of resized — the top bar, Save button and all,
         # slides off the top of the screen and only a screenshot shows it.
-        [("tap", "Add a medicine"), ("tap_field", "0"), ("wait", "1.5")],
+        [("tap", "Medicines"), ("tap", "Add a medicine"), ("tap_field", "0"), ("wait", "1.5")],
     ),
 ]
 

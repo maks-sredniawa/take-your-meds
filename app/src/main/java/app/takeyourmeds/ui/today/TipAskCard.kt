@@ -1,4 +1,4 @@
-package app.takeyourmeds.ui.medicines
+package app.takeyourmeds.ui.today
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -14,23 +14,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import app.takeyourmeds.R
 import app.takeyourmeds.theme.Spacing
-import app.takeyourmeds.tip.TipOffer
-import app.takeyourmeds.tip.tipAskDue
-import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.combine
-import java.time.Instant
-
-internal fun Flow<MedicinesUiState>.withTipAsk(
-    asked: Flow<Boolean>,
-    offers: Flow<List<TipOffer>>,
-    takenDoses: Flow<Int>,
-    installedAt: Instant,
-): Flow<MedicinesUiState> =
-    combine(this, asked, offers, takenDoses) { state, isAsked, tips, taken ->
-        state.copy(
-            showTipAsk = tips.isNotEmpty() && tipAskDue(isAsked, taken, installedAt, Instant.now()),
-        )
-    }
 
 /**
  * The one time the app mentions the tip unasked (ADR-0007). Either button answers it for this install, and

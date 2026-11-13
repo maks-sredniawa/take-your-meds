@@ -36,7 +36,6 @@ import app.takeyourmeds.ui.common.EmptyState
 fun MedicinesScreen(
     onOpenMedicine: (String) -> Unit,
     onAddMedicine: () -> Unit,
-    onOpenSupport: () -> Unit,
     modifier: Modifier = Modifier,
     viewModel: MedicinesViewModel =
         viewModel(factory = MedicinesViewModel.Factory, extras = appViewModelExtras()),
@@ -78,17 +77,6 @@ fun MedicinesScreen(
                             color = MaterialTheme.colorScheme.onSurfaceVariant,
                             modifier = Modifier.padding(bottom = Spacing.tight),
                         )
-                    }
-                    if (state.showTipAsk) {
-                        item(key = "tip-ask") {
-                            TipAskCard(
-                                onTip = {
-                                    viewModel.answerTipAsk()
-                                    onOpenSupport()
-                                },
-                                onDecline = viewModel::answerTipAsk,
-                            )
-                        }
                     }
                     items(state.medicines, key = { it.id }) { medicine ->
                         MedicineCard(medicine, onClick = { onOpenMedicine(medicine.id) })

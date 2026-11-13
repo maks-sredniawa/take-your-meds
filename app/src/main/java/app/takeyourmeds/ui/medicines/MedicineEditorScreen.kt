@@ -42,14 +42,14 @@ fun MedicineEditorScreen(
         modifier = modifier,
     ) { contentModifier ->
         Column(
-            modifier = contentModifier.verticalScroll(rememberScrollState()).padding(Spacing.base),
+            modifier = contentModifier.verticalScroll(rememberScrollState()).padding(vertical = Spacing.base),
         ) {
             OutlinedTextField(
                 value = state.name,
                 onValueChange = viewModel::setName,
                 label = { Text(stringResource(R.string.medicine_name_label)) },
                 singleLine = true,
-                modifier = Modifier.fillMaxWidth(),
+                modifier = Modifier.fillMaxWidth().padding(horizontal = Spacing.base),
             )
             OutlinedTextField(
                 value = state.amount,
@@ -57,7 +57,12 @@ fun MedicineEditorScreen(
                 label = { Text(stringResource(R.string.medicine_amount_label)) },
                 supportingText = { Text(stringResource(R.string.medicine_amount_hint)) },
                 singleLine = true,
-                modifier = Modifier.fillMaxWidth().padding(top = Spacing.snug),
+                modifier =
+                    Modifier.fillMaxWidth().padding(
+                        start = Spacing.base,
+                        end = Spacing.base,
+                        top = Spacing.snug,
+                    ),
             )
             OutlinedTextField(
                 value = state.note,
@@ -65,12 +70,28 @@ fun MedicineEditorScreen(
                 label = { Text(stringResource(R.string.medicine_note_label)) },
                 supportingText = { Text(stringResource(R.string.medicine_note_hint)) },
                 minLines = 3,
-                modifier = Modifier.fillMaxWidth().padding(top = Spacing.snug),
+                modifier =
+                    Modifier.fillMaxWidth().padding(
+                        start = Spacing.base,
+                        end = Spacing.base,
+                        top = Spacing.snug,
+                    ),
+            )
+            TimesSection(
+                times = state.times,
+                onAdd = viewModel::addTime,
+                onChange = viewModel::changeTime,
+                onRemove = viewModel::removeTime,
             )
             Button(
                 onClick = viewModel::save,
                 enabled = state.canSave,
-                modifier = Modifier.fillMaxWidth().padding(top = Spacing.section),
+                modifier =
+                    Modifier.fillMaxWidth().padding(
+                        start = Spacing.base,
+                        end = Spacing.base,
+                        top = Spacing.section,
+                    ),
             ) {
                 Text(stringResource(R.string.action_save))
             }

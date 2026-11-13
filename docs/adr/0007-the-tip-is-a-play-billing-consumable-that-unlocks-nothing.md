@@ -80,3 +80,9 @@ recorded items: few users have ten Medicines, and taking them is what using this
 days and the once-per-install answer stand. The count is `AppContainer.takenDoseCount`, which is
 `flowOf(0)` until phase 1's `DoseRecord` supplies it, so the ask is never due before then. The card
 moved with the home screen to `ui/medicines/`, its strings to `tip_ask_*`.
+
+## Amendment, 2026-11-13
+
+Today is the home screen (phase 1, checkpoint C), so the card moved with it to `ui/today/`, behind
+`tip/HomeTipAsk.kt`. `AppContainer.takenDoseCount` now counts Taken `DoseRecord`s, so the ask can come
+due; an Undo on Today deletes its record and so takes its count back.

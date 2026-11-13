@@ -104,6 +104,18 @@ class DoseRecordDaoTest {
         }
 
     @Test
+    fun anUndoDeletesOnlyTheAnswerItWrote() =
+        runTest {
+            records.insert(taken(nine, answeredAt = 1_000))
+
+            records.delete("m", nine, Instant.ofEpochMilli(2_000))
+            assertEquals(1, records.observeCount(DoseAnswer.Taken).first())
+
+            records.delete("m", nine, Instant.ofEpochMilli(1_000))
+            assertEquals(0, records.observeCount(DoseAnswer.Taken).first())
+        }
+
+    @Test
     fun aSecondSnoozeReplacesTheFirst() =
         runTest {
             database.medicineDao().upsert(medicine)

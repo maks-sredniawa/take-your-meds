@@ -14,7 +14,7 @@ user-facing word genuinely differ, both are written here with the difference sta
 | **Schedule** | when a Medicine is due: one or more Times of day, the Days it applies on (every day, chosen weekdays, every N days) and an optional End date | plan, regimen, routine |
 | **As needed** | a Medicine with no Schedule: logged when taken, never reminded | PRN (fine in code comments, never in UI) |
 | **Dose** | one occasion a Medicine is due: a Medicine at a date and time. **Derived** from the Schedule, never stored as a plan (ADR-0009) | intake, event, occurrence |
-| **Due** / **Taken** / **Skipped** / **Missed** | a Dose's state. *Taken* and *Skipped* are the user's answers and are stored; *Due* and *Missed* are computed from the clock. *Skipped* is a choice; *Missed* is no answer at all | done, ignored, late |
+| **Due** / **Taken** / **Skipped** / **Missed** | a Dose's state. *Taken* and *Skipped* are the user's answers and are stored; *Due* and *Missed* are computed from the clock: a Dose is Due from the first second of its Time's minute while unanswered, and a Dose before its Time has no state, so Today shows only its Time. *Skipped* is a choice; *Missed* is no answer at all | done, ignored, late |
 | **Reminder** | the notification for one Dose, at its time, carrying Taken, Snooze and (later) Skip | alert, alarm (except where the Android API is meant) |
 | **Snooze** | push the Reminder back by a fixed time, without answering the Dose. Stored until the Dose is answered (ADR-0009) | postpone, delay |
 | **Follow-up** | the one extra Reminder for a Dose still unanswered after a set time; after it the Dose becomes Missed | repeat, nag, escalation |

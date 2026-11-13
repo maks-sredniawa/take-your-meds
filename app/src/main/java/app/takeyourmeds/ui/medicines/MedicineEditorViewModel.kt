@@ -7,19 +7,25 @@ import androidx.lifecycle.viewModelScope
 import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
 import app.takeyourmeds.MainApplication
+import app.takeyourmeds.data.DoseRepository
 import app.takeyourmeds.data.MedicineEntity
 import app.takeyourmeds.data.MedicineRepository
+import app.takeyourmeds.data.normalisedTimes
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import java.time.LocalDateTime
+import java.time.LocalTime
 
 data class MedicineEditorUiState(
     val name: String = "",
     val amount: String = "",
     val note: String = "",
+    /** Sorted and distinct, as a Schedule stores them. Empty means the Medicine is not reminded. */
+    val times: List<LocalTime> = emptyList(),
     val saving: Boolean = false,
     /** Set once, when the save has landed. The screen watches it and leaves. */
     val saved: Boolean = false,
@@ -30,6 +36,8 @@ data class MedicineEditorUiState(
 class MedicineEditorViewModel(
     private val medicineId: String?,
     private val repository: MedicineRepository,
+    private val doses: DoseRepository,
+    private val now: () -> LocalDateTime = LocalDateTime::now,
 ) : ViewModel() {
     private val _state = MutableStateFlow(MedicineEditorUiState())
     val state: StateFlow<MedicineEditorUiState> = _state.asStateFlow()
@@ -42,12 +50,14 @@ class MedicineEditorViewModel(
         if (medicineId != null) {
             viewModelScope.launch {
                 val medicine = repository.observeById(medicineId).first() ?: return@launch
+                val times = doses.timesOf(medicineId)
                 existing = medicine
                 _state.update {
                     it.copy(
                         name = medicine.name,
                         amount = medicine.amount,
                         note = medicine.note.orEmpty(),
+                        times = times,
                     )
                 }
             }
@@ -59,6 +69,15 @@ class MedicineEditorViewModel(
     fun setAmount(value: String) = _state.update { it.copy(amount = value) }
 
     fun setNote(value: String) = _state.update { it.copy(note = value) }
+
+    fun addTime(time: LocalTime) = _state.update { it.copy(times = normalisedTimes(it.times + time)) }
+
+    fun changeTime(
+        from: LocalTime,
+        to: LocalTime,
+    ) = _state.update { it.copy(times = normalisedTimes(it.times - from + to)) }
+
+    fun removeTime(time: LocalTime) = _state.update { it.copy(times = it.times - time) }
 
     fun save() {
         val snapshot = _state.value
@@ -72,6 +91,7 @@ class MedicineEditorViewModel(
                 existing?.copy(name = name, amount = amount, note = note)
                     ?: MedicineEntity(name = name, amount = amount, note = note)
             repository.save(medicine)
+            doses.saveTimes(medicine.id, snapshot.times, now())
             _state.update { it.copy(saving = false, saved = true) }
         }
     }
@@ -81,7 +101,7 @@ class MedicineEditorViewModel(
             viewModelFactory {
                 initializer {
                     val app = this[APPLICATION_KEY] as MainApplication
-                    MedicineEditorViewModel(medicineId, app.container.medicines)
+                    MedicineEditorViewModel(medicineId, app.container.medicines, app.container.doses)
                 }
             }
     }

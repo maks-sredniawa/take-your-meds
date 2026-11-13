@@ -22,6 +22,7 @@ import app.takeyourmeds.R
 import app.takeyourmeds.theme.Spacing
 import app.takeyourmeds.ui.appViewModelExtras
 import app.takeyourmeds.ui.common.DetailScaffold
+import app.takeyourmeds.ui.common.rememberTimeFormatter
 
 @Composable
 fun MedicineDetailScreen(
@@ -59,6 +60,16 @@ fun MedicineDetailScreen(
                 modifier = contentModifier.verticalScroll(rememberScrollState()).padding(Spacing.base),
             ) {
                 LabelledValue(stringResource(R.string.medicine_amount_label), medicine.amount)
+                val format = rememberTimeFormatter()
+                LabelledValue(
+                    stringResource(R.string.schedule_times_label),
+                    if (state.times.isEmpty()) {
+                        stringResource(R.string.schedule_no_times)
+                    } else {
+                        stringResource(R.string.medicine_times, state.times.joinToString { format(it) })
+                    },
+                    Modifier.padding(top = Spacing.base),
+                )
                 medicine.note?.let { note ->
                     LabelledValue(
                         stringResource(R.string.medicine_note_label),
