@@ -232,8 +232,8 @@ class ReminderPlannerLockTest {
     fun aSnoozeCleanupThatThrowsStillLeavesTheAlarmArmed() =
         runBlocking {
             records.gate.release.complete(Unit)
-            database.snoozeDao().put(SnoozeEntity("m", due.minusDays(1), now.minus(1, ChronoUnit.DAYS)))
             val planner = planner(snoozes = FullDiskSnoozes(database.snoozeDao()))
+            database.snoozeDao().put(SnoozeEntity("m", due.minusDays(1), now.minus(1, ChronoUnit.DAYS)))
             disarm()
             assertNull(armedAlarm())
 
