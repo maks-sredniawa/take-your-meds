@@ -28,8 +28,9 @@ class ReminderPlanTest {
         now: Instant,
         from: DoseSources = sources,
         lastArmed: Instant? = null,
+        postedThrough: Instant? = null,
     ): Pair<List<Pair<String, LocalDateTime>>, Instant?> {
-        val plan = planReminders(trigger, now, WARSAW, from, lastArmed)
+        val plan = planReminders(trigger, now, WARSAW, from, lastArmed, postedThrough)
         return plan.post.map { it.medicineId to it.scheduledAt } to plan.armFor
     }
 
@@ -84,6 +85,45 @@ class ReminderPlanTest {
             listOf("a" to at(9), "b" to at(9, 5)) to instant(21),
             plan(Replan.Fired(instant(9, 5)), instant(9, 6), lastArmed = instant(9)),
         )
+    }
+
+    @Test
+    fun `a firing queued before a re-plan replaced its alarm does not post again what that re-plan posted`() {
+        val armed = planReminders(Replan.Arm, instant(9, 10), WARSAW, sources, instant(9), null)
+        assertEquals(instant(9, 10), armed.postedThrough)
+
+        assertEquals(
+            emptyList<Pair<String, LocalDateTime>>() to instant(21),
+            plan(
+                Replan.Fired(instant(9)),
+                instant(9, 11),
+                lastArmed = armed.armFor,
+                postedThrough = armed.postedThrough,
+            ),
+        )
+    }
+
+    @Test
+    fun `a firing still posts what fell Due after the last re-plan that posted`() {
+        assertEquals(
+            listOf("b" to at(9, 5)) to instant(21),
+            plan(Replan.Fired(instant(9)), instant(9, 6), postedThrough = instant(9, 2)),
+        )
+    }
+
+    @Test
+    fun `a re-plan that posts nothing keeps the mark of the last one that did`() {
+        assertEquals(
+            instant(8),
+            planReminders(Replan.Arm, instant(8, 30), WARSAW, sources, instant(9), instant(8)).postedThrough,
+        )
+    }
+
+    @Test
+    fun `a boot re-posts every Due Dose whatever was posted before it, and marks its own time`() {
+        val boot = planReminders(Replan.Repost, instant(9, 30), WARSAW, sources, null, instant(9, 10))
+        assertEquals(listOf("a" to at(9), "b" to at(9, 5)), boot.post.map { it.medicineId to it.scheduledAt })
+        assertEquals(instant(9, 30), boot.postedThrough)
     }
 
     @Test

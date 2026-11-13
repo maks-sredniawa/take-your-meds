@@ -1,6 +1,7 @@
 package app.takeyourmeds.data
 
 import androidx.datastore.core.DataStore
+import androidx.datastore.preferences.core.MutablePreferences
 import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.booleanPreferencesKey
 import androidx.datastore.preferences.core.edit
@@ -48,6 +49,7 @@ class AppPreferences(
         val ONBOARDING_DONE = booleanPreferencesKey("onboarding_done")
         val TIP_ASKED = booleanPreferencesKey("tip_asked")
         val REMINDER_ARMED_FOR = longPreferencesKey("reminder_armed_for")
+        val REMINDER_POSTED_THROUGH = longPreferencesKey("reminder_posted_through")
 
         /** What *Restore to default* removes: everything the user chose, so each reads its default again. */
         val SETTINGS: List<Preferences.Key<*>> =
@@ -65,6 +67,7 @@ class AppPreferences(
                 ONBOARDING_DONE,
                 TIP_ASKED,
                 REMINDER_ARMED_FOR,
+                REMINDER_POSTED_THROUGH,
             )
     }
 
@@ -110,6 +113,12 @@ class AppPreferences(
             prefs[Keys.REMINDER_ARMED_FOR]?.let(Instant::ofEpochMilli)
         }
 
+    /** The last re-plan's posting mark, so a firing its re-plan already covered posts nothing twice (ADR-0010). */
+    val reminderPostedThrough: Flow<Instant?> =
+        store.data.map { prefs ->
+            prefs[Keys.REMINDER_POSTED_THROUGH]?.let(Instant::ofEpochMilli)
+        }
+
     /**
      * The theme mode, read once, before any Activity exists.
      *
@@ -132,16 +141,22 @@ class AppPreferences(
         store.edit { it[Keys.ONBOARDING_DONE] = done }
     }
 
-    suspend fun setReminderArmedFor(at: Instant?) {
+    /** One edit for both, so no read sees a new alarm beside an old mark. */
+    suspend fun setReminderPlan(
+        armedFor: Instant?,
+        postedThrough: Instant?,
+    ) {
         store.edit { prefs ->
-            if (at ==
-                null
-            ) {
-                prefs.remove(Keys.REMINDER_ARMED_FOR)
-            } else {
-                prefs[Keys.REMINDER_ARMED_FOR] = at.toEpochMilli()
-            }
+            prefs.putOrRemove(Keys.REMINDER_ARMED_FOR, armedFor)
+            prefs.putOrRemove(Keys.REMINDER_POSTED_THROUGH, postedThrough)
         }
+    }
+
+    private fun MutablePreferences.putOrRemove(
+        key: Preferences.Key<Long>,
+        at: Instant?,
+    ) {
+        if (at == null) remove(key) else set(key, at.toEpochMilli())
     }
 
     suspend fun markTipAsked() {

@@ -104,9 +104,11 @@ class ReminderPlanner(
         val zone = zone()
         val (start, end) = sourceWindow(at, zone)
         val lastArmed = preferences.reminderArmedFor.first()
-        val plan = planReminders(trigger, at, zone, doses.sourcesBetween(start, end), lastArmed)
+        val postedThrough = preferences.reminderPostedThrough.first()
+        val sources = doses.sourcesBetween(start, end)
+        val plan = planReminders(trigger, at, zone, sources, lastArmed, postedThrough)
         val exact = arm(plan.armFor)
-        preferences.setReminderArmedFor(plan.armFor)
+        preferences.setReminderPlan(plan.armFor, plan.postedThrough)
         val posted =
             try {
                 post(plan.post)

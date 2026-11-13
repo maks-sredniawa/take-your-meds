@@ -21,14 +21,20 @@ sealed interface Replan {
     data object Arm : Replan
 }
 
+/** [postedThrough] is the mark to store: every Reminder time up to it has had its posting pass. */
 data class ReminderPlan(
     val post: List<Dose>,
     val armFor: Instant?,
+    val postedThrough: Instant?,
 )
 
 /**
  * [lastArmed] is the alarm the previous re-plan armed. Arming replaces an alarm that has not landed
  * yet, so once that time has passed every re-plan posts what the alarm would have, as its firing does.
+ *
+ * [postedThrough] is the last re-plan's mark. A firing already queued when a re-plan replaced its
+ * alarm still arrives, and posts only what came after that mark, so a Reminder the user swiped away
+ * does not come back. A re-post ignores the mark: it runs where the tray was lost or the clock moved.
  */
 fun planReminders(
     trigger: Replan,
@@ -36,16 +42,25 @@ fun planReminders(
     zone: ZoneId,
     sources: DoseSources,
     lastArmed: Instant?,
+    postedThrough: Instant? = null,
 ): ReminderPlan {
     val (schedules, records, snoozes) = sources
     val from = listOfNotNull((trigger as? Replan.Fired)?.armedFor, lastArmed?.takeIf { it <= now }).minOrNull()
     val post =
         when {
             trigger == Replan.Repost -> dosesToRepost(now, zone, schedules, records, snoozes)
-            from != null -> dosesToPost(from, now, zone, schedules, records, snoozes)
+            from != null -> {
+                val after = postedThrough?.plusMillis(1)?.let { maxOf(it, from) } ?: from
+                dosesToPost(after, now, zone, schedules, records, snoozes)
+            }
             else -> emptyList()
         }
-    return ReminderPlan(post, nextReminderTime(now, zone, schedules, records, snoozes))
+    val passed = trigger == Replan.Repost || from != null
+    return ReminderPlan(
+        post = post,
+        armFor = nextReminderTime(now, zone, schedules, records, snoozes),
+        postedThrough = if (passed) now else postedThrough,
+    )
 }
 
 /** One Taken in the tray per Medicine: a posted Dose takes out that Medicine's earlier Reminders, which stay Due on Today. */
