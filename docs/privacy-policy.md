@@ -33,7 +33,10 @@ The Google Play Billing library, which handles tips, carries usage logging of it
 
 ## What the app can access, and why
 
-- **Notifications**, only if you turn reminders on.
+- **Notifications**, to show a reminder at each time you set. Asked for when you first give a
+  medicine a time, never before.
+- **Alarms and reminders**, so a reminder arrives on its minute. Asked for right after
+  notifications, as a switch in Android's settings; without it, a reminder can arrive late.
 - **Google Play billing.** Lets the app ask the Google Play app for the price of a tip and open its
   payment sheet. It gives the app nothing about you.
 
