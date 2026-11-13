@@ -11,6 +11,7 @@ import app.takeyourmeds.R
 import app.takeyourmeds.data.Dose
 import app.takeyourmeds.data.DoseKey
 import app.takeyourmeds.data.MedicineEntity
+import app.takeyourmeds.data.SNOOZE_LENGTH
 import java.time.LocalTime
 
 internal fun reminderNotification(
@@ -40,8 +41,15 @@ internal fun reminderNotification(
         .setWhen(dose.timeAt.toEpochMilli())
         .setShowWhen(true)
         .setContentIntent(openToday(context))
-        .addAction(0, context.getString(R.string.reminder_action_taken), takenIntent(context, dose.key))
-        .build()
+        .addAction(
+            0,
+            context.getString(R.string.reminder_action_taken),
+            actionIntent(context, ReminderActionReceiver.ACTION_TAKEN, dose.key),
+        ).addAction(
+            0,
+            context.getString(R.string.reminder_action_snooze, SNOOZE_LENGTH.toMinutes()),
+            actionIntent(context, ReminderActionReceiver.ACTION_SNOOZE, dose.key),
+        ).build()
 }
 
 /** Not a fresh task: Today opens over whatever was left open, so an unsaved editor is still there on Back. */
@@ -56,15 +64,16 @@ private fun openToday(context: Context): PendingIntent =
     )
 
 /** The Dose rides in the data, not an extra: `PendingIntent` equality ignores extras. */
-private fun takenIntent(
+private fun actionIntent(
     context: Context,
+    action: String,
     key: DoseKey,
 ): PendingIntent =
     PendingIntent.getBroadcast(
         context,
         0,
         Intent(context, ReminderActionReceiver::class.java)
-            .setAction(ReminderActionReceiver.ACTION_TAKEN)
+            .setAction(action)
             .setData(key.tag.toUri()),
         PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT,
     )

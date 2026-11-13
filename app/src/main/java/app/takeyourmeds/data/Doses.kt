@@ -140,6 +140,18 @@ private fun dosesAround(
     return dosesFrom(first, now.atZone(zone).toLocalDate(), zone, schedules, records, snoozes)
 }
 
+/**
+ * Whether no derivation reads this Snooze any more: its end is past the re-post bound, so no re-plan
+ * posts it, and its Dose is before today, so Today no longer shows *Snoozed until*. Only an answer
+ * deletes a Snooze (ADR-0009), so the re-plan deletes these, or an unanswered Dose's row stays forever.
+ */
+fun SnoozeEntity.outlivedAt(
+    now: Instant,
+    zone: ZoneId,
+): Boolean =
+    Duration.between(until, now) >= DUE_REPOST_LIMIT &&
+        scheduledAt.toLocalDate() < now.atZone(zone).toLocalDate()
+
 private fun Dose.isCurrent(
     now: Instant,
     doses: List<Dose>,

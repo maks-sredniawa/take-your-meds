@@ -86,6 +86,7 @@
     <string name="reminder_text">%1$s · your %2$s dose</string>
     <string name="reminder_text_public">A dose is due at %1$s</string>
     <string name="reminder_action_taken">Taken</string>
+    <string name="reminder_action_snooze">Snooze %d min</string>
     <!-- The tip's one ask (ADR-0007): once per install, so a moved install asks again -->
     <string name="tip_ask_title">This app is free, and stays free</string>
     <string name="tip_ask_body">If it is useful to you, you can leave the developer a tip. It unlocks nothing, and the app will not ask again on this phone.</string>

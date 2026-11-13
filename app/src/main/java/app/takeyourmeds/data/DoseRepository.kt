@@ -77,6 +77,26 @@ class DoseRepository(
         return written
     }
 
+    /** A Snooze of a Dose already answered is not written: an answer outranks it (ADR-0009). */
+    suspend fun snooze(
+        key: DoseKey,
+        until: Instant,
+    ): Boolean {
+        val answered =
+            records.between(key.scheduledAt, key.scheduledAt.plusMinutes(1)).any {
+                it.medicineId ==
+                    key.medicineId
+            }
+        if (answered) return false
+        snoozes.put(SnoozeEntity(key.medicineId, key.scheduledAt, until))
+        return true
+    }
+
+    suspend fun forgetSnoozes(outlived: List<SnoozeEntity>) =
+        outlived.forEach {
+            snoozes.delete(it.medicineId, it.scheduledAt)
+        }
+
     suspend fun undo(record: DoseRecordEntity) =
         records.delete(record.medicineId, record.scheduledAt, record.answeredAt)
 }

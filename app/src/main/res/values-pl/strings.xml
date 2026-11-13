@@ -66,6 +66,7 @@
     <string name="reminder_text">%1$s · dawka o %2$s</string>
     <string name="reminder_text_public">Dawka do przyjęcia o %1$s</string>
     <string name="reminder_action_taken">Przyjęto</string>
+    <string name="reminder_action_snooze">Drzemka %d min</string>
 
     <string name="tip_ask_title">Ta aplikacja jest darmowa i taka zostanie</string>
     <string name="tip_ask_body">Jeśli ci się przydaje, możesz zostawić twórcy napiwek. Niczego nie odblokowuje, a na tym telefonie aplikacja więcej o to nie zapyta.</string>

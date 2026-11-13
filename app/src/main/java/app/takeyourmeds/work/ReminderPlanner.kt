@@ -15,6 +15,8 @@ import app.takeyourmeds.data.Dose
 import app.takeyourmeds.data.DoseKey
 import app.takeyourmeds.data.DoseRepository
 import app.takeyourmeds.data.MedicineRepository
+import app.takeyourmeds.data.SNOOZE_LENGTH
+import app.takeyourmeds.data.outlivedAt
 import app.takeyourmeds.data.schemaBlocksBackgroundWork
 import app.takeyourmeds.ui.common.timeFormatter
 import app.takeyourmeds.ui.settings.inAppLanguage
@@ -88,6 +90,14 @@ class ReminderPlanner(
         replanNow(Replan.Arm)
     }
 
+    /** The Reminder's Snooze: its end becomes one more Reminder time on the one alarm (`docs/phase-1.md` §7). */
+    suspend fun snooze(key: DoseKey) {
+        withdrawing(key) {
+            if (medicines.observeById(key.medicineId).first() != null) doses.snooze(key, now() + SNOOZE_LENGTH)
+        }
+        replanNow(Replan.Arm)
+    }
+
     override suspend fun deleteMedicine(
         medicineId: String,
         delete: suspend () -> Unit,
@@ -122,6 +132,7 @@ class ReminderPlanner(
         val postedThrough = preferences.reminderPostedThrough.first()
         val sources = doses.sourcesBetween(start, end)
         val plan = planReminders(trigger, at, zone, sources, lastArmed, postedThrough)
+        doses.forgetSnoozes(sources.snoozes.filter { it.outlivedAt(at, zone) })
         val exact = arm(plan.armFor)
         preferences.setReminderPlan(plan.armFor, plan.postedThrough)
         val posted =
