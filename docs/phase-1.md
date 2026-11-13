@@ -1,10 +1,10 @@
 # Phase 1 — A Medicine reminds at its Times, and Today says what has been Taken
 
 Sequence lives in [`PLAN.md`](PLAN.md); the live worklist lives in [`DOD.md`](DOD.md). Relies on
-ADR-0001 (the schema gate, and whether this phase migrates or redefines: §2), ADR-0003 (the sweep as
-the backstop), ADR-0009 (a Dose is derived; only the answer and a pending Snooze are stored),
-ADR-0010 (one exact alarm, with a fallback the user can see) and ADR-0011 (Amount and Note stay text
-the app never reads). Amends ADR-0003, ADR-0009 and ADR-0010 (*Documents this phase amends*).
+ADR-0001 (the schema gate this phase's migration crosses, §2), ADR-0003 (the sweep as the backstop),
+ADR-0009 (a Dose is derived; only the answer and a pending Snooze are stored), ADR-0010 (one exact
+alarm, with a fallback the user can see) and ADR-0011 (Amount and Note stay text the app never
+reads). Amends ADR-0003, ADR-0007, ADR-0009 and ADR-0010 (*Documents this phase amends*).
 [`CONTEXT.md`](../CONTEXT.md) is owed two things: what *Due* means against the clock, since a Dose
 before its Time is neither Due nor Taken and Today has to show it; and *Re-plan*, the code word this
 phase and ADR-0010 already use.
@@ -38,12 +38,12 @@ open. What exists and what changes:
 | --- | --- | --- |
 | `work/ReminderSweep.kt` | one-time work at 09:00 that re-enqueues itself; ensures the channels; derives nothing | the same slot and chain; its body re-plans (arms the one alarm) and posts nothing (§5) |
 | `work/ExactAlarms.kt` | `canScheduleExactAlarms()` and `openExactAlarmSettings()`, no caller arms an alarm | the planner reads the grant at every arm; the ask and Today's banner call the hand-off |
-| `work/NotificationPermission.kt` | the app's one `POST_NOTIFICATIONS` ask, spent from Settings' *Remind me* switch | spent from the first Schedule's save instead (§4); the Settings call goes with the switch, if the owner agrees (§4) |
+| `work/NotificationPermission.kt` | the app's one `POST_NOTIFICATIONS` ask, spent from Settings' *Remind me* switch | spent from the first Schedule's save instead (§4); the Settings call goes with the switch (§4) |
 | `work/ReminderChannels.kt` | `reminders` at `IMPORTANCE_HIGH`, read on a fresh install (phase 0, R2) | unchanged; its description copy stops saying "daily check" |
 | `work/BootReceiver.kt`, `PackageReplacedReceiver.kt` | ensure the sweep is enqueued | a full re-plan: re-post what is still Due, then arm. `BootReceiver`'s own KDoc already says it: AlarmManager restores nothing |
 | `work/ReceiverWork.kt` | `goAsync` around a suspend block | reused by every new receiver |
 | `work/BatteryExemption.kt`, `Autostart.kt` | the hand-offs, unused | unused: phase 2's setup screen |
-| `data/AppPreferences.kt` | `remindersEnabled`, default false | §4, an owner's call |
+| `data/AppPreferences.kt` | `remindersEnabled`, default false | `remindersEnabled` and `Keys.REMINDERS_ENABLED` deleted, with the switch (§4) |
 | `AppContainer.takenDoseCount` | `flowOf(0)` | a count of Taken `DoseRecord`s, so the tip ask can come due (ADR-0007) |
 | `Navigation.kt`, `NavigationKeys.kt` | back stack rooted at `Medicines` | rooted at `Today`, the first tab (phase 0 said Today would go in front) |
 | `ui/medicines/MedicineEditor*` | name, Amount, Note | plus the Medicine's Times |
@@ -83,17 +83,13 @@ ask's count wired to Taken Doses.
 - **Skip.** An answer with its own copy and its own History meaning (`CONTEXT.md`: a choice, not an
   absence). The `DoseRecord` answer is an enum stored by name, so adding `Skipped` costs no
   migration.
-- **Editing a Schedule without rewriting past Doses.** It needs a Schedule kept per valid-from, and
-  with no History yet nothing past is visible except today. This phase stores `validFrom` on every
-  Schedule (§2) so phase 2 needs no column, but edits the one Schedule in place. A Taken record whose
-  Time an edit removed still shows on Today, because Today reads records as well as Schedules.
 - **Days other than every day, an End date, As needed.** Phase 3 owns them with History. The
   Schedule's shape takes them as added columns, not a rebuild.
 - **The battery-optimisation and autostart setup screen.** `PLAN.md` rule 4 puts it after the first
   Reminder has fired, in phase 2. Until then a Xiaomi without autostart can stay silent; named in
   *Known gaps*.
-- **Changing an answer after the fact.** Today offers Undo for a moment after marking Taken there
-  (§6); revising yesterday's answer belongs with History.
+- **Changing an answer after the fact.** Today offers Undo after marking Taken there (§6);
+  revising yesterday's answer, or a Taken tapped on a Reminder, belongs with History.
 
 **The tempting one: `setAlarmClock()`.** It is the most reliable delivery Android has in deep Doze,
 and the first time a Reminder arrives a minute late in a reading somebody will reach for it. It puts
@@ -131,10 +127,14 @@ its test enters with it (`PLAN.md` rule 3). C and D are its two readers.
 a visible bug, the same wrong Dose behind an alarm is a Reminder that never comes.
 
 **D and E are split by cost** (`PLAN.md` rule 2): D is the expensive, device-bound half; E is two
-screens and two banners. They are one feature to a user, so **the release PR is not merged between D
-and E**: on API 33+ D alone posts nothing to a fresh install, because nothing has asked for
-notifications yet. D is read on the emulator with `pm grant` and `appops`; E is what makes it work
-for somebody who never ran `adb`.
+screens and two banners. They are one feature to a user: on API 33+ D alone posts nothing to a
+fresh install, because nothing has asked for notifications yet. D is read on the emulator with
+`pm grant` and `appops`; E is what makes it work for somebody who never ran `adb`.
+
+**No release PR merges from B until E has merged.** A release carrying schema 2 freezes it (§2), so
+the hold keeps it amendable through C, D and E, the checkpoints most likely to find a column missing.
+It also keeps a release from shipping Times that remind nothing (after C) or Reminders nobody has
+been asked to allow (after D).
 
 **F after D** because a Snooze is one more Reminder time on D's alarm (ADR-0010) and changes nothing
 D builds.
@@ -198,11 +198,11 @@ Not yet taken.
 
 ## 2. The schema (B)
 
-Three tables join `medicines`. The shape is the owner's call below; the content is ADR-0009's.
+Three tables join `medicines`, under ADR-0009's content.
 
 | Table | Columns | Rules |
 | --- | --- | --- |
-| `schedules` | `id` TEXT UUID; `medicineId` TEXT → `medicines.id` **ON DELETE CASCADE**, indexed; `times` TEXT; `validFrom` TEXT; `createdAt` INTEGER | `times` is the Times as `HH:mm`, sorted, distinct, comma-joined, never empty: a Schedule is never queried by one of its Times, so a column beats a child table. `validFrom` is the local date-time of the save (ADR-0009 amendment, §3). One row per Medicine in this phase |
+| `schedules` | `id` TEXT UUID; `medicineId` TEXT → `medicines.id` **ON DELETE CASCADE**, indexed; `times` TEXT; `validFrom` TEXT; `validUntil` TEXT, nullable; `createdAt` INTEGER | `times` is the Times as `HH:mm`, sorted, distinct, comma-joined, never empty: a Schedule is never queried by one of its Times, so a column beats a child table. `validFrom` is the local date-time of the save (ADR-0009 amendment, §3); `validUntil` is the local date-time of the edit that ended it, null while in force. At most one row per Medicine is in force (*Editing a Schedule*, below) |
 | `dose_records` | `medicineId` TEXT, **no foreign key**; `scheduledAt` TEXT; `answer` TEXT; `answeredAt` INTEGER; `medicineName` TEXT; `medicineAmount` TEXT; primary key (`medicineId`, `scheduledAt`); index on `scheduledAt` | no cascade, so a deleted Medicine's answers survive (ADR-0009). `answer` is an enum by name, `Taken` only until phase 2. Inserted with `IGNORE`: a Dose answered twice keeps its first answer and its first time |
 | `snoozes` | `medicineId` TEXT → `medicines.id` **ON DELETE CASCADE**; `scheduledAt` TEXT; `until` INTEGER; primary key (`medicineId`, `scheduledAt`) | an answer deletes the row, a second Snooze replaces it (ADR-0009) |
 
@@ -223,12 +223,21 @@ promise a docs line cannot keep. The migration is the cheap kind (`Migrations.kt
 is read or rewritten), it gives R3 a real schema bump to cross through `PackageReplacedReceiver`,
 which is the path ADR-0003 says the receiver exists for, and it rehearses the gate phase 2 makes
 binding. The cost: the "first migration" in `PLAN.md`'s Phase 3 and ADR-0009 becomes the second, and
-both are amended. If the owner chooses to redefine instead, `APP_SCHEMA_VERSION` stays 1, `1.json`
-is re-exported, and R3's upgrade row is struck with the reason.
+both are amended.
 
-Either way, every schema change in this phase lands in B's one version: if C–F find a column missing,
-B's migration and `2.json` are amended before any release, not followed by a 3 (`Migrations.kt`,
-*Batch a phase's changes into one version*).
+Every schema change in this phase lands in B's one version (`Migrations.kt`, *Batch a phase's changes
+into one version*), and schema 2 stays amendable only until a release carries it. *Checkpoints*
+holds every release PR from B until E has merged, so a column C, D or E finds missing amends B's
+migration and `2.json`, not a 3. Once a release carries schema 2 it is frozen: a column F or later
+finds missing is `MIGRATION_2_3`.
+
+**Editing a Schedule starts a new one** (ADR-0009: "an edit starts a new one instead of rewriting the
+old"). A save that changes a Medicine's Times sets the Schedule in force's `validUntil` to the save's
+local date-time and inserts a new Schedule whose `validFrom` is that same instant; a save that
+removes every Time only ends the old one; a save that leaves the Times as they were writes no
+Schedule. So Doses already Due or Taken today stay as they were, under the Schedule that made them,
+and a Time added for earlier today first comes Due tomorrow. A Time removed for later today has no
+Dose today.
 
 `DoseRecordDao` and `ScheduleDao` return `Flow` for screens and have one-shot `suspend` reads for the
 receivers, the same split as `MedicineDao`.
@@ -247,9 +256,13 @@ Pure functions in `data/Doses.kt`, taking a clock and a zone as arguments, never
 
 Rules the functions encode, each a test case (*Tests*):
 
-- **A Schedule has no Doses before its `validFrom`.** A Medicine saved at 10:00 with a 9:00 Time
-  starts tomorrow at 9:00; it is not Due at 10:00 for a Dose that never existed. ADR-0009 says
-  valid-from *date*; this phase makes it the save's local date-time, and amends the ADR.
+- **A Schedule has Doses only from its `validFrom` up to its `validUntil`.** A Medicine saved at
+  10:00 with a 9:00 Time starts tomorrow at 9:00; it is not Due at 10:00 for a Dose that never
+  existed. ADR-0009 says valid-from *date*; this phase makes it the save's local date-time, and amends
+  the ADR.
+- **An edit mid-day changes only what is still ahead.** At noon, adding 8:00 and 21:00 to a 9:00
+  Schedule leaves the 9:00 Dose Due (or Taken) under the old Schedule, adds a 21:00 Dose today, and
+  starts 8:00 tomorrow; removing 21:00 at noon removes only today's 21:00.
 - **A daylight-saving gap** (02:30 on the spring-forward day) is one Dose, reminded at the instant
   `ZonedDateTime.of` resolves it to (03:30). **An overlap** (01:30 twice on the fall-back day) is one
   Dose, reminded once, at the first.
@@ -285,9 +298,19 @@ remembered from the ask's outcome, the idiom `SettingsScreen` already uses for n
 spends the notifications ask the moment it is switched on, which is not the moment rule 4's table
 names. With Times on a Medicine, a global off-switch is a second way to stop Reminders beside
 `CONTEXT.md`'s (end the Schedule), and one that fails silently: switched off once and forgotten, it
-leaves every Schedule saved and nothing reminded. So: **remove the switch, its preference
-key and its banner**, and let Today's banners carry the refusal states; the key leaves *Restore to
-default*'s list with it, and the restore hint stops naming reminders.
+leaves every Schedule saved and nothing reminded. So **remove the switch, its preference key and
+its banner**, and let Today's banners carry the refusal states. What goes, as `optional-modules.md`'s
+reminders recipe lists it:
+
+- Settings' *Reminders* section: the `SwitchRow`, its `rememberNotificationPermissionAsk` call, and
+  the `WarningBanner` with its resumed re-read, which moves to Today (§6);
+  `SettingsUiState.remindersEnabled` and `SettingsViewModel.setRemindersEnabled`.
+- `AppPreferences.remindersEnabled`, `setRemindersEnabled`, `Keys.REMINDERS_ENABLED` and its place in
+  `Keys.SETTINGS`, and the reminder lines in `AppPreferencesTest`.
+- Every `settings_reminders*` string in every language, English and Polish: a Polish string left
+  behind is an orphan `TranslationTest` fails on.
+- "reminders" in `settings_restore_hint` and `settings_restore_confirm_body`, in every language, or
+  *Restore default settings* promises to reset a setting that is gone.
 
 Copy, English:
 
@@ -387,8 +410,10 @@ Dose of the current local date from `dosesOn`, in Time order, each showing:
 - its state: **Due** (Time passed, unanswered), **Taken** with the answer time, or neither for a
   Dose still ahead, which shows only its Time;
 - for a Due Dose with a pending Snooze, the time it is snoozed until;
-- an action to answer Taken on a Dose that is Due or ahead. Marking Taken on Today offers *Undo* for
-  a few seconds, which deletes the record just written; there is no later un-answering in this phase.
+- **Mark as taken** on a Due Dose only. A Dose still ahead has no button: an early answer would
+  silence its Reminder (§3, `stateAt`). The button appears once the Dose is Due; the Reminder's Taken
+  action is unchanged. Marking Taken on Today offers *Undo* in a long-duration snackbar, which
+  deletes the record just written; there is no later un-answering in this phase.
 
 Above the list, re-read on every resume and shown only while at least one Schedule exists:
 
@@ -404,12 +429,25 @@ The tip ask card moves from `ui/medicines/` to Today, the home screen it belongs
 with Times, and the debug seeder seeds Schedules and a Taken record so a seeded Today shows both
 states.
 
-**Still open:** the layout of Today and of the Times in the editor. What each must show is above;
-how is open. Recommended: a design pass (Fable) before C, given this list, the sage-and-amber palette
-(amber carries the late-Reminder banner, phase 0 §5) and `theme/Spacing.kt`, with these open
-questions: whether Doses group by Time or list flat; how a Dose ahead differs from a Due one without
-colour alone; whether Taken is a button, a checkbox or a swipe; and whether Times sit inline in the
-editor or on a sheet with the system time picker.
+**Decided by the owner, 2026-11-13, from a design pass (Fable): the layout of Today and of the
+Times.**
+
+- **Today groups Doses under one header per Time**, in Time order. The header is the Time in
+  `titleMedium`, `onSurface`. A snoozed Dose stays under its original Time and shows *Snoozed until
+  HH:MM*.
+- **Due** is a filled `Card` with the word *Due* and a filled-tonal *Mark as taken* button, at least
+  48dp, end-aligned on its own line; the card itself is not clickable. **Upcoming** is an
+  `OutlinedCard` with no state label and no button. **Taken** shows a check icon and *Taken at
+  HH:MM*, with no button. A row never disappears or re-sorts when answered. Colour is never the only
+  cue, and Due is not tinted amber.
+- **Both banners:** the blocked banner (`error`) sits above the late banner. The late banner is on
+  `tertiaryContainer`, which needs a tone parameter on `WarningBanner` in `ui/common/Surfaces.kt`
+  (today it is `errorContainer` only).
+- **The editor's Times** are a section between Note and Save, under a `SectionHeader` (*Times*), with
+  *Every day* in `onSurfaceVariant`. One row per Time, at least 48dp: a tap edits it in the M3
+  `TimePicker` dialog, and a trailing icon button removes it (content description *Remove 08:00*).
+  *Add a time* opens the picker. Rows stay sorted, and a duplicate Time is ignored. With no Times the
+  empty line reads *No times set. This medicine is not reminded.*
 
 Copy, English:
 
@@ -433,6 +471,8 @@ Copy, English:
 | `schedule_times_label` | Times |
 | `schedule_add_time` | Add a time |
 | `schedule_remove_time` | Remove %1$s |
+| `schedule_time_picker_title` | Choose a time |
+| `schedule_time_picker_confirm` | OK |
 | `schedule_every_day` | Every day |
 | `schedule_no_times` | No times set. This medicine is not reminded. |
 | `medicine_times` | Every day at %1$s |
@@ -469,7 +509,7 @@ the first ones the app has. Each is a JVM test over a pure function with an inje
 
 | Test | Proves | Fails in the direction of |
 | --- | --- | --- |
-| `DoseDerivationTest` (`dosesOn`, `stateAt`) | two Times; a Schedule saved mid-day has no Dose before `validFrom`; 23:59 and 00:00; a DST gap (one Dose, at the shifted instant) and overlap (one Dose, once); a zone change moves no Dose; a record whose Time was removed still shows Taken; a Dose ahead is not Due | a Dose that never exists, so never reminds, or exists twice, so reminds twice |
+| `DoseDerivationTest` (`dosesOn`, `stateAt`) | two Times; a Schedule saved mid-day has no Dose before `validFrom`; an edit mid-day keeps today's earlier Doses under the old Schedule, adds a later Time today and starts an earlier one tomorrow; 23:59 and 00:00; a DST gap (one Dose, at the shifted instant) and overlap (one Dose, once); a zone change moves no Dose; a record whose Time was removed still shows Taken; a Dose ahead is not Due | a Dose that never exists, so never reminds, or exists twice, so reminds twice |
 | `NextReminderTest` (`nextReminderTime`) | the earliest across Medicines; answered Doses excluded; a Snooze earlier than the next Time wins; after the day's last Time, tomorrow's first; strictly after `now`; no Doses means none | an alarm armed past a Dose, which then never reminds |
 | `DosesToPostTest` (`dosesToPost`) | `[armedFor, now]` inclusive at both ends; two Medicines at the same minute both posted; a late landing posts every Dose it covers; answered Doses skipped | a Dose between the armed time and a late landing left unposted |
 | `RepostBoundTest` (`dosesToRepost`, the bound in `dosesToPost`) | posted just inside `DUE_REPOST_LIMIT`, not at or past it; not once a later Dose of the same Medicine has reached its Time; measured from the Reminder time, so a Snooze's end counts | **chiefly** a stale Reminder posted as current, which can become a second dose of the same Medicine; secondarily a phone off over 9:00 left silent |
@@ -478,7 +518,7 @@ the first ones the app has. Each is a JVM test over a pure function with an inje
 Instrumented, beside `MedicineDaoTest`: `DoseRecordDaoTest` proves a Dose answered twice keeps one
 record with its first answer time (fails toward a Taken count of two, which the tip ask reads now and
 Supply will count down twice in phase 4), and that deleting a Medicine deletes its Schedules and
-Snoozes and keeps its records. If §2 migrates: `MigrationTest` 1 → 2 reads the Medicines back, and
+Snoozes and keeps its records. `MigrationTest` 1 → 2 reads the Medicines back, and
 `SchemaGateTest` asserts the gate lets 1 → 2 through (`DOD.md`'s standing gate, items 3 and 4).
 `ManifestWiringTest` gains the new receivers.
 
@@ -488,15 +528,21 @@ Device behaviour is not here: whether the alarm fired on its minute is a reading
 
 - **ADR-0003**: dated amendment. `BootReceiver` and `PackageReplacedReceiver` now re-plan and re-post
   rather than doing almost nothing; the sweep arms and does not re-post.
+- **ADR-0007**: dated amendment. The tip ask card moves from `ui/medicines/` to Today, the new home
+  screen, and its count of recorded items becomes the count of Taken `DoseRecord`s.
 - **ADR-0009**: dated amendment. `validFrom` is the save's local date-time, not a date, so a Schedule
-  saved mid-day has no earlier Dose that day. If §2 migrates, its last consequence's "first migration
-  (phase 3)" becomes the second.
+  saved mid-day has no earlier Dose that day; an edit ends the Schedule in force at the save's
+  instant (`validUntil`) and starts the new one at that same instant, so today's Doses before the
+  edit keep the old Schedule. Its last consequence's "first migration (phase 3)" becomes the second.
 - **ADR-0010**: dated amendment. The re-post bound and the next-Dose cap, the same bound on a late
   firing, the tag-keyed Reminder, the private lock-screen version, and the gate's verdict.
 - **`CONTEXT.md`**: *Due* is a Dose whose Time has passed unanswered, and a Dose before its Time has
   no state; *Re-plan* in the domain table as a code word, never in the UI.
 - **`PLAN.md`**: the Phase 1 Status entry closed with its readings; a *Phase 1* paragraph; Phase 3's
-  "first schema migration" if §2 migrates.
+  "first schema migration" becomes the second.
+- **`docs/optional-modules.md`**: *Reminders and WorkManager* stops listing Settings' *Reminders*
+  section and the reminders in the restore strings, which this phase removes (§4), and points at the
+  first Schedule's ask as the shape to copy for a first ask.
 - **`docs/privacy-policy.md` and `docs/play-app-content.md`, together**: notifications are asked when
   the first Medicine gets a Time; alarms and reminders (`SCHEDULE_EXACT_ALARM`) gets its own line
   in the policy, and the Console's permission rows say when each is asked.
@@ -523,8 +569,8 @@ Device behaviour is not here: whether the alarm fired on its minute is a reading
 - **An unanswered Dose stays Due all day, and leaves Today at midnight.** No Missed until phase 2 and
   no History until phase 3; a 23:30 Dose unanswered at midnight is answerable only from its Reminder,
   if it is still in the tray.
-- **An edit to a Medicine's Times rewrites today's Doses.** The in-place edit of §2; phase 2 keeps a
-  Schedule per valid-from.
+- **A Taken tapped by mistake on a Reminder cannot be undone in this phase.** Undo exists only on
+  Today's snackbar; changing an answer after the fact belongs with History.
 - **Close pairs on API 26–30**, by whatever G2 measures there (gate verdict 1).
 
 ## Readings
@@ -563,7 +609,7 @@ Device state each reading depends on, and how it is set:
 | R2a | After a reboot, a Reminder whose Time falls after boot arrives on its minute | arm, `adb reboot`, `adb logcat -s Reminders` | |
 | R2b | After a reboot, a Dose whose Time passed while the phone was off is re-posted at boot inside the bound, and one past the bound is not | Times one before and one beyond the bound, `adb emu kill` over both, boot, `dumpsys notification` | |
 | R3a | After an update, a Reminder armed before it arrives on its minute | arm, `adb install -r` the next build, `adb logcat -s Reminders` | |
-| R3b | An upgrade from 0.2.0's schema keeps the Medicines and opens (if §2 migrates; `DOD.md`'s standing gate, item 5) | `git checkout v0.2.0`, `./gradlew installDebug -PreleaseShapedDebug`, two Medicines, then this phase's build `-PreleaseShapedDebug` over it, open | |
+| R3b | An upgrade from 0.2.0's schema keeps the Medicines and opens (`DOD.md`'s standing gate, item 5) | `git checkout v0.2.0`, `./gradlew installDebug -PreleaseShapedDebug`, two Medicines, then this phase's build `-PreleaseShapedDebug` over it, open | |
 | R4 | With the grant refused, the Reminder arrives through the fallback, its lateness logged; Today shows *Reminders may be late*; granting through the hand-off removes the banner on resume and the next alarm reads exact | fresh install on API 36, a Time ahead, `logcat`, then the banner's action, then `dumpsys alarm` | |
 | R5 | *Taken* on a Reminder with the process dead and the screen locked writes the record, removes the Reminder and shows Taken on Today | tap from the lock screen, then pull the database **with its `-wal`** and `PRAGMA wal_checkpoint(TRUNCATE)` on the host, `SELECT * FROM dose_records` | |
 | R6 | Snooze returns the Reminder ten minutes later, and survives a reboot during it | tap Snooze, `adb reboot`, `adb logcat -s Reminders` | |
