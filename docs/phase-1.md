@@ -427,6 +427,12 @@ replaces a pending alarm, and a fallback alarm can land up to an hour late, so w
 opening, a Taken, a save or the 09:00 sweep in that hour would drop the 09:00 Reminders. The planner
 arms before it posts, so a Reminder that fails to post cannot leave the chain without an alarm.
 
+**A firing already queued when a re-plan replaced its alarm posts nothing twice.** Every re-plan that
+posts stores the minute it posted through (`AppPreferences.reminderPostedThrough`, written in one edit
+with `reminderArmedFor`), and a later posting pass starts after it, so a Reminder the user swiped away
+does not come back from the other path. A re-post (boot, update, clock) ignores the mark: the tray was
+lost or the clock moved, and it sets the mark to its own time.
+
 **Decided by the owner, 2026-11-13: how old a Due Dose may be before a re-plan stops re-posting its
 Reminder.** **2 hours after its Reminder time, and never once a later Dose of the same Medicine has
 reached its Time**, one constant `DUE_REPOST_LIMIT` that phase 2 adopts as the moment the Follow-up
@@ -574,6 +580,11 @@ the same alarm (ADR-0010) and survives a reboot or an update through `dosesToRep
 replaces the row; an answer, from the notification or Today, deletes it. The Snooze end is an
 instant, not a local date-time: ten minutes are ten minutes across a clock change.
 
+**A Snooze nobody answers is deleted by the re-plan** once nothing reads it: its end is
+`DUE_REPOST_LIMIT` past, so no re-plan would post it, and its Dose is before today, so Today no longer
+shows *Snoozed until* (`SnoozeEntity.outlivedAt`). Without it, every unanswered Snooze stays forever.
+The Snooze and the Taken both write and cancel under the planner's lock, as does deleting a Medicine.
+
 **Decided by the owner, 2026-11-13: the Snooze length is fixed, 10
 minutes**, as `CONTEXT.md` already defines Snooze ("by a fixed time"). One button with the number on
 it is answerable from the lock screen without reading a choice; a chosen length is a preference with
@@ -626,9 +637,11 @@ Device behaviour is not here: whether the alarm fired on its minute is a reading
 - **ADR-0009**: dated amendment. `validFrom` is the save's local date-time, not a date, so a Schedule
   saved mid-day has no earlier Dose that day; an edit ends the Schedule in force at the save's
   instant (`validUntil`) and starts the new one at that same instant, so today's Doses before the
-  edit keep the old Schedule. Its last consequence's "first migration (phase 3)" becomes the second.
+  edit keep the old Schedule. Its last consequence's "first migration (phase 3)" becomes the second. A Snooze
+  nobody answers is deleted by the re-plan once outlived (§7).
 - **ADR-0010**: dated amendment. The re-post bound and the next-Dose cap, the same bound on a late
-  firing, the tag-keyed Reminder, the private lock-screen version, and the gate's verdict.
+  firing, the tag-keyed Reminder, the private lock-screen version, and the gate's verdict. The
+  posted-through mark, so a queued firing does not post twice what a re-plan already posted (§5).
 - **`CONTEXT.md`**: *Due* is a Dose whose Time has passed unanswered, and a Dose before its Time has
   no state; *Re-plan* in the domain table as a code word, never in the UI.
 - **`PLAN.md`**: the Phase 1 Status entry closed with its readings; a *Phase 1* paragraph; Phase 3's

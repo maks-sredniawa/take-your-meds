@@ -18,6 +18,7 @@ import app.takeyourmeds.data.DoseRepository
 import app.takeyourmeds.data.MedicineDao
 import app.takeyourmeds.data.MedicineEntity
 import app.takeyourmeds.data.MedicineRepository
+import app.takeyourmeds.data.SNOOZE_LENGTH
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -147,6 +148,25 @@ class ReminderPlannerLockTest {
 
             assertEquals(1, answers().size)
             assertFalse("a Taken Dose's Reminder is not left in the tray", reminderShowing())
+        }
+
+    @Test
+    fun aSnoozeWaitsForAReplanAlreadyReadingSoItsReminderIsNotPostedAfterIt() =
+        runBlocking {
+            val planner = planner()
+
+            val replan = launch(Dispatchers.Default) { planner.replanNow(Replan.Repost) }
+            records.gate.reading.await()
+            val snoozed = launch(Dispatchers.Default) { planner.snooze(key) }
+            delay(500)
+            assertTrue("the Snooze waits for the re-plan's lock", database.snoozeDao().all().isEmpty())
+
+            records.gate.release.complete(Unit)
+            joinAll(replan, snoozed)
+            delay(1_000)
+
+            assertEquals(listOf(now.plus(SNOOZE_LENGTH)), database.snoozeDao().all().map { it.until })
+            assertFalse("a snoozed Dose's Reminder is not left in the tray", reminderShowing())
         }
 
     @Test
