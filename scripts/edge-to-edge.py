@@ -1113,6 +1113,21 @@ def drag(x: int, from_y: int, by: int) -> None:
 ALIGN_TOLERANCE_PX = 12
 
 
+def reveal(needle: str, *, optional: bool) -> "list[Node]":
+    """Scroll forward as [tap] does: a heading below the fold in landscape is not in the dump at all."""
+    previous = ""
+    for attempt in range(1 if optional else TAP_SCROLL_CAP):
+        nodes = dump_ui()
+        if find(nodes, needle, exact=True) is not None:
+            return nodes
+        current = screen_signature(nodes)
+        if attempt >= MIN_TAP_TRIES - 1 and current == previous:
+            break
+        previous = current
+        swipe_up(nodes)
+    return nodes
+
+
 def align_top(needle: str, *, optional: bool = False) -> None:
     """Scroll until `needle`'s top sits flush under the app bar, or as near as the list's end allows.
 
@@ -1123,7 +1138,7 @@ def align_top(needle: str, *, optional: bool = False) -> None:
     previous = None
     stuck = 0
     for attempt in range(6):
-        nodes = dump_ui()
+        nodes = dump_ui() if attempt else reveal(needle, optional=optional)
         node = find(nodes, needle, exact=True)
         if node is None:
             if optional:
