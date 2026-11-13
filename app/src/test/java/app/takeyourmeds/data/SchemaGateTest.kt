@@ -52,6 +52,20 @@ class SchemaGateTest {
         )
     }
 
+    @Test
+    fun `a file that cannot be read never opens, in debug or release`() {
+        for (destructiveAllowed in listOf(true, false)) {
+            assertTrue(
+                "destructiveAllowed = $destructiveAllowed",
+                schemaGateDecision(
+                    onDiskVersion = UNREADABLE_USER_VERSION,
+                    steps = shipped,
+                    destructiveAllowed = destructiveAllowed,
+                ) != SchemaGate.Open,
+            )
+        }
+    }
+
     // ---------------------------------------------------------------------------------------
     // The rule itself, against example lists. These do not change as the app's schema climbs.
     // ---------------------------------------------------------------------------------------
