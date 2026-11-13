@@ -127,14 +127,14 @@ Pierwsze wydanie.
 
 ### 0.3.0
 
-**English** — 456/500:
+**English** — 440/500:
 
 ```
-Reminders: give a medicine its times of day, and a notification arrives at each one, on the minute, with a Taken button. New Today tab: today's doses, Due or Taken, each one marked as taken with a tap, and Undo if it was a mistake. The first time you set a time, the app asks to show notifications and to set exact alarms. Help and feedback gains a support address to copy, and an About section with the app's web page, privacy policy, credits and version.
+Reminders: give a medicine its times of day, and a notification arrives at each one with a Taken button. New Today tab: today's doses, Due or Taken, each one marked as taken with a tap, and Undo if it was a mistake. The first time you set a time, the app asks to show notifications and to set exact alarms. Help and feedback gains a support address to copy, and an About section with the app's web page, privacy policy, credits and version.
 ```
 
-**Polish** — 488/500:
+**Polish** — 475/500:
 
 ```
-Przypomnienia: ustaw godziny przyjmowania leku, a o każdej z nich co do minuty przyjdzie powiadomienie z przyciskiem Przyjęto. Nowa zakładka Dziś: dzisiejsze dawki, do przyjęcia lub przyjęte; każdą można jednym dotknięciem oznaczyć jako przyjętą, a pomyłkę cofnąć. Przy pierwszej ustawionej godzinie aplikacja prosi o zgodę na powiadomienia i dokładne alarmy. W Pomocy i opiniach jest adres do skopiowania oraz sekcja O aplikacji ze stroną, polityką prywatności, podziękowaniami i wersją.
+Przypomnienia: ustaw godziny przyjmowania leku, a o każdej z nich przyjdzie powiadomienie z przyciskiem Przyjęto. Nowa zakładka Dziś: dzisiejsze dawki, do przyjęcia lub przyjęte; każdą można jednym dotknięciem oznaczyć jako przyjętą, a pomyłkę cofnąć. Przy pierwszej ustawionej godzinie aplikacja prosi o zgodę na powiadomienia i dokładne alarmy. W Pomocy i opiniach jest adres do skopiowania oraz sekcja O aplikacji ze stroną, polityką prywatności, podziękowaniami i wersją.
 ```

@@ -302,7 +302,7 @@ it is asked for.
 | Type / alias | PKCS12, alias `upload`. PKCS12 keeps **one** password, so `upload.storePassword` and `upload.keyPassword` are the same string |
 | Key | RSA 4096, SHA384withRSA, created 2026-11-12, valid until 2054-03-30 |
 | SHA-256 | `1C:E2:12:04:AB:F4:48:5A:AB:FB:B2:7A:2C:5D:E0:37:0E:44:0A:3B:8D:7B:03:8D:31:35:CF:F0:13:55:99:1F` |
-| Backed up to | NordPass, from `~/.keystores/KEYS-2026-11-12.zip` — not yet confirmed |
+| Backed up to | NordPass (KEYS-2026-11-12.zip), confirmed 2026-11-13 |
 
 ```bash
 keytool -genkeypair -v -storetype PKCS12 -keystore ~/.keystores/<app>-upload.jks \
