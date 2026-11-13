@@ -141,14 +141,14 @@ Przypomnienia: ustaw godziny przyjmowania leku, a o każdej z nich przyjdzie pow
 
 ### 0.4.0
 
-**English** — 356/500:
+**English** — 363/500:
 
 ```
-Snooze: a reminder can now be put off for 10 minutes, and it comes back even if the phone restarts in between. Today shows until when a dose is snoozed. A reminder you swiped away no longer comes back by itself, and deleting a medicine no longer leaves its reminder behind. When every time you set starts tomorrow, Today now says the next dose is tomorrow.
+Snooze: a reminder can now be put off for 10 minutes, and it comes back even if the phone restarts in between. Today shows until when a dose is snoozed. A delayed alarm no longer brings back a reminder you swiped away, and deleting a medicine no longer leaves its reminder behind. When every time you set starts tomorrow, Today now says the next dose is tomorrow.
 ```
 
-**Polish** — 366/500:
+**Polish** — 383/500:
 
 ```
-Drzemka: przypomnienie można teraz odłożyć o 10 minut i wróci, nawet jeśli telefon w międzyczasie uruchomi się ponownie. Na karcie Dziś widać, do której trwa drzemka dawki. Odrzucone przypomnienie nie wraca już samo, a usunięcie leku nie zostawia jego przypomnienia. Gdy wszystkie ustawione godziny zaczynają się jutro, karta Dziś mówi, że następna dawka jest jutro.
+Drzemka: przypomnienie można teraz odłożyć o 10 minut i wróci, nawet jeśli telefon w międzyczasie uruchomi się ponownie. Na karcie Dziś widać, do której trwa drzemka dawki. Opóźniony alarm nie przywraca już odrzuconego przypomnienia, a usunięcie leku nie zostawia jego przypomnienia. Gdy wszystkie ustawione godziny zaczynają się jutro, karta Dziś mówi, że następna dawka jest jutro.
 ```
