@@ -22,9 +22,11 @@ class SchemaMismatchScreenTest {
     private val copy = File("db-20261113T080000Z.db")
 
     @Test
-    fun anUnreadableFileIsNotDescribedAsAVersion() {
+    fun anUnreadableFileGetsItsOwnTitleAndIsNotDescribedAsAVersion() {
         show(fromVersion = UNREADABLE_USER_VERSION)
 
+        compose.onNodeWithText(string(R.string.schema_mismatch_unreadable_title)).assertIsDisplayed()
+        compose.onNodeWithText(string(R.string.schema_mismatch_title)).assertDoesNotExist()
         compose.onNodeWithText(string(R.string.schema_mismatch_unreadable, copy.name)).assertIsDisplayed()
         compose
             .onNodeWithText(string(R.string.schema_mismatch_body, UNREADABLE_USER_VERSION, APP_SCHEMA_VERSION))
@@ -35,6 +37,8 @@ class SchemaMismatchScreenTest {
     fun aVersionThisBuildCannotOpenIsNamedWithItsCopy() {
         show(fromVersion = APP_SCHEMA_VERSION + 1)
 
+        compose.onNodeWithText(string(R.string.schema_mismatch_title)).assertIsDisplayed()
+        compose.onNodeWithText(string(R.string.schema_mismatch_unreadable_title)).assertDoesNotExist()
         compose
             .onNodeWithText(string(R.string.schema_mismatch_body, APP_SCHEMA_VERSION + 1, APP_SCHEMA_VERSION))
             .assertIsDisplayed()
