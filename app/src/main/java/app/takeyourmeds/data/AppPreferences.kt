@@ -4,10 +4,12 @@ import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.booleanPreferencesKey
 import androidx.datastore.preferences.core.edit
+import androidx.datastore.preferences.core.longPreferencesKey
 import androidx.datastore.preferences.core.stringPreferencesKey
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
+import java.time.Instant
 
 /** Which colour scheme applies, regardless of what the phone is set to. */
 enum class ThemeMode {
@@ -46,6 +48,7 @@ class AppPreferences(
         val REMINDERS_ENABLED = booleanPreferencesKey("reminders_enabled")
         val ONBOARDING_DONE = booleanPreferencesKey("onboarding_done")
         val TIP_ASKED = booleanPreferencesKey("tip_asked")
+        val REMINDER_ARMED_FOR = longPreferencesKey("reminder_armed_for")
 
         /** What *Restore to default* removes: everything the user chose, so each reads its default again. */
         val SETTINGS: List<Preferences.Key<*>> =
@@ -63,6 +66,7 @@ class AppPreferences(
             listOf(
                 ONBOARDING_DONE,
                 TIP_ASKED,
+                REMINDER_ARMED_FOR,
             )
     }
 
@@ -109,6 +113,15 @@ class AppPreferences(
     val tipAsked: Flow<Boolean> = store.data.map { it[Keys.TIP_ASKED] ?: false }
 
     /**
+     * When the one alarm is armed for, or null with none armed (ADR-0010). A re-plan that finds it
+     * passed posts what that alarm would have, since arming again replaces an alarm that has not landed.
+     */
+    val reminderArmedFor: Flow<Instant?> =
+        store.data.map { prefs ->
+            prefs[Keys.REMINDER_ARMED_FOR]?.let(Instant::ofEpochMilli)
+        }
+
+    /**
      * The theme mode, read once, before any Activity exists.
      *
      * The one place a `suspend` read is worth its cost: `MainApplication.onCreate` needs the answer
@@ -132,6 +145,18 @@ class AppPreferences(
 
     suspend fun setOnboardingDone(done: Boolean) {
         store.edit { it[Keys.ONBOARDING_DONE] = done }
+    }
+
+    suspend fun setReminderArmedFor(at: Instant?) {
+        store.edit { prefs ->
+            if (at ==
+                null
+            ) {
+                prefs.remove(Keys.REMINDER_ARMED_FOR)
+            } else {
+                prefs[Keys.REMINDER_ARMED_FOR] = at.toEpochMilli()
+            }
+        }
     }
 
     suspend fun markTipAsked() {

@@ -44,13 +44,14 @@ internal fun reminderNotification(
         .build()
 }
 
-/** A fresh task, so the app opens on its root, Today, whatever screen it was left on. */
+/** Not a fresh task: Today opens over whatever was left open, so an unsaved editor is still there on Back. */
 private fun openToday(context: Context): PendingIntent =
     PendingIntent.getActivity(
         context,
         0,
         Intent(context, MainActivity::class.java)
-            .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK),
+            .setAction(MainActivity.ACTION_OPEN_TODAY)
+            .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_SINGLE_TOP),
         PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT,
     )
 

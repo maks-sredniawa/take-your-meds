@@ -172,11 +172,14 @@ class MainApplication :
     }
 
     /**
-     * Play refunds a purchase nobody acknowledged within three days, so a tip that cleared while the
-     * app was closed — or was paid just before a process death — is consumed the next time the user
-     * opens the app, whichever screen that is (ADR-0007). On *start*, not at process creation: a
-     * broadcast or the sweep starts the process too, and binding Play for those wakes it for nobody.
-     * Behind the gate, because the container holds the tip jar.
+     * Each time the app comes to the foreground: the tip jar settles and the one alarm re-arms. On
+     * *start*, not at process creation: a broadcast or the sweep starts the process too, and binding
+     * Play for those wakes it for nobody. Behind the gate, because the container holds both.
+     *
+     * - Play refunds a purchase nobody acknowledged within three days, so a tip that cleared while the
+     *   app was closed, or was paid just before a process death, is consumed here (ADR-0007).
+     * - A force-stop cancels the alarm with no broadcast, so opening the app is what re-arms it, and
+     *   an alarm that a fallback left overdue posts its Reminders here (`docs/phase-1.md` §5).
      */
     private fun onEveryForeground() {
         // Kotlin note: an `object :` expression is an anonymous class instance — the listener object
@@ -185,7 +188,6 @@ class MainApplication :
             object : DefaultLifecycleObserver {
                 override fun onStart(owner: LifecycleOwner) {
                     applicationScope.launch { container.tipJar.settlePending() }
-                    // Opening the app is what re-arms after a force-stop, which cancels the alarm.
                     container.reminders.replan(Replan.Arm)
                 }
             },

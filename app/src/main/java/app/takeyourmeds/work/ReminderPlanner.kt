@@ -10,6 +10,7 @@ import android.os.Build
 import android.util.Log
 import androidx.core.app.NotificationManagerCompat
 import app.takeyourmeds.MainApplication
+import app.takeyourmeds.data.AppPreferences
 import app.takeyourmeds.data.Dose
 import app.takeyourmeds.data.DoseKey
 import app.takeyourmeds.data.DoseRepository
@@ -17,6 +18,7 @@ import app.takeyourmeds.data.MedicineRepository
 import app.takeyourmeds.data.schemaBlocksBackgroundWork
 import app.takeyourmeds.ui.common.timeFormatter
 import app.takeyourmeds.ui.settings.inAppLanguage
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
@@ -30,7 +32,14 @@ interface Reminders {
     /** Runs on the application's scope, so a screen closing straight after its save cannot cut it short. */
     fun replan(trigger: Replan)
 
-    fun cancel(key: DoseKey)
+    /**
+     * Writes a Dose's answer with [write] and takes its Reminder out of the tray, then re-plans. Both
+     * hold the re-plan lock, so a re-plan that read the Dose before the answer cannot post it after.
+     */
+    suspend fun <T> answer(
+        key: DoseKey,
+        write: suspend () -> T,
+    ): T
 
     fun cancelMedicine(medicineId: String)
 }
@@ -40,6 +49,7 @@ class ReminderPlanner(
     context: Context,
     private val doses: DoseRepository,
     private val medicines: MedicineRepository,
+    private val preferences: AppPreferences,
     private val scope: CoroutineScope,
     private val now: () -> Instant = Instant::now,
     private val zone: () -> ZoneId = ZoneId::systemDefault,
@@ -54,37 +64,65 @@ class ReminderPlanner(
         scope.launch { replanNow(trigger) }
     }
 
-    suspend fun replanNow(trigger: Replan) =
-        lock.withLock {
-            val at = now()
-            val zone = zone()
-            val (start, end) = sourceWindow(at, zone)
-            val plan = planReminders(trigger, at, zone, doses.sourcesBetween(start, end))
-            val posted = post(plan.post)
-            val exact = arm(plan.armFor)
-            val armedFor = (trigger as? Replan.Fired)?.armedFor?.toEpochMilli()
-            Log.i(
-                TAG,
-                "trigger=${trigger.label} armedFor=${armedFor ?: "-"} firedAt=${at.toEpochMilli()} " +
-                    "lateMs=${armedFor?.let { at.toEpochMilli() - it } ?: "-"} posted=$posted " +
-                    "next=${plan.armFor?.toEpochMilli() ?: "none"} exact=$exact",
-            )
-        }
+    suspend fun replanNow(trigger: Replan) = lock.withLock { replanLocked(trigger) }
+
+    override suspend fun <T> answer(
+        key: DoseKey,
+        write: suspend () -> T,
+    ): T {
+        val written = withdrawing(key, write)
+        replan(Replan.Arm)
+        return written
+    }
 
     /** The Reminder's Taken: the answer is written before the Reminder goes, so a failed write leaves it in the tray. */
     suspend fun markTaken(key: DoseKey) {
-        val medicine = medicines.observeById(key.medicineId).first()
-        if (medicine != null) doses.markTaken(medicine, key.scheduledAt, now())
-        cancel(key)
+        withdrawing(key) {
+            val medicine = medicines.observeById(key.medicineId).first()
+            if (medicine != null) doses.markTaken(medicine, key.scheduledAt, now())
+        }
         replanNow(Replan.Arm)
     }
-
-    override fun cancel(key: DoseKey) = notifications.cancel(key.tag, REMINDER_ID)
 
     override fun cancelMedicine(medicineId: String) {
         notifications.activeNotifications
             .filter { it.id == REMINDER_ID && it.tag?.let(DoseKey::parse)?.medicineId == medicineId }
             .forEach { notifications.cancel(it.tag, it.id) }
+    }
+
+    private suspend fun <T> withdrawing(
+        key: DoseKey,
+        write: suspend () -> T,
+    ): T =
+        lock.withLock {
+            write().also { notifications.cancel(key.tag, REMINDER_ID) }
+        }
+
+    // Armed before posting, so a Reminder that fails to post cannot also stop the chain.
+    private suspend fun replanLocked(trigger: Replan) {
+        val at = now()
+        val zone = zone()
+        val (start, end) = sourceWindow(at, zone)
+        val lastArmed = preferences.reminderArmedFor.first()
+        val plan = planReminders(trigger, at, zone, doses.sourcesBetween(start, end), lastArmed)
+        val exact = arm(plan.armFor)
+        preferences.setReminderArmedFor(plan.armFor)
+        val posted =
+            try {
+                post(plan.post)
+            } catch (e: CancellationException) {
+                throw e
+            } catch (e: Exception) {
+                Log.w(TAG, "posting failed: ${e.javaClass.name}")
+                0
+            }
+        val armedFor = (trigger as? Replan.Fired)?.armedFor?.toEpochMilli()
+        Log.i(
+            TAG,
+            "trigger=${trigger.label} armedFor=${armedFor ?: "-"} lastArmed=${lastArmed?.toEpochMilli() ?: "-"} " +
+                "firedAt=${at.toEpochMilli()} lateMs=${armedFor?.let { at.toEpochMilli() - it } ?: "-"} " +
+                "posted=$posted next=${plan.armFor?.toEpochMilli() ?: "none"} exact=$exact",
+        )
     }
 
     private suspend fun post(due: List<Dose>): Int {
@@ -98,19 +136,27 @@ class ReminderPlanner(
         localised.ensureReminderChannels()
         val formatTime = localised.timeFormatter()
         val byId = medicines.all().associateBy { it.id }
-        return due.count { dose ->
-            val medicine = byId[dose.medicineId] ?: return@count false
-            try {
-                notifications.notify(
-                    dose.key.tag,
-                    REMINDER_ID,
-                    reminderNotification(localised, medicine, dose, formatTime),
-                )
-                true
-            } catch (_: SecurityException) {
-                false
+        val posted =
+            due.filter { dose ->
+                val medicine = byId[dose.medicineId] ?: return@filter false
+                try {
+                    notifications.notify(
+                        dose.key.tag,
+                        REMINDER_ID,
+                        reminderNotification(localised, medicine, dose, formatTime),
+                    )
+                    true
+                } catch (_: SecurityException) {
+                    false
+                }
             }
-        }
+        val showing =
+            notifications.activeNotifications
+                .filter {
+                    it.id == REMINDER_ID
+                }.mapNotNull { it.tag?.let(DoseKey::parse) }
+        remindersReplacedBy(posted, showing).forEach { notifications.cancel(it.tag, REMINDER_ID) }
+        return posted.size
     }
 
     /** @return whether the alarm armed is exact. */

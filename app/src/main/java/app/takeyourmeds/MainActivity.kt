@@ -1,5 +1,6 @@
 package app.takeyourmeds
 
+import android.content.Intent
 import android.os.Build
 import android.os.Bundle
 import android.view.WindowManager
@@ -14,6 +15,8 @@ import androidx.core.view.WindowCompat
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import app.takeyourmeds.theme.AppTheme
 import app.takeyourmeds.ui.wipe.SchemaMismatchScreen
+import kotlinx.coroutines.channels.Channel
+import kotlinx.coroutines.flow.receiveAsFlow
 
 /**
  * AppCompatActivity rather than ComponentActivity, and for one reason only: it is where
@@ -24,6 +27,10 @@ import app.takeyourmeds.ui.wipe.SchemaMismatchScreen
  * all still work unchanged.
  */
 class MainActivity : AppCompatActivity() {
+    // Buffered, because a task restored after process death gets the new intent before the first frame.
+    private val openToday = Channel<Unit>(Channel.CONFLATED)
+    private val openTodayRequests = openToday.receiveAsFlow()
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
@@ -89,10 +96,19 @@ class MainActivity : AppCompatActivity() {
                         // `AppContainer`, so not composing it is what keeps Room out of existence.
                         SchemaMismatchScreen(mismatch = mismatch, onContinue = app::consentToWipe)
                     } else {
-                        MainNavigation()
+                        MainNavigation(openTodayRequests = openTodayRequests)
                     }
                 }
             }
         }
+    }
+
+    override fun onNewIntent(intent: Intent) {
+        super.onNewIntent(intent)
+        if (intent.action == ACTION_OPEN_TODAY) openToday.trySend(Unit)
+    }
+
+    internal companion object {
+        const val ACTION_OPEN_TODAY = "app.takeyourmeds.action.OPEN_TODAY"
     }
 }

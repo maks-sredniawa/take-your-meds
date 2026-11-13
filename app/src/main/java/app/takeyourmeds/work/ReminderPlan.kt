@@ -2,6 +2,7 @@ package app.takeyourmeds.work
 
 import app.takeyourmeds.data.DUE_REPOST_LIMIT
 import app.takeyourmeds.data.Dose
+import app.takeyourmeds.data.DoseKey
 import app.takeyourmeds.data.DoseSources
 import app.takeyourmeds.data.dosesToPost
 import app.takeyourmeds.data.dosesToRepost
@@ -25,21 +26,34 @@ data class ReminderPlan(
     val armFor: Instant?,
 )
 
+/**
+ * [lastArmed] is the alarm the previous re-plan armed. Arming replaces an alarm that has not landed
+ * yet, so once that time has passed every re-plan posts what the alarm would have, as its firing does.
+ */
 fun planReminders(
     trigger: Replan,
     now: Instant,
     zone: ZoneId,
     sources: DoseSources,
+    lastArmed: Instant?,
 ): ReminderPlan {
     val (schedules, records, snoozes) = sources
+    val from = listOfNotNull((trigger as? Replan.Fired)?.armedFor, lastArmed?.takeIf { it <= now }).minOrNull()
     val post =
-        when (trigger) {
-            is Replan.Fired -> dosesToPost(trigger.armedFor, now, zone, schedules, records, snoozes)
-            Replan.Repost -> dosesToRepost(now, zone, schedules, records, snoozes)
-            Replan.Arm -> emptyList()
+        when {
+            trigger == Replan.Repost -> dosesToRepost(now, zone, schedules, records, snoozes)
+            from != null -> dosesToPost(from, now, zone, schedules, records, snoozes)
+            else -> emptyList()
         }
     return ReminderPlan(post, nextReminderTime(now, zone, schedules, records, snoozes))
 }
+
+/** One Taken in the tray per Medicine: a posted Dose takes out that Medicine's earlier Reminders, which stay Due on Today. */
+fun remindersReplacedBy(
+    posted: List<Dose>,
+    showing: List<DoseKey>,
+): List<DoseKey> =
+    showing.filter { shown -> posted.any { it.medicineId == shown.medicineId && it.scheduledAt > shown.scheduledAt } }
 
 /**
  * The span of Schedules and records [planReminders] derives from: back to the day before the re-post

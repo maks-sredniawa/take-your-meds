@@ -111,9 +111,7 @@ class TodayViewModel(
         if (row.state != DoseState.Due) return
         viewModelScope.launch {
             val medicine = medicines.observeById(key.medicineId).first() ?: return@launch
-            val record = doses.markTaken(medicine, key.scheduledAt, now())
-            reminders.cancel(key)
-            reminders.replan(Replan.Arm)
+            val record = reminders.answer(key) { doses.markTaken(medicine, key.scheduledAt, now()) }
             if (record == null) return@launch
             justTaken.value = record
             offers.send(key)

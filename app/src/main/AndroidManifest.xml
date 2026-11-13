@@ -152,10 +152,11 @@
 
         <!--
             Delivered to this app when it has just been replaced by an update. A schema-bumping
-            update leaves the database at the old version until something opens it, and every
-            background entry point correctly declines to work over one — so without this the first
-            reminder after an update goes unposted and the chain stops until the user opens the app.
-            Protected broadcast, so `exported="false"` is right.
+            update leaves the database at the old version until something opens it, and the alarm's
+            next firing would be the first to. This receiver's re-plan opens it at once through the
+            registered migration, as `schemaBlocksBackgroundWork()` lets every entry point do; the
+            guard declines only where the launch gate would refuse. Protected broadcast, so
+            `exported="false"` is right.
         -->
         <receiver
             android:name=".work.PackageReplacedReceiver"

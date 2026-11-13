@@ -62,7 +62,7 @@ class AppContainer(
 
     val doses by lazy { DoseRepository(database.scheduleDao(), database.doseRecordDao(), database.snoozeDao()) }
 
-    val reminders by lazy { ReminderPlanner(appContext, doses, medicines, applicationScope) }
+    val reminders by lazy { ReminderPlanner(appContext, doses, medicines, preferences, applicationScope) }
 
     /** The tip ask's measure of use (ADR-0007). */
     val takenDoseCount: Flow<Int> get() = doses.observeTakenCount()
