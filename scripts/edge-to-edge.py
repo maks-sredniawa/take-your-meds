@@ -1460,9 +1460,9 @@ SCENES = [
     Scene("medicines-empty", "tab", [("wipe", ""), ("tap", "Medicines")], suite="empty"),
 
     # --- the tabs ------------------------------------------------------------------------------
-    # The seeded Today shows a Dose Taken, Due and still ahead only in the afternoon (SampleData).
-    Scene("today", "tab", []),
-    Scene("today-bottom", "tab", [("swipe_end", "")]),
+    # The "today" seed shows a Dose Taken, Due and still ahead only in the afternoon (SampleData).
+    Scene("today", "tab", [], seed="today"),
+    Scene("today-bottom", "tab", [("swipe_end", "")], seed="today"),
     Scene("medicines", "tab", [("tap", "Medicines")]),
     Scene("medicines-bottom", "tab", [("tap", "Medicines"), ("swipe_end", "")]),
     Scene("settings", "tab", [("tap", "Settings")]),
@@ -1481,6 +1481,7 @@ SCENES = [
         "medicine-editor-times",
         "form",
         [("tap", "Medicines"), ("tap", "Metformin"), ("tap", "Edit"), ("align_top", "Times")],
+        seed="today",
     ),
     Scene(
         "medicine-editor-keyboard",

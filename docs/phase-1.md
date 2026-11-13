@@ -496,8 +496,9 @@ Above the list, re-read on every resume and shown only while at least one Schedu
 The tip ask card moves from `ui/medicines/` to Today, the home screen it belongs to (ADR-0007), and
 `takenDoseCount` becomes the count of Taken records. `scripts/edge-to-edge.py`'s `TAB_BAR` and
 `HOME_TAB` become *Today*, its `SCENES` gain Today (empty, seeded, with each banner) and the editor
-with Times, and the debug seeder seeds Schedules and a Taken record so a seeded Today shows both
-states.
+with Times. The plain debug seed stays as it is; a `today` seed variant adds Schedules and a Taken
+record on top of it, so a Today and an editor seeded with it show both states, and those scenes ask
+for it.
 
 **Decided by the owner, 2026-11-13, from a design pass (Fable): the layout of Today and of the
 Times.**
