@@ -20,6 +20,7 @@
     <string name="app_name" translatable="false">Take your meds</string>
 
     <!-- Navigation -->
+    <string name="tab_today">Today</string>
     <string name="tab_medicines">Medicines</string>
     <string name="tab_settings">Settings</string>
 
@@ -38,11 +39,29 @@
     <string name="medicine_amount_hint">For example 1 tablet, 5 ml</string>
     <string name="medicine_note_label">Note</string>
     <string name="medicine_note_hint">For example with food</string>
+    <string name="medicine_times">Every day at %1$s</string>
     <string name="medicines_empty">No medicines yet. Tap + to add the first one.</string>
     <plurals name="medicines_count">
         <item quantity="one">%d medicine</item>
         <item quantity="other">%d medicines</item>
     </plurals>
+    <!-- A Medicine's Times, in the editor. %1$s is a Time, formatted for the phone. -->
+    <string name="schedule_times_label">Times</string>
+    <string name="schedule_add_time">Add a time</string>
+    <string name="schedule_remove_time">Remove %1$s</string>
+    <string name="schedule_time_picker_title">Choose a time</string>
+    <string name="schedule_time_picker_confirm">OK</string>
+    <string name="schedule_every_day">Every day</string>
+    <string name="schedule_no_times">No times set. This medicine is not reminded.</string>
+
+    <!-- Today. A Dose is the occasion, never the Amount (CONTEXT.md). %1$s is a time of day. -->
+    <string name="today_empty">Nothing scheduled today. Give a medicine its times in Medicines.</string>
+    <string name="dose_due">Due</string>
+    <string name="dose_taken_at">Taken at %1$s</string>
+    <string name="dose_snoozed_until">Snoozed until %1$s</string>
+    <string name="dose_mark_taken">Mark as taken</string>
+    <string name="dose_marked_taken">Marked as taken</string>
+    <string name="dose_undo">Undo</string>
     <!-- The tip's one ask (ADR-0007): once per install, so a moved install asks again -->
     <string name="tip_ask_title">This app is free, and stays free</string>
     <string name="tip_ask_body">If it is useful to you, you can leave the developer a tip. It unlocks nothing, and the app will not ask again on this phone.</string>

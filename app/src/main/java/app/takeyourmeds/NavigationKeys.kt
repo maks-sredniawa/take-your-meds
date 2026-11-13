@@ -2,6 +2,8 @@ package app.takeyourmeds
 
 import androidx.annotation.StringRes
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.List
+import androidx.compose.material.icons.automirrored.outlined.List
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material.icons.outlined.Home
@@ -21,6 +23,8 @@ import kotlinx.serialization.Serializable
  * for a route with no arguments. A route that carries arguments is a `data class` instead, and
  * `@Serializable` is what lets Nav3 save the whole back stack across process death.
  */
+@Serializable data object Today : NavKey
+
 @Serializable data object Medicines : NavKey
 
 @Serializable data object Settings : NavKey
@@ -66,6 +70,7 @@ enum class TopLevelDestination(
     val selectedIcon: ImageVector,
     val icon: ImageVector,
 ) {
-    MedicinesTab(Medicines, R.string.tab_medicines, Icons.Filled.Home, Icons.Outlined.Home),
+    TodayTab(Today, R.string.tab_today, Icons.Filled.Home, Icons.Outlined.Home),
+    MedicinesTab(Medicines, R.string.tab_medicines, Icons.AutoMirrored.Filled.List, Icons.AutoMirrored.Outlined.List),
     SettingsTab(Settings, R.string.tab_settings, Icons.Filled.Settings, Icons.Outlined.Settings),
 }

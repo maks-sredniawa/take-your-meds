@@ -76,7 +76,12 @@ most languages.
 
 | English | Resource ids | Why they differ | Example |
 | --- | --- | --- | --- |
-| | | | |
+| Dose (the occasion) | `dose_*`, `today_*` | pl: *dawka*, feminine, so its participles agree: *przyjętą*. Never the Amount, which is *ilość* (`CONTEXT.md`) | *Oznacz jako przyjętą* |
+| Due | `dose_due` | pl: *do przyjęcia*, a state, not a deadline or a warning | *Do przyjęcia* |
+| Taken | `dose_taken_at`, `dose_mark_taken`, `dose_marked_taken` | pl: impersonal *przyjęto* when it says what happened, so no gender is chosen for the user; *przyjętą* where it describes the Dose | *Przyjęto o 08:04* |
+| Snoozed | `dose_snoozed_until` | pl: *drzemka*, the word Polish alarm clocks use | *Drzemka do 12:10* |
+| Time (of a Dose) | `schedule_*` | pl: *godzina*, the clock time, never *czas* (a duration) | *Dodaj godzinę* |
+| Medicines (the tab) | `tab_medicines`, quoted in `today_empty` | one word everywhere: the empty line names the tab, so it uses the tab's exact word | *w zakładce Leki* |
 
 Words that genuinely *are* one word everywhere — *Settings*, *Close*, *Edit*, *Delete* — belong in
 the same table with a note saying so, otherwise someone will vary them for variety.

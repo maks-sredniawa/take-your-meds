@@ -7,16 +7,19 @@ import androidx.lifecycle.viewModelScope
 import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
 import app.takeyourmeds.MainApplication
+import app.takeyourmeds.data.DoseRepository
 import app.takeyourmeds.data.MedicineEntity
 import app.takeyourmeds.data.MedicineRepository
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
+import java.time.LocalTime
 
 data class MedicineDetailUiState(
     val medicine: MedicineEntity? = null,
+    val times: List<LocalTime> = emptyList(),
     /**
      * The row is confirmed absent, as opposed to not read yet. Conflating the two is what makes a
      * detail screen bounce back to the list for a frame on every open.
@@ -27,16 +30,15 @@ data class MedicineDetailUiState(
 class MedicineDetailViewModel(
     medicineId: String,
     private val repository: MedicineRepository,
+    doses: DoseRepository,
 ) : ViewModel() {
     private var current: MedicineEntity? = null
 
     val state: StateFlow<MedicineDetailUiState> =
-        repository
-            .observeById(medicineId)
-            .map { medicine ->
-                current = medicine
-                MedicineDetailUiState(medicine = medicine, gone = medicine == null)
-            }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), MedicineDetailUiState())
+        combine(repository.observeById(medicineId), doses.observeTimes(medicineId)) { medicine, times ->
+            current = medicine
+            MedicineDetailUiState(medicine = medicine, times = times, gone = medicine == null)
+        }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), MedicineDetailUiState())
 
     fun delete() {
         val medicine = current ?: return
@@ -49,7 +51,7 @@ class MedicineDetailViewModel(
             viewModelFactory {
                 initializer {
                     val app = this[APPLICATION_KEY] as MainApplication
-                    MedicineDetailViewModel(medicineId, app.container.medicines)
+                    MedicineDetailViewModel(medicineId, app.container.medicines, app.container.doses)
                 }
             }
     }

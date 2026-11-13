@@ -1,0 +1,28 @@
+package app.takeyourmeds.ui.common
+
+import android.text.format.DateFormat
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
+import androidx.compose.ui.platform.LocalConfiguration
+import androidx.compose.ui.platform.LocalContext
+import androidx.core.os.ConfigurationCompat
+import java.time.LocalTime
+import java.time.format.DateTimeFormatter
+
+/** Whether the phone shows 24-hour time, the choice a Time and the time picker both follow. */
+@Composable
+fun is24Hour(): Boolean = DateFormat.is24HourFormat(LocalContext.current)
+
+@Composable
+fun rememberTimeFormatter(): (LocalTime) -> String {
+    val locale = ConfigurationCompat.getLocales(LocalConfiguration.current)[0] ?: java.util.Locale.getDefault()
+    val is24Hour = is24Hour()
+    return remember(locale, is24Hour) {
+        val formatter =
+            DateTimeFormatter.ofPattern(
+                DateFormat.getBestDateTimePattern(locale, if (is24Hour) "Hm" else "hm"),
+                locale,
+            )
+        return@remember { time: LocalTime -> time.format(formatter) }
+    }
+}

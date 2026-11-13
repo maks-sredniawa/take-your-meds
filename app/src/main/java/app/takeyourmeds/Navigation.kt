@@ -30,6 +30,7 @@ import app.takeyourmeds.ui.support.LicenceTextScreen
 import app.takeyourmeds.ui.support.LicencesScreen
 import app.takeyourmeds.ui.support.SupportScreen
 import app.takeyourmeds.ui.support.TipSection
+import app.takeyourmeds.ui.today.TodayScreen
 
 /**
  * What every back-stack entry is wrapped in — above all, **one `ViewModelStore` per entry**.
@@ -56,14 +57,14 @@ internal fun appEntryDecorators(): List<NavEntryDecorator<NavKey>> =
 /**
  * The app shell: a bottom bar over a [NavDisplay].
  *
- * The back stack is rooted at [Medicines], so Back from any top-level destination returns there and
+ * The back stack is rooted at [Today], so Back from any top-level destination returns there and
  * Back from there exits. That is one rule rather than per-screen behaviour, and it is why
  * [showTopLevel] rewrites the stack instead of pushing onto it — pushing would let a user walk
- * Medicines → Settings → Medicines → Settings and need four Backs to leave.
+ * Today → Settings → Today → Settings and need four Backs to leave.
  */
 @Composable
 fun MainNavigation(modifier: Modifier = Modifier) {
-    val backStack = rememberNavBackStack(Medicines)
+    val backStack = rememberNavBackStack(Today)
     val activity = LocalActivity.current
 
     // Which top-level destination the bar should show as selected. Derived from the *bottom* of the
@@ -71,7 +72,7 @@ fun MainNavigation(modifier: Modifier = Modifier) {
     val current =
         remember(backStack.firstOrNull()) {
             TopLevelDestination.entries.firstOrNull { it.key == backStack.firstOrNull() }
-                ?: TopLevelDestination.MedicinesTab
+                ?: TopLevelDestination.TodayTab
         }
     val onDetailScreen = backStack.size > 1
 
@@ -112,11 +113,13 @@ fun MainNavigation(modifier: Modifier = Modifier) {
             // how a key carrying arguments passes them in.
             entryProvider =
                 entryProvider {
+                    entry<Today> {
+                        TodayScreen(onOpenSupport = { backStack.add(Support) })
+                    }
                     entry<Medicines> {
                         MedicinesScreen(
                             onOpenMedicine = { id -> backStack.add(MedicineDetail(id)) },
                             onAddMedicine = { backStack.add(MedicineEditor()) },
-                            onOpenSupport = { backStack.add(Support) },
                         )
                     }
                     entry<MedicineDetail> { key ->
