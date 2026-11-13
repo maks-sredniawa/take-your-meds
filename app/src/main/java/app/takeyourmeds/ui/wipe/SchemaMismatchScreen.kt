@@ -48,11 +48,15 @@ fun SchemaMismatchScreen(
                 .verticalScroll(rememberScrollState())
                 .padding(Spacing.block),
     ) {
+        val unreadable = mismatch.fromVersion == UNREADABLE_USER_VERSION
         Text(
-            text = stringResource(R.string.schema_mismatch_title),
+            text =
+                stringResource(
+                    if (unreadable) R.string.schema_mismatch_unreadable_title else R.string.schema_mismatch_title,
+                ),
             style = MaterialTheme.typography.headlineSmall,
         )
-        if (mismatch.fromVersion == UNREADABLE_USER_VERSION) {
+        if (unreadable) {
             Text(
                 text = stringResource(R.string.schema_mismatch_unreadable, mismatch.preservedCopy.name),
                 style = MaterialTheme.typography.bodyLarge,
