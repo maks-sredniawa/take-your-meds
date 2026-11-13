@@ -4,6 +4,7 @@ import android.database.sqlite.SQLiteDatabase
 import android.database.sqlite.SQLiteException
 import app.takeyourmeds.data.keepCorruptDatabase
 import java.io.File
+import java.io.IOException
 
 /**
  * Copy [databaseFile] to [target] with its write-ahead log folded in first.
@@ -23,25 +24,31 @@ import java.io.File
  *
  * Opening a second connection alongside Room's own is safe — that is what SQLite's locking is for —
  * and takes no `Context`, so the agent can call it.
+ *
+ * @throws IOException when the checkpoint is blocked or fails, before anything is staged (ADR-0005).
  */
 fun checkpointDatabaseTo(
     databaseFile: File,
     target: File,
 ) {
-    if (databaseFile.isFile) {
+    checkpoint(databaseFile)
+    target.parentFile?.mkdirs()
+    databaseFile.copyTo(target, overwrite = true)
+}
+
+private fun checkpoint(databaseFile: File) {
+    val completed =
         try {
             SQLiteDatabase
                 .openDatabase(databaseFile.path, null, SQLiteDatabase.OPEN_READWRITE, keepCorruptDatabase)
                 .use { database ->
                     // A PRAGMA that returns rows has to be run as a query; `execSQL` would refuse it.
-                    database.rawQuery("PRAGMA wal_checkpoint(TRUNCATE)", null).use { it.moveToFirst() }
+                    database.rawQuery("PRAGMA wal_checkpoint(TRUNCATE)", null).use { result ->
+                        result.moveToFirst() && result.getInt(0) == 0
+                    }
                 }
         } catch (e: SQLiteException) {
-            // A checkpoint that could not run is not a reason to skip the backup. The copy below
-            // still carries everything committed before the last checkpoint, which is strictly more
-            // than skipping would leave the user with.
+            throw IOException("Could not checkpoint ${databaseFile.name}", e)
         }
-    }
-    target.parentFile?.mkdirs()
-    databaseFile.copyTo(target, overwrite = true)
+    if (!completed) throw IOException("The checkpoint of ${databaseFile.name} was blocked")
 }
