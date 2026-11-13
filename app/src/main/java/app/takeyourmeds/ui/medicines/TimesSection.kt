@@ -45,6 +45,7 @@ internal fun TimesSection(
     onRemove: (LocalTime) -> Unit,
 ) {
     val format = rememberTimeFormatter()
+    val changeLabel = stringResource(R.string.schedule_change_time)
     // Minute of the day being edited, or ADDING; an Int so it survives rotation and process death.
     var picking by rememberSaveable { mutableStateOf<Int?>(null) }
 
@@ -70,7 +71,7 @@ internal fun TimesSection(
                     Modifier
                         .fillMaxWidth()
                         .heightIn(min = LocalMinimumInteractiveComponentSize.current)
-                        .clickable { picking = time.toSecondOfDay() / 60 }
+                        .clickable(onClickLabel = changeLabel) { picking = time.toSecondOfDay() / 60 }
                         .padding(start = Spacing.base),
                 verticalAlignment = Alignment.CenterVertically,
             ) {
