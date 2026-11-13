@@ -1,7 +1,11 @@
 package app.takeyourmeds.data
 
+import android.database.DatabaseErrorHandler
+import android.database.sqlite.SQLiteDatabase
+import android.database.sqlite.SQLiteException
+import java.io.DataInputStream
 import java.io.File
-import java.io.RandomAccessFile
+import java.nio.ByteBuffer
 import java.time.Instant
 import java.time.ZoneOffset
 import java.time.format.DateTimeFormatter
@@ -21,13 +25,14 @@ internal const val PRESERVED_SUFFIX = ".db"
 internal val PRESERVED_SIDECAR_SUFFIXES = listOf("-wal", "-shm")
 
 /**
- * SQLite writes `user_version` as a big-endian 32-bit integer at byte 60 of the 100-byte file
- * header, and Room uses that field as its schema version. Reading it is therefore a four-byte read
- * that needs neither Room nor SQLite — which is the whole point: it has to happen *before* Room
- * opens the file and wipes it.
+ * What [readUserVersion] answers for a file that is not a readable database. Non-zero, so the gate
+ * copies the file aside rather than handing it to Room, which deletes a database it finds corrupt.
  */
-private const val USER_VERSION_OFFSET = 60L
+const val UNREADABLE_USER_VERSION = -1
+
 private const val SQLITE_HEADER_BYTES = 100
+private const val USER_VERSION_OFFSET = 60
+private val SQLITE_MAGIC = "SQLite format 3\u0000".toByteArray(Charsets.US_ASCII)
 
 /**
  * Filesystem-safe and sorts chronologically. Colons in a filename are a portability trap.
@@ -40,26 +45,59 @@ internal val PRESERVED_TIMESTAMP_FORMAT: DateTimeFormatter =
     DateTimeFormatter.ofPattern("yyyyMMdd'T'HHmmss'Z'").withZone(ZoneOffset.UTC)
 
 /**
- * Reads the schema version recorded in [databaseFile]'s header.
+ * Reads the schema version of [databaseFile] as SQLite sees it. Under WAL a new version can sit in
+ * `-wal` while the file's own header still says 0, so a non-empty log is read through SQLite, and
+ * only a database with no log is read straight from its header.
  *
- * Returns 0 for a file that does not exist, is empty, or is too short to hold a header — all of
- * which mean "there is nothing here to lose", which is exactly how a fresh install looks.
+ * Returns 0 for a missing or empty file, which is how a fresh install looks, and
+ * [UNREADABLE_USER_VERSION] for anything that is not a readable database. Never checkpoints or
+ * writes the database or its log, so Room opens what was read. The one file it can create is a
+ * missing `-shm` beside a `-wal`, an index SQLite rebuilds from the log.
  */
 fun readUserVersion(databaseFile: File): Int {
-    if (!databaseFile.isFile || databaseFile.length() < SQLITE_HEADER_BYTES) return 0
-    return RandomAccessFile(databaseFile, "r").use { file ->
-        file.seek(USER_VERSION_OFFSET)
-        file.readInt() // RandomAccessFile.readInt is big-endian, which matches the header
+    if (!databaseFile.isFile) return 0
+    return if (File(databaseFile.path + "-wal").length() > 0) {
+        readUserVersionThroughSqlite(databaseFile)
+    } else {
+        readUserVersionFromHeader(databaseFile)
     }
+}
+
+/**
+ * Read-only, so closing it does not checkpoint. Without a `-wal` on disk SQLite would create one and
+ * a `-shm` beside the database, which is why [readUserVersion] only comes here when the log exists.
+ * The no-op error handler matters: the platform's default deletes a file it finds corrupt.
+ */
+private fun readUserVersionThroughSqlite(databaseFile: File): Int =
+    try {
+        SQLiteDatabase
+            .openDatabase(
+                databaseFile.path,
+                null,
+                SQLiteDatabase.OPEN_READONLY or SQLiteDatabase.NO_LOCALIZED_COLLATORS,
+                DatabaseErrorHandler {},
+            ).use { it.version }
+    } catch (e: SQLiteException) {
+        UNREADABLE_USER_VERSION
+    }
+
+private fun readUserVersionFromHeader(databaseFile: File): Int {
+    val length = databaseFile.length()
+    if (length == 0L) return 0
+    if (length < SQLITE_HEADER_BYTES) return UNREADABLE_USER_VERSION
+    val header = ByteArray(SQLITE_HEADER_BYTES)
+    DataInputStream(databaseFile.inputStream()).use { it.readFully(header) }
+    if (!header.copyOf(SQLITE_MAGIC.size).contentEquals(SQLITE_MAGIC)) return UNREADABLE_USER_VERSION
+    return ByteBuffer.wrap(header, USER_VERSION_OFFSET, Int.SIZE_BYTES).int
 }
 
 /**
  * Whether the file on disk is at a version this build cannot simply open — the one rule behind both
  * things that have to know it, stated once.
  *
- * `0` is "there is nothing here": no file, an empty one, or one too short to hold a header, which is
- * exactly how a fresh install looks. A **newer** on-disk version counts as pending too, because Room
- * destroys a downgrade just as thoroughly as it destroys an upgrade.
+ * `0` is "there is nothing here": no file, or an empty one, which is exactly how a fresh install
+ * looks. A **newer** on-disk version counts as pending too, because Room destroys a downgrade just as
+ * thoroughly as it destroys an upgrade, and so is [UNREADABLE_USER_VERSION].
  *
  * Two callers, arrived at from opposite directions. [preserveBeforeWipe] asks it to decide whether
  * there is anything worth copying aside. The daily sweep asks it because it runs with no UI and no user
@@ -103,7 +141,8 @@ fun preserveBeforeWipe(
 
     for (suffix in PRESERVED_SIDECAR_SUFFIXES) {
         val sidecar = File(databaseFile.path + suffix)
-        if (sidecar.isFile) sidecar.copyTo(File(preserved.path + suffix), overwrite = true)
+        val preservedSidecar = File(preserved.path + suffix)
+        if (sidecar.isFile) sidecar.copyTo(preservedSidecar, overwrite = true) else preservedSidecar.delete()
     }
     return preserved
 }

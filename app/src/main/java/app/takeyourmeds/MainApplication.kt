@@ -51,10 +51,9 @@ data class SchemaMismatch(
  * Holds the one [AppContainer] for the process, and **the wipe guard that stands in front of it**.
  *
  * ADR-0001's guard is *structural*, and this class is the structure. The pre-Room version check and
- * the copy-aside run in [onCreate] — four bytes out of a file header, no Room and no container
- * involved — and [container] sits behind a `lazy` that is forced only once any pending wipe has been
- * consented to. No Room object exists, so no collection of one can exist, and the property stays
- * true however the container grows later.
+ * the copy-aside run in [onCreate] — no Room and no container involved — and [container] sits behind
+ * a `lazy` that is forced only once any pending wipe has been consented to. No Room object exists,
+ * so no collection of one can exist, and the property stays true however the container grows later.
  *
  * The tempting alternative — leave the container constructed and merely stop it from *collecting* —
  * works today and is one eager `stateIn` away from silently breaking, in an app that will go on to

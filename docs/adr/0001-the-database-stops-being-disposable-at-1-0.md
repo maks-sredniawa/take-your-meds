@@ -23,9 +23,12 @@ copied aside into `filesDir/preserved/` first, and a consent screen stands in fr
 **From 1.0**, every schema version that reaches a device carries a tested forward migration, and the
 fallback is gone from the release build entirely.
 
-**A launch gate reads the schema version before Room exists.** SQLite writes `user_version` as a
-big-endian 32-bit integer at byte 60 of the 100-byte file header, so the version is a four-byte read
-that needs neither Room nor SQLite. `schemaGateDecision` turns that into one of three answers:
+**A launch gate reads the schema version before Room exists.** `user_version` lives in the file
+header, but Room runs in WAL mode, so a recent version can sit only in `-wal` while the header still
+says 0. `readUserVersion` therefore reads through a read-only SQLite connection whenever a `-wal`
+holds anything, and straight from the header only when there is no log; a file that is not a
+readable database counts as a mismatch, so it is copied aside rather than opened.
+`schemaGateDecision` turns that into one of three answers:
 
 | | meaning |
 | --- | --- |
