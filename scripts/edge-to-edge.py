@@ -1242,13 +1242,52 @@ def reset_to_seeded() -> None:
     if api_level() >= POST_NOTIFICATIONS_MIN_API:
         shell(f"pm grant {PACKAGE} android.permission.POST_NOTIFICATIONS")
         settle(0.5)
-    # The same for the exact-alarm grant, refused by default on a fresh install from API 34: without
-    # it every seeded Today carries *Reminders may be late* (phase-1.md §6).
+    restore_grants()
+    global _SEEDED
+    _SEEDED = ""
+
+
+def restore_grants() -> None:
+    """Grant what a seeded install stands in for: notifications and, from API 31, exact alarms.
+
+    The exact-alarm grant is refused by default on a fresh install from API 34: without it every
+    seeded Today carries *Reminders may be late* (phase-1.md §6).
+    """
+    global _DENIED
+    if api_level() >= POST_NOTIFICATIONS_MIN_API:
+        shell(f"pm grant {PACKAGE} android.permission.POST_NOTIFICATIONS")
+        settle(0.5)
     if api_level() >= EXACT_ALARM_MIN_API:
         shell(f"appops set {PACKAGE} SCHEDULE_EXACT_ALARM allow")
         settle(0.5)
-    global _SEEDED
-    _SEEDED = ""
+    _DENIED = False
+
+
+# Set by a step that refuses a grant to bring up one of Today's banners, so the next `full` scene puts
+# the grant back first rather than inheriting the banner (see [reach_scene]).
+_DENIED = False
+
+
+def expect(needle: str) -> None:
+    """Fail the scene unless `needle` is on screen: a walk that ends on the wrong screen still shoots."""
+    nodes = dump_ui()
+    if find(nodes, needle) is None:
+        raise StepFailed(f"expected {needle!r} on screen; on screen: {', '.join(n.text for n in nodes if n.text)[:120]}")
+
+
+def deny(grant: str) -> None:
+    """Refuse one grant so Today shows its banner, then relaunch: the refusal kills the process."""
+    global _DENIED
+    _DENIED = True
+    if grant == "notifications":
+        shell(f"pm revoke {PACKAGE} android.permission.POST_NOTIFICATIONS")
+    elif grant == "exact":
+        shell(f"appops set {PACKAGE} SCHEDULE_EXACT_ALARM deny")
+    else:
+        raise StepFailed(f"no grant called {grant!r} to deny")
+    settle(1.0)
+    relaunch()
+    settle(1.2)
 
 
 # Which seed the phone is currently carrying: "" for the plain sample data, a variant name for one
@@ -1392,6 +1431,8 @@ STEP_RUNNERS = {
     "wait": lambda arg: settle(float(arg)),
     "wipe": lambda arg: wipe(),
     "fake_schema_mismatch": lambda arg: fake_schema_mismatch(),
+    "deny": deny,
+    "expect": lambda arg: expect(arg),
 }
 
 
@@ -1421,6 +1462,10 @@ class Scene:
     # is never edited, because every scene and the listing screenshots rest on it. Scenes are grouped
     # by this, so a variant costs one reseed per cell rather than one per scene.
     seed: str = ""
+    # The lowest API the scene's state exists on. Below it the scene is left out of the run rather
+    # than failed: there is no notification permission to revoke before 33, no exact-alarm grant
+    # before 31, and nothing is asked on the first Schedule's save before 33.
+    min_api: int = 0
 
 
 # ---------------------------------------------------------------------------------------------
@@ -1466,11 +1511,39 @@ SCENES = [
     # --- a wiped install: the empty states, which no seeded run can show ------------------------
     Scene("today-empty", "tab", [("wipe", "")], suite="empty"),
     Scene("medicines-empty", "tab", [("wipe", ""), ("tap", "Medicines")], suite="empty"),
+    # The first Schedule's save on a wiped install, which is the only state that asks: notifications
+    # are still refused there, so the notifications ask is the screen that opens.
+    Scene(
+        "asks",
+        "ask",
+        [
+            ("wipe", ""),
+            ("tap", "Medicines"),
+            ("tap", "Add a medicine"),
+            ("tap_field", "0"),
+            # Back after each field closes the keyboard: in landscape it is full-screen and covers the
+            # next field, and the scroll that hunts for a button below it would swipe the IME instead.
+            ("type", "Aspirin"),
+            ("back", ""),
+            ("tap_field", "1"),
+            ("type", "1"),
+            ("back", ""),
+            ("tap", "Add a time"),
+            ("tap", "OK"),
+            ("tap", "Save"),
+            ("wait", "1.5"),
+            ("expect", "Allow reminders"),
+        ],
+        suite="empty",
+        min_api=POST_NOTIFICATIONS_MIN_API,
+    ),
 
     # --- the tabs ------------------------------------------------------------------------------
     # The "today" seed shows a Dose Taken, Due and still ahead only in the afternoon (SampleData).
     Scene("today", "tab", [], seed="today"),
     Scene("today-bottom", "tab", [("swipe_end", "")], seed="today"),
+    Scene("today-blocked", "tab", [("deny", "notifications")], seed="today", min_api=POST_NOTIFICATIONS_MIN_API),
+    Scene("today-late", "tab", [("deny", "exact")], seed="today", min_api=EXACT_ALARM_MIN_API),
     Scene("medicines", "tab", [("tap", "Medicines")]),
     Scene("medicines-bottom", "tab", [("tap", "Medicines"), ("swipe_end", "")]),
     Scene("settings", "tab", [("tap", "Settings")]),
@@ -1592,7 +1665,7 @@ def scene_needles() -> set[str]:
     if PROMPT_DISMISS is not None:
         needles.add(PROMPT_DISMISS)
     for scene in SCENES:
-        needles.update(arg for kind, arg in scene.steps if kind in ("tap", "tap?", "tap_text", "align_top", "align_top?"))
+        needles.update(arg for kind, arg in scene.steps if kind in ("tap", "tap?", "tap_text", "align_top", "align_top?", "expect"))
     return needles
 
 
@@ -1719,6 +1792,14 @@ def check(nodes: list[Node], insets: dict[str, Rect]) -> list[dict]:
     return findings
 
 
+def on_this_api(scenes: "list[Scene]") -> "list[Scene]":
+    """The scenes whose state exists on the attached phone's API, naming the ones left out."""
+    below = [scene.name for scene in scenes if api_level() < scene.min_api]
+    if below:
+        print(f"-- not on API {api_level()}: {', '.join(below)}")
+    return [scene for scene in scenes if api_level() >= scene.min_api]
+
+
 def reach_scene(scene: Scene) -> str | None:
     """Walk to one scene from a cold start. Returns the failure message, or None if it was reached.
 
@@ -1727,6 +1808,8 @@ def reach_scene(scene: Scene) -> str | None:
     them in another script is a copy that drifts, and the drift is silent because both scripts would
     still produce a screenshot of *something*.
     """
+    if _DENIED and scene.suite == "full":
+        restore_grants()
     relaunch()
     # After the relaunch, not before: `am start -S` force-stops, and a force-stop cancels every
     # alarm the app has placed. Arming into a live process is also the honest order — the banner
@@ -1938,6 +2021,7 @@ def main() -> int:
     if args.scene:
         wanted = set(args.scene.split(","))
         scenes = [scene for scene in SCENES if scene.name in wanted]
+    scenes = on_this_api(scenes)
 
     # Before anything touches the phone: a needle that names two strings, or none, is worth knowing
     # about now rather than 40 seconds into a cell (see [resolve_needles]).
