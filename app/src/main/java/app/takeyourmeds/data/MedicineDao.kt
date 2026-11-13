@@ -40,8 +40,6 @@ interface MedicineDao {
     @Query("SELECT COUNT(*) FROM medicines")
     suspend fun count(): Int
 
-    // Upsert, never REPLACE: REPLACE deletes the old row before inserting, and that delete cascades
-    // to the Medicine's Schedules and Snoozes.
     @Upsert
     suspend fun upsert(medicine: MedicineEntity)
 

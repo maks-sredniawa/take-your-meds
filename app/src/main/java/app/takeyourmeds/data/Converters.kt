@@ -8,11 +8,7 @@ import java.time.format.DateTimeFormatter
 import java.time.temporal.ChronoUnit
 import java.util.Locale
 
-/**
- * The one shape every local date-time column takes (`scheduledAt`, `validFrom`, `validUntil`).
- * Never `LocalDateTime.toString()`: it drops `:00` seconds on some values and keeps them on others,
- * and the day query is a string range that sorts as time only at a fixed width (phase-1.md §2).
- */
+/** Fixed width, so the day query's string range sorts as time (phase-1.md §2). */
 val LOCAL_DATE_TIME: DateTimeFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm", Locale.ROOT)
 
 private val TIME_OF_DAY: DateTimeFormatter = DateTimeFormatter.ofPattern("HH:mm", Locale.ROOT)
