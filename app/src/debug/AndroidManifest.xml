@@ -15,5 +15,9 @@
             android:name=".debug.SeedReceiver"
             android:enabled="true"
             android:exported="true" />
+        <receiver
+            android:name=".debug.AlarmProbeReceiver"
+            android:enabled="true"
+            android:exported="true" />
     </application>
 </manifest>
