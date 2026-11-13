@@ -7,11 +7,7 @@ import java.time.LocalDateTime
 import java.time.ZoneId
 import java.time.ZonedDateTime
 
-/**
- * How long after its Reminder time a Due Dose is still current enough to re-post, and never once a
- * later Dose of the same Medicine has reached its Time (`docs/phase-1.md` §5). Phase 2 adopts it as
- * the moment a Dose becomes Missed.
- */
+/** The re-post window of `docs/phase-1.md` §5. */
 val DUE_REPOST_LIMIT: Duration = Duration.ofHours(2)
 
 val SNOOZE_LENGTH: Duration = Duration.ofMinutes(10)
@@ -38,11 +34,6 @@ data class Dose(
     val reminderAt: Instant get() = snoozedUntil ?: timeAt
 }
 
-/**
- * Every Dose of [day]: one per Time of each Schedule covering it, plus one per answer recorded for
- * the day whose Time is no longer scheduled, so an answer never leaves Today. A Dose is its
- * Medicine and `scheduledAt`, so however many Schedules or records name that pair, it is one Dose.
- */
 fun dosesOn(
     day: LocalDate,
     zone: ZoneId,
@@ -70,8 +61,6 @@ fun dosesOn(
             Dose(
                 medicineId = key.medicineId,
                 scheduledAt = key.scheduledAt,
-                // ZonedDateTime.of resolves a Time in a spring-forward gap to the shifted instant,
-                // and one in a fall-back overlap to the first of its two.
                 timeAt = ZonedDateTime.of(key.scheduledAt, zone).toInstant(),
                 record = record,
                 snoozedUntil = if (record == null) snoozeByKey[key]?.until else null,

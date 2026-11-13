@@ -42,14 +42,6 @@ abstract class ScheduleDao {
         at: LocalDateTime,
     )
 
-    /**
-     * A save of a Medicine's Times (`docs/phase-1.md` §2, *Editing a Schedule*): ends the Schedule
-     * in force at [at] and starts the new one at that same minute, in one transaction, so no reader
-     * ever sees two Schedules in force or none between them.
-     *
-     * [at] is clamped to the old Schedule's `validFrom`, so a clock set back cannot start the new
-     * Schedule inside an older one's span and derive a Dose twice.
-     */
     @Transaction
     open suspend fun saveTimes(
         medicineId: String,
@@ -60,6 +52,7 @@ abstract class ScheduleDao {
         val wanted = normalisedTimes(times)
         val current = inForce(medicineId)
         if (current?.times.orEmpty() == wanted) return
+        // A clock set back must not start the new Schedule inside the old one's span (phase-1.md §2).
         val boundary = if (current == null) at else maxOf(at, current.validFrom)
         if (current != null) end(current.id, boundary)
         if (wanted.isNotEmpty()) {

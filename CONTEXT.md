@@ -8,7 +8,7 @@ user-facing word genuinely differ, both are written here with the difference sta
 
 | Term | Means | Not |
 | --- | --- | --- |
-| **Medicine** | one thing the user takes, as they name it: "Metformin", "Vitamin D". Holds its Amount, an optional Note and its Schedules: at most one in force at a time, earlier ones kept from their valid-from date (ADR-0009) | drug, medication, pill, prescription |
+| **Medicine** | one thing the user takes, as they name it: "Metformin", "Vitamin D". Holds its Amount, an optional Note and its Schedules: at most one in force at a time, earlier ones kept from their valid-from date-time (ADR-0009) | drug, medication, pill, prescription |
 | **Amount** | what is taken each time, as free text the user writes: "1 tablet", "5 ml", "2 puffs". The app never parses or checks it (ADR-0011) | dose, dosage, quantity |
 | **Note** | the user's own reminder text for a Medicine: "with food" | instructions, directions |
 | **Schedule** | when a Medicine is due: one or more Times of day, the Days it applies on (every day, chosen weekdays, every N days) and an optional End date | plan, regimen, routine |

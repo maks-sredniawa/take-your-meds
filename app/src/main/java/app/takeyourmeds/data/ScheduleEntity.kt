@@ -9,10 +9,6 @@ import java.time.LocalDateTime
 import java.time.LocalTime
 import java.util.UUID
 
-/**
- * A Schedule covers the Doses whose `scheduledAt` is after [validFrom] and at or before
- * [validUntil] — see `docs/phase-1.md` §3, *Which Schedules a day reads*.
- */
 @Entity(
     tableName = "schedules",
     foreignKeys = [
