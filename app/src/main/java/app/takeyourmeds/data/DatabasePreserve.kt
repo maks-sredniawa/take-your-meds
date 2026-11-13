@@ -24,11 +24,11 @@ internal const val PRESERVED_SUFFIX = ".db"
  */
 internal val PRESERVED_SIDECAR_SUFFIXES = listOf("-wal", "-shm")
 
-/**
- * What [readUserVersion] answers for a file that is not a readable database. Non-zero, so the gate
- * copies the file aside rather than handing it to Room, which deletes a database it finds corrupt.
- */
+/** What [readUserVersion] answers for a file that is not a readable database. Non-zero, so the gate copies it aside. */
 const val UNREADABLE_USER_VERSION = -1
+
+/** The platform's default handler deletes a database it finds corrupt. */
+internal val keepCorruptDatabase = DatabaseErrorHandler {}
 
 private const val SQLITE_HEADER_BYTES = 100
 private const val USER_VERSION_OFFSET = 60
@@ -45,9 +45,7 @@ internal val PRESERVED_TIMESTAMP_FORMAT: DateTimeFormatter =
     DateTimeFormatter.ofPattern("yyyyMMdd'T'HHmmss'Z'").withZone(ZoneOffset.UTC)
 
 /**
- * Reads the schema version of [databaseFile] as SQLite sees it. Under WAL a new version can sit in
- * `-wal` while the file's own header still says 0, so a non-empty log is read through SQLite, and
- * only a database with no log is read straight from its header.
+ * Reads the schema version of [databaseFile] as SQLite sees it, `-wal` included (ADR-0001).
  *
  * Returns 0 for a missing or empty file, which is how a fresh install looks, and
  * [UNREADABLE_USER_VERSION] for anything that is not a readable database. Never checkpoints or
@@ -63,11 +61,6 @@ fun readUserVersion(databaseFile: File): Int {
     }
 }
 
-/**
- * Read-only, so closing it does not checkpoint. Without a `-wal` on disk SQLite would create one and
- * a `-shm` beside the database, which is why [readUserVersion] only comes here when the log exists.
- * The no-op error handler matters: the platform's default deletes a file it finds corrupt.
- */
 private fun readUserVersionThroughSqlite(databaseFile: File): Int =
     try {
         SQLiteDatabase
@@ -75,7 +68,7 @@ private fun readUserVersionThroughSqlite(databaseFile: File): Int =
                 databaseFile.path,
                 null,
                 SQLiteDatabase.OPEN_READONLY or SQLiteDatabase.NO_LOCALIZED_COLLATORS,
-                DatabaseErrorHandler {},
+                keepCorruptDatabase,
             ).use { it.version }
     } catch (e: SQLiteException) {
         UNREADABLE_USER_VERSION
