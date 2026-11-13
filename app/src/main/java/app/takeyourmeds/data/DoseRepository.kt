@@ -39,6 +39,11 @@ class DoseRepository(
     fun observeTimes(medicineId: String): Flow<List<LocalTime>> =
         schedules.observeInForce(medicineId).map { it?.times.orEmpty() }
 
+    /** Whether any Medicine has a Schedule in force: the asks wait for the first (`PLAN.md` rule 4). */
+    fun observeAnyScheduled(): Flow<Boolean> = schedules.observeAnyInForce()
+
+    suspend fun anyScheduled(): Boolean = schedules.anyInForce()
+
     suspend fun timesOf(medicineId: String): List<LocalTime> = schedules.inForce(medicineId)?.times.orEmpty()
 
     suspend fun saveTimes(

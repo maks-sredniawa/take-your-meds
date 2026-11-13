@@ -40,6 +40,9 @@ data class MedicineEditor(
     val medicineId: String? = null,
 ) : NavKey
 
+/** The notifications and exact-alarm asks, pushed over Today after the first Schedule's save. */
+@Serializable data object Asks : NavKey
+
 /**
  * Help and feedback, and the licences below it — both pushed from Settings' *About* section
  * rather than being roots of their own. Somewhere you go once, from the place you already go to

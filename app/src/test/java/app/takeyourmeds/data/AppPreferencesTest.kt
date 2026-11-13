@@ -51,7 +51,6 @@ class AppPreferencesTest {
             with(preferences) {
                 setThemeMode(ThemeMode.DARK)
                 setMaterialYou(true)
-                setRemindersEnabled(true)
                 setOnboardingDone(true)
                 markTipAsked()
 
@@ -59,7 +58,6 @@ class AppPreferencesTest {
 
                 assertEquals(ThemeMode.SYSTEM, themeMode.first())
                 assertFalse(materialYou.first())
-                assertFalse(remindersEnabled.first())
                 assertTrue(onboardingDone.first())
                 assertTrue(tipAsked.first())
             }

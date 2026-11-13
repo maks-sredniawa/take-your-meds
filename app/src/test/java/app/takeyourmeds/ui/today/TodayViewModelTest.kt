@@ -16,6 +16,8 @@ import app.takeyourmeds.ui.FakeReminders
 import app.takeyourmeds.ui.FakeScheduleDao
 import app.takeyourmeds.ui.FakeSnoozeDao
 import app.takeyourmeds.ui.FakeTipAsk
+import app.takeyourmeds.work.Grants
+import app.takeyourmeds.work.ReminderChannel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -55,7 +57,13 @@ class TodayViewModelTest {
         ticks.value = to
     }
 
-    private fun TestScope.today(): TodayViewModel {
+    private fun grants(
+        notifications: Boolean = true,
+        muted: ReminderChannel? = null,
+        exact: Boolean = true,
+    ) = Grants(sdk = 34, notificationsAllowed = notifications, mutedChannel = muted, exactAlarmsAllowed = exact)
+
+    private fun TestScope.today(grants: Grants = grants()): TodayViewModel {
         val viewModel =
             TodayViewModel(
                 medicines = MedicineRepository(medicines),
@@ -65,6 +73,7 @@ class TodayViewModelTest {
                 ticks = ticks,
                 now = { now },
                 zone = { WARSAW },
+                grants = grants,
             )
         backgroundScope.launch(UnconfinedTestDispatcher(testScheduler)) { viewModel.state.collect {} }
         return viewModel
@@ -220,5 +229,34 @@ class TodayViewModelTest {
             snoozes.rows.value = listOf(SnoozeEntity("vitamin-d", at(8), until = instant(12, 10)))
 
             assertEquals(LocalTime.of(12, 10), today().row("vitamin-d", 8).snoozedUntil)
+        }
+
+    @Test
+    fun `blocked notifications and a refused exact grant show both banners, and granting clears them on resume`() =
+        runTest {
+            val today = today(grants(notifications = false, exact = false))
+            assertEquals(true to true, today.state.value.let { it.blocked to it.late })
+
+            today.reread(grants())
+
+            assertEquals(false to false, today.state.value.let { it.blocked to it.late })
+        }
+
+    @Test
+    fun `a muted reminders channel blocks too, and its banner leads to that channel`() =
+        runTest {
+            val today = today(grants(muted = ReminderChannel.Reminders))
+
+            assertEquals(true, today.state.value.blocked)
+            assertEquals(ReminderChannel.Reminders, today.state.value.blockedChannel)
+        }
+
+    @Test
+    fun `no banner shows before any Medicine has a Schedule`() =
+        runTest {
+            schedules.rows.value = emptyList()
+            val today = today(grants(notifications = false, exact = false))
+
+            assertEquals(false to false, today.state.value.let { it.blocked to it.late })
         }
 }

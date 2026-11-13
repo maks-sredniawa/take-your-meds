@@ -31,6 +31,8 @@ data class MedicineEditorUiState(
     val saving: Boolean = false,
     /** Set once, when the save has landed. The screen watches it and leaves. */
     val saved: Boolean = false,
+    /** The save put the first Schedule in force, so the screen hands over to the asks (`docs/phase-1.md` §4). */
+    val firstSchedule: Boolean = false,
 ) {
     val canSave: Boolean get() = name.isNotBlank() && amount.isNotBlank() && !saving
 }
@@ -93,10 +95,12 @@ class MedicineEditorViewModel(
             val medicine =
                 existing?.copy(name = name, amount = amount, note = note)
                     ?: MedicineEntity(name = name, amount = amount, note = note)
+            val scheduledBefore = doses.anyScheduled()
             repository.save(medicine)
             doses.saveTimes(medicine.id, snapshot.times, now())
             reminders.replan(Replan.Arm)
-            _state.update { it.copy(saving = false, saved = true) }
+            val firstSchedule = !scheduledBefore && snapshot.times.isNotEmpty()
+            _state.update { it.copy(saving = false, saved = true, firstSchedule = firstSchedule) }
         }
     }
 

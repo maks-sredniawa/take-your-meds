@@ -23,6 +23,7 @@ import androidx.navigation3.runtime.entryProvider
 import androidx.navigation3.runtime.rememberNavBackStack
 import androidx.navigation3.runtime.rememberSaveableStateHolderNavEntryDecorator
 import androidx.navigation3.ui.NavDisplay
+import app.takeyourmeds.ui.asks.AsksScreen
 import app.takeyourmeds.ui.medicines.MedicineDetailScreen
 import app.takeyourmeds.ui.medicines.MedicineEditorScreen
 import app.takeyourmeds.ui.medicines.MedicinesScreen
@@ -143,7 +144,11 @@ fun MainNavigation(
                         MedicineEditorScreen(
                             medicineId = key.medicineId,
                             onDone = { backStack.removeLastOrNull() },
+                            onAsk = { backStack.showAsks() },
                         )
+                    }
+                    entry<Asks> {
+                        AsksScreen(onDone = { backStack.showTopLevel(TopLevelDestination.TodayTab) })
                     }
                     entry<Settings> {
                         SettingsScreen(
@@ -222,4 +227,10 @@ internal fun NavBackStack<NavKey>.showToday() {
         size <= 1 -> showTopLevel(TopLevelDestination.TodayTab)
         else -> add(Today)
     }
+}
+
+/** Back from an ask, or *Not now*, lands on Today, where the banners are the route back (`docs/phase-1.md` §4). */
+private fun NavBackStack<NavKey>.showAsks() {
+    showTopLevel(TopLevelDestination.TodayTab)
+    add(Asks)
 }

@@ -96,7 +96,7 @@ fun rememberNotificationPermissionAsk(onOutcome: (NotificationPermissionOutcome)
  * be stale a minute later: the screen this app *deliberately sends the user to* when the system
  * dialog is spent is the one where they flip this switch, so an answer cached before that trip is
  * wrong exactly when it decides whether to tell the user their reminders are going nowhere. Read it
- * again on every resume — `ui/settings/SettingsScreen.kt` is the worked example.
+ * again on every resume — `ui/today/TodayScreen.kt` is the worked example.
  *
  * It is only half the question: a channel muted on its own hides its notifications while this still
  * answers true. [channelCanAppear] reads the other half, and [openChannelNotificationSettings] is its

@@ -73,6 +73,10 @@ class FakeScheduleDao(
     override suspend fun inForce(medicineId: String): ScheduleEntity? =
         rows.value.find { it.medicineId == medicineId && it.validUntil == null }
 
+    override fun observeAnyInForce(): Flow<Boolean> = rows.map { all -> all.any { it.validUntil == null } }
+
+    override suspend fun anyInForce(): Boolean = rows.value.any { it.validUntil == null }
+
     override suspend fun allFor(medicineId: String): List<ScheduleEntity> =
         rows.value.filter { it.medicineId == medicineId }.sortedBy { it.validFrom }
 

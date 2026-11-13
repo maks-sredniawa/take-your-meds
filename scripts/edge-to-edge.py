@@ -183,6 +183,9 @@ GESTURE_MIN_API = 29
 # run died here on API 26, one minute in.
 POST_NOTIFICATIONS_MIN_API = 33
 
+# `SCHEDULE_EXACT_ALARM` is Android 12. Below it exact alarms need no grant and the appop does not exist.
+EXACT_ALARM_MIN_API = 31
+
 # Per-app languages are Android 13, and so is `cmd locale set-app-locales`. Below it there is no
 # per-app locale to hand back, and `shell()` raising on the missing command would kill `--restore`
 # (here and in `screenshots.py`) before it put rotation and Do Not Disturb back.
@@ -1238,6 +1241,11 @@ def reset_to_seeded() -> None:
     # exception and keeps the denied state, because there it is the truth of a first run.
     if api_level() >= POST_NOTIFICATIONS_MIN_API:
         shell(f"pm grant {PACKAGE} android.permission.POST_NOTIFICATIONS")
+        settle(0.5)
+    # The same for the exact-alarm grant, refused by default on a fresh install from API 34: without
+    # it every seeded Today carries *Reminders may be late* (phase-1.md §6).
+    if api_level() >= EXACT_ALARM_MIN_API:
+        shell(f"appops set {PACKAGE} SCHEDULE_EXACT_ALARM allow")
         settle(0.5)
     global _SEEDED
     _SEEDED = ""
