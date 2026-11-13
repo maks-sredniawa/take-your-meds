@@ -38,9 +38,10 @@ close. Whenever `APP_SCHEMA_VERSION` changes, all five hold before the release g
       only phone in the loop sits at the top of the range, every `SDK_INT` branch below it ships
       unvalidated — the first app built from this template raised 26 to 33 for exactly that reason. Move CI's floor legs with it,
       and write the reason beside `minSdk` in `app/build.gradle.kts`, where the next person to touch it reads it.
-      Evidence owed: phase 1's gate could not read API 26 in deep Doze on the emulator (`phase-1.md`
-      §1, *The verdict, taken*). How late the second of two close Reminders lands there needs a real
-      API 26–30 phone.
+      Evidence owed, settled before the door (phase 2): phase 1's gate could not read API 26 in deep
+      Doze on the emulator (`phase-1.md` §1, *The verdict, taken*), so both G1 (one exact alarm on its
+      minute, verdict 3's veto condition) and G2 (the second of two close Reminders) are unread on
+      API 26–30. A real Android 8 or 9 phone reads them, or `minSdk` rises.
 - [x] **Replace the placeholder mark.** A capsule with a check punched through it, 2026-11-12;
       provenance in `art/README.md`.
 - [ ] **Read the themed launcher icon.** Unthemed is read (API 33 emulator, 2026-11-12); themed is
