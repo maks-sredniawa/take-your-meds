@@ -400,6 +400,8 @@ def main() -> int:
     elif args.numbered:
         parser.error("--numbered needs --scene: the number is the position in the list you asked for")
 
+    scenes = e2e.on_this_api(scenes)
+
     if args.numbered:
         global _ORDER
         _ORDER = {scene.name: i for i, scene in enumerate(scenes, 1)}
