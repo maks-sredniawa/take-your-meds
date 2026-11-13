@@ -89,8 +89,8 @@ close. Whenever `APP_SCHEMA_VERSION` changes, all five hold before the release g
       **None of this is inherited from the template** — GitHub copies files, never settings — and
       the build stays green while it is all still undone. **Write the PAT's expiry date into this
       item** the day you create it: when it lapses the release PR simply stops appearing.
-      Ruleset 2026-11-11. `RELEASE_PLEASE_TOKEN` is the fine-grained PAT
-      `take-your-meds-release-please`, created 2026-11-12, **expires 2026-12-12**.
+      Ruleset 2026-11-11. `RELEASE_PLEASE_TOKEN` is the fine-grained PAT `take_your_meds`,
+      regenerated 2026-11-13, **expires 2027-11-11**.
 - [x] **Set the five Play secrets and create the service account** (`docs/RELEASING.md`) — the
       service account is the one step CI cannot do for itself. No account permissions; two app
       permissions, on this app only; no expiry date. 2026-11-12:
