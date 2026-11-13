@@ -159,7 +159,8 @@ in `RELEASING.md` is filled in; its NordPass copy was confirmed on 2026-11-13. T
 0.2.0 (versionCode 22), phase 0's build, is on internal testing, but it went up in the Console rather
 than through CI, because Play knows no package until a first bundle has been uploaded
 (`RELEASING.md`); CI's first upload is the next tag. The repository ruleset dates from 2026-11-11;
-`RELEASE_PLEASE_TOKEN` was replaced on 2026-11-12 with a PAT that expires 2026-12-12.
+`RELEASE_PLEASE_TOKEN` is the fine-grained PAT `take_your_meds`, regenerated on 2026-11-13, which
+expires 2027-11-11.
 
 ## Not in this plan
 
