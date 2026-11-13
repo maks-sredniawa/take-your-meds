@@ -23,9 +23,8 @@ refused (*Readings*).
 phases 1 and 2 below its Status list, only the Status entries; this phase adds its paragraph when it
 closes. **Second**, the Status entry's *how old a Due Dose may be* is not a phase-2 placeholder: the
 number this phase picks is the moment phase 2 will call Missed, so phase 2 inherits it rather than
-inventing a second one (§5). **Third**, if the owner takes this file's recommendation in §2, the
-first schema migration moves from phase 3 to here, and Phase 3's Status entry and ADR-0009's last
-consequence change with it.
+inventing a second one (§5). **Third**, the first schema migration moves from phase 3 to here (§2,
+decided 2026-11-13), and Phase 3's Status entry and ADR-0009's last consequence change with it.
 
 ---
 
@@ -144,9 +143,9 @@ D builds.
 
 ## 1. The gate: is one exact alarm on its minute in deep Doze?
 
-**Owner's call:** the gate question. Two candidates were weighed:
+**The gate question** is (a). Two candidates were weighed:
 
-- **(a) Recommended:** does a `setExactAndAllowWhileIdle` alarm start the killed process and post a
+- **(a)** does a `setExactAndAllowWhileIdle` alarm start the killed process and post a
   heads-up Reminder within 60 s of its time in deep Doze, including the second of two alarms five
   minutes apart? Only this one can veto the phase: ADR-0010's whole mechanism stands on it.
 - **(b)** how late does the `setAndAllowWhileIdle` fallback land in deep Doze with the grant refused?
@@ -213,7 +212,7 @@ drops `:00` seconds on some values and keeps them on others: the day query is a 
 (`>= '2026-11-13T00:00' AND < '2026-11-14T00:00'`), and only a fixed width sorts as time. A local
 date-time and not an instant, because a Time is wall-clock in the phone's current zone (ADR-0009).
 
-**Owner's call:** migrate to schema 2, or redefine schema 1. Recommended: **bump
+**Decided by the owner, 2026-11-13: migrate to schema 2, not redefine schema 1.** That means **bump
 `APP_SCHEMA_VERSION` to 2 with `MIGRATION_1_2`**, three `CREATE TABLE`s and their indices transcribed
 from the exported `2.json`, under the five items of `DOD.md`'s standing schema gate. ADR-0001 still
 permits redefining schema 1, because nothing has reached a stranger. But 0.2.0 is a release build on
@@ -282,15 +281,13 @@ screen.
 What the user sees after a refusal is Today's banners (§6). Both are re-read on every resume, never
 remembered from the ask's outcome, the idiom `SettingsScreen` already uses for notifications.
 
-**Owner's call:** the Settings *Remind me* switch. It is the template's, it defaults to off, and it
+**Decided by the owner, 2026-11-13: the Settings *Remind me* switch goes.** It is the template's, it defaults to off, and it
 spends the notifications ask the moment it is switched on, which is not the moment rule 4's table
 names. With Times on a Medicine, a global off-switch is a second way to stop Reminders beside
 `CONTEXT.md`'s (end the Schedule), and one that fails silently: switched off once and forgotten, it
-leaves every Schedule saved and nothing reminded. Recommended: **remove the switch, its preference
+leaves every Schedule saved and nothing reminded. So: **remove the switch, its preference
 key and its banner**, and let Today's banners carry the refusal states; the key leaves *Restore to
-default*'s list with it, and the restore hint stops naming reminders. The owner's standing rule is
-that an old control stays until they say it goes, so it stays until then; if it stays, it becomes a
-pause for every Reminder, defaults to on, and Today shows a banner while it is off.
+default*'s list with it, and the restore hint stops naming reminders.
 
 Copy, English:
 
@@ -332,8 +329,8 @@ The re-plan, by trigger:
 A re-plan re-posts only where there was no armed time to start from (ADR-0010). The sweep and the app
 opening do not re-post, so a Reminder the user swiped away stays away until the Follow-up exists.
 
-**Owner's call:** how old a Due Dose may be before a re-plan stops re-posting its Reminder.
-Recommended: **2 hours after its Reminder time, and never once a later Dose of the same Medicine has
+**Decided by the owner, 2026-11-13: how old a Due Dose may be before a re-plan stops re-posting its
+Reminder.** **2 hours after its Reminder time, and never once a later Dose of the same Medicine has
 reached its Time**, one constant `DUE_REPOST_LIMIT` that phase 2 adopts as the moment the Follow-up
 has run out and the Dose becomes Missed, so the app has one number for "this Dose is no longer
 current", not two. The direction that matters: a bound too long lets a reboot at 20:00 post the 9:00
@@ -407,7 +404,7 @@ The tip ask card moves from `ui/medicines/` to Today, the home screen it belongs
 with Times, and the debug seeder seeds Schedules and a Taken record so a seeded Today shows both
 states.
 
-**Owner's call:** the layout of Today and of the Times in the editor. What each must show is above;
+**Still open:** the layout of Today and of the Times in the editor. What each must show is above;
 how is open. Recommended: a design pass (Fable) before C, given this list, the sage-and-amber palette
 (amber carries the late-Reminder banner, phase 0 §5) and `theme/Spacing.kt`, with these open
 questions: whether Doses group by Time or list flat; how a Dose ahead differs from a Due one without
@@ -448,7 +445,7 @@ the same alarm (ADR-0010) and survives a reboot or an update through `dosesToRep
 replaces the row; an answer, from the notification or Today, deletes it. The Snooze end is an
 instant, not a local date-time: ten minutes are ten minutes across a clock change.
 
-**Owner's call:** the Snooze length, and whether it is fixed or chosen. Recommended: **fixed, 10
+**Decided by the owner, 2026-11-13: the Snooze length is fixed, 10
 minutes**, as `CONTEXT.md` already defines Snooze ("by a fixed time"). One button with the number on
 it is answerable from the lock screen without reading a choice; a chosen length is a preference with
 its own row in Settings and its own copy, and can be added later without touching the schema. Ten,
