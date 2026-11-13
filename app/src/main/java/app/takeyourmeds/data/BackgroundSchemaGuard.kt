@@ -9,8 +9,8 @@ import android.content.Context
  * The hazard is specific: the OS can start this process to run a worker or deliver a broadcast with
  * no UI and no user present, and anything that forces the container over a schema this build cannot
  * open destroys the database in the background on a phone nobody is looking at. So the question is
- * asked out of four bytes of the file header rather than by opening anything, and the answer is
- * `true` exactly when the right move is to do nothing.
+ * asked through [readUserVersion] rather than through Room, and the answer is `true` exactly when the
+ * right move is to do nothing.
  *
  * **It asks the launch gate's question, not "do the versions differ".** A debug build still blocks
  * on any mismatch — it has no migrations registered, so opening means wiping — and a release build

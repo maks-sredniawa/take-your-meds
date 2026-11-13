@@ -51,8 +51,7 @@ class ReminderSweepWorker(
         // The wipe guard, from the direction it exists for: the OS can start this process to run a
         // worker with no UI and no user present, and any worker that touches a repository forces the
         // container — which, at a stale schema, destroys the database in the background on a phone
-        // nobody is looking at. Asked *before* anything else, and answered out of four bytes of the
-        // file header rather than by opening anything.
+        // nobody is looking at. Asked *before* anything else, and answered without Room.
         if (applicationContext.schemaBlocksBackgroundWork()) {
             // Success, and deliberately no re-enqueue. There is nothing wrong with the *work* — the
             // database is simply not this build's to open yet, and the consent screen is what

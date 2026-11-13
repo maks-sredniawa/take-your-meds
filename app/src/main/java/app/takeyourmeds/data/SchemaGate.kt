@@ -67,7 +67,7 @@ fun migrationPathExists(
  * through `Open` and let Room empty the file with no consent screen — the exact thing ADR-0001
  * forbids.
  *
- * @param onDiskVersion the `user_version` out of the file header, `0` when there is no file yet.
+ * @param onDiskVersion [readUserVersion]'s answer, `0` when there is no file yet.
  * @param steps the migrations this build has actually registered, as `start to end`.
  */
 fun schemaGateDecision(
