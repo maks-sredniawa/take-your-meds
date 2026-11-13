@@ -90,3 +90,11 @@ stages the checkpointed database alone, and `onRestoreFinished` installs it the 
 tip ask (ADR-0007) does not follow the user to a new phone. The Consequences above about quota,
 markers, media, zip slip and the export no longer apply; the ones about the restore's sidecars and the
 notification channel do.
+
+## Amendment, 2026-11-13
+
+A checkpoint that reports busy or throws **fails the backup run**: nothing is staged, so a `.db`
+missing its newest writes is never uploaded and the previous cloud backup stays. The framework counts
+`onFullBackup` as successful whatever it throws and would commit a backup holding no database, so the
+agent ends its own process instead; the stream then stops without its end marker and the run is
+recorded as an agent error.

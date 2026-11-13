@@ -5,13 +5,18 @@ import android.app.backup.BackupDataInput
 import android.app.backup.BackupDataOutput
 import android.app.backup.FullBackupDataOutput
 import android.os.ParcelFileDescriptor
+import android.os.Process
+import android.util.Log
 import app.takeyourmeds.data.APP_DATABASE_FILE
 import app.takeyourmeds.data.backup.checkpointDatabaseTo
 import app.takeyourmeds.data.backup.installDatabase
 import java.io.File
+import java.io.IOException
 
 /** Where the checkpointed copy is staged, relative to `filesDir`. */
 private const val STAGING_PATH = "auto-backup-staged.db"
+
+private const val TAG = "AppBackupAgent"
 
 /**
  * Android Auto Backup, taking control of its own file set (ADR-0005): the checkpointed database and
@@ -42,7 +47,12 @@ class AppBackupAgent : BackupAgent() {
         try {
             val databaseFile = getDatabasePath(APP_DATABASE_FILE)
             if (!databaseFile.isFile) return
-            checkpointDatabaseTo(databaseFile, staged)
+            try {
+                checkpointDatabaseTo(databaseFile, staged)
+            } catch (e: IOException) {
+                failThisBackupRun(e)
+                return
+            }
             fullBackupFile(staged, data)
         } finally {
             // `fullBackupFile` consumes the bytes synchronously, so nothing is waiting on it afterwards.
@@ -62,6 +72,12 @@ class AppBackupAgent : BackupAgent() {
         if (!staged.isFile) return
         installDatabase(staged, getDatabasePath(APP_DATABASE_FILE))
         staged.delete()
+    }
+
+    /** A throw would still count as a successful, empty backup (ADR-0005, amendment 2026-11-13). */
+    private fun failThisBackupRun(cause: IOException) {
+        Log.w(TAG, "Backup run failed; the previous backup stays", cause)
+        Process.killProcess(Process.myPid())
     }
 
     /** Key/value backup. Never called while `fullBackupOnly="true"`, and a no-op if it ever is. */
