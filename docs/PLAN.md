@@ -42,7 +42,8 @@ was extracted from and the first app built from it settled on exactly this split
   Dose history is real, so every schema change after it carries a tested migration. Readings: Xiaomi
   with and without autostart — the one reading that needs a real phone
 - [ ] **Phase 3** — Schedules beyond daily: chosen weekdays, every N days, an End date; As-needed
-  Medicines; History per Medicine. The first schema migration, under ADR-0001's gate
+  Medicines; History per Medicine. The second schema migration (phase 1 wrote the first), under
+  ADR-0001's gate
 - [ ] **Phase 4** — Supply: a count per Medicine, decreased by each Taken Dose, and a running-low
   Reminder
 - [ ] **Phase N** — Ship shape: listing in English and Polish, screenshots, the Health apps

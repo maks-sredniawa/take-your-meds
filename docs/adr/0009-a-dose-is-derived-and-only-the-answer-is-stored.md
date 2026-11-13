@@ -46,3 +46,12 @@ point is answering "did I take it?" about any day.
   not in a test*), including a Time near midnight, a daylight-saving change, a time-zone change and a
   Schedule edited mid-day.
 - Schedule edits never touch `DoseRecord`, so the first migration (phase 3) is additive.
+
+## Amendment, 2026-11-13
+
+A Schedule's valid-from is the save's local date-time, not a date, and an edit ends the Schedule in
+force with a valid-until at that same minute: a Schedule covers the Doses after its valid-from and
+up to and including its valid-until. So a Schedule saved mid-day has no earlier Dose that day, and
+today's Doses before an edit keep the Schedule that made them. The rule and its edge cases are in
+`docs/phase-1.md` §2 and §3. The first migration is phase 1's (schema 2, additive); phase 3's is the
+second.

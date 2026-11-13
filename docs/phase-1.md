@@ -206,9 +206,10 @@ Three tables join `medicines`, under ADR-0009's content.
 | `dose_records` | `medicineId` TEXT, **no foreign key**; `scheduledAt` TEXT; `answer` TEXT; `answeredAt` INTEGER; `medicineName` TEXT; `medicineAmount` TEXT; primary key (`medicineId`, `scheduledAt`); index on `scheduledAt` | no cascade, so a deleted Medicine's answers survive (ADR-0009). `answer` is an enum by name, `Taken` only until phase 2. Inserted with `IGNORE`: a Dose answered twice keeps its first answer and its first time |
 | `snoozes` | `medicineId` TEXT → `medicines.id` **ON DELETE CASCADE**; `scheduledAt` TEXT; `until` INTEGER; primary key (`medicineId`, `scheduledAt`) | an answer deletes the row, a second Snooze replaces it (ADR-0009) |
 
-**`scheduledAt` and `validFrom` are local date-times stored as fixed-width text**,
-`yyyy-MM-dd'T'HH:mm` through one formatter in `Converters`, never `LocalDateTime.toString()`, which
-drops `:00` seconds on some values and keeps them on others: the day query is a string range
+**`scheduledAt`, `validFrom` and `validUntil` are local date-times stored as fixed-width text**,
+`yyyy-MM-dd'T'HH:mm` through the one `LocalDateTime` converter in `Converters`, which truncates to
+the minute, never `LocalDateTime.toString()`, which drops `:00` seconds on some values and keeps
+them on others: the day query is a string range
 (`>= '2026-11-13T00:00' AND < '2026-11-14T00:00'`), and only a fixed width sorts as time. A local
 date-time and not an instant, because a Time is wall-clock in the phone's current zone (ADR-0009).
 
@@ -239,6 +240,13 @@ Schedule. So Doses already Due or Taken today stay as they were, under the Sched
 and a Time added for earlier today first comes Due tomorrow. A Time removed for later today has no
 Dose today.
 
+**Ending the old Schedule and inserting the new one is one Room transaction**
+(`ScheduleDao.saveTimes`), so no reader sees two Schedules in force, or none, between the two writes,
+and a failed insert leaves the old Schedule in force. The boundary is never earlier than the old
+Schedule's `validFrom`: a clock set back would otherwise start the new Schedule inside the old one's
+span. **Saving a Medicine is an upsert, never `REPLACE`**: SQLite's `REPLACE` deletes the row before
+inserting it, and that delete cascades to the Medicine's Schedules and Snoozes.
+
 `DoseRecordDao` and `ScheduleDao` return `Flow` for screens and have one-shot `suspend` reads for the
 receivers, the same split as `MedicineDao`.
 
@@ -254,12 +262,27 @@ Pure functions in `data/Doses.kt`, taking a clock and a zone as arguments, never
 | `dosesToPost(armedFor, now, …)` | the unanswered Doses whose Reminder time is in `[armedFor, now]` and inside the re-post bound (§5) | a Dose between the armed time and a late landing left unposted |
 | `dosesToRepost(now, …)` | for a re-plan with no armed time: every Due Dose inside the re-post bound (§5) | a stale Reminder posted as if current, or a fresh one not posted |
 
+**Which Schedules and records a day reads.** A day *D* reads every Schedule with
+`validFrom < D+1 00:00` and `validUntil` null or `>= D 00:00` (`ScheduleDao.covering`), a superset
+the derivation then narrows Time by Time with the coverage rule below; a Schedule ended at `D 00:00`
+is read because it still owns *D*'s 00:00 Dose. It reads every `DoseRecord` with `scheduledAt` in
+`[D 00:00, D+1 00:00)`, whatever its Medicine, so an answer stays on its day after its Time is
+removed or its Medicine deleted, and every pending Snooze. A Dose is its Medicine and `scheduledAt`,
+so however many Schedules or records name that pair, it is one Dose. `nextReminderTime` derives
+yesterday, today and tomorrow, since a Snooze can carry yesterday's last Dose past midnight;
+`dosesToPost` and `dosesToRepost` derive from the day before `now - DUE_REPOST_LIMIT` to today.
+
 Rules the functions encode, each a test case (*Tests*):
 
-- **A Schedule has Doses only from its `validFrom` up to its `validUntil`.** A Medicine saved at
-  10:00 with a 9:00 Time starts tomorrow at 9:00; it is not Due at 10:00 for a Dose that never
-  existed. ADR-0009 says valid-from *date*; this phase makes it the save's local date-time, and amends
-  the ADR.
+- **A Schedule covers the Doses after its `validFrom` and up to and including its `validUntil`**,
+  both at minute resolution. A Medicine saved at 10:00 with a 9:00 Time starts tomorrow at 9:00; it
+  is not Due at 10:00 for a Dose that never existed. ADR-0009 says valid-from *date*; this phase
+  makes it the save's local date-time, and amends the ADR.
+- **A save in the same minute as a Time belongs to the old Schedule.** A save at 9:00 that adds 9:00
+  starts it tomorrow, so no Dose is Due at once on save; a save at 9:00 that removes 9:00 keeps
+  today's 9:00 Dose, which was Due from 9:00:00, so none already Due is dropped. Because the old
+  Schedule's `validUntil` is the new one's `validFrom`, the half-open spans meet without a gap or an
+  overlap, and every minute belongs to exactly one Schedule.
 - **An edit mid-day changes only what is still ahead.** At noon, adding 8:00 and 21:00 to a 9:00
   Schedule leaves the 9:00 Dose Due (or Taken) under the old Schedule, adds a 21:00 Dose today, and
   starts 8:00 tomorrow; removing 21:00 at noon removes only today's 21:00.
@@ -269,6 +292,7 @@ Rules the functions encode, each a test case (*Tests*):
 - **A time-zone change** moves no Dose: `scheduledAt` is wall-clock, so an answered 9:00 stays
   answered, and an unanswered one is reminded at 9:00 in the new zone.
 - **A record whose Time is no longer in the Schedule** still appears on its day as Taken.
+- **A Dose is Due from the first second of its Time's minute**, and Upcoming before it.
 - **`nextReminderTime` is strictly after `now`.** A firing that re-arms at its own minute would loop;
   one that skips a Dose falling on that same minute loses it, which is why the firing posts
   `[armedFor, now]` before it arms past `now`.
@@ -515,10 +539,14 @@ the first ones the app has. Each is a JVM test over a pure function with an inje
 | `RepostBoundTest` (`dosesToRepost`, the bound in `dosesToPost`) | posted just inside `DUE_REPOST_LIMIT`, not at or past it; not once a later Dose of the same Medicine has reached its Time; measured from the Reminder time, so a Snooze's end counts | **chiefly** a stale Reminder posted as current, which can become a second dose of the same Medicine; secondarily a phone off over 9:00 left silent |
 | `DoseKeyTest` (the tag and the `dose:` URI) | round-trips to the same Medicine and `scheduledAt`; differs for two Medicines at one minute and one Medicine at two Times | *Taken* recorded against the wrong Dose: the app saying a medicine was taken that was not |
 
+`ConvertersTest` pins the fixed width of every local date-time column, `validUntil` included.
+
 Instrumented, beside `MedicineDaoTest`: `DoseRecordDaoTest` proves a Dose answered twice keeps one
 record with its first answer time (fails toward a Taken count of two, which the tip ask reads now and
-Supply will count down twice in phase 4), and that deleting a Medicine deletes its Schedules and
-Snoozes and keeps its records. `MigrationTest` 1 → 2 reads the Medicines back, and
+Supply will count down twice in phase 4), that deleting a Medicine deletes its Schedules and
+Snoozes and keeps its records, and that saving an edited Medicine keeps them. `ScheduleDaoTest`
+proves an edit ends the old Schedule and starts the new one at the same minute, in one transaction
+that a failed insert rolls back, and that a day reads the Schedules the rule above names. `MigrationTest` 1 → 2 reads the Medicines back, and
 `SchemaGateTest` asserts the gate lets 1 → 2 through (`DOD.md`'s standing gate, items 3 and 4).
 `ManifestWiringTest` gains the new receivers.
 
