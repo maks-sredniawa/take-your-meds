@@ -41,7 +41,7 @@ close. Whenever `APP_SCHEMA_VERSION` changes, all five hold before the release g
       Evidence owed, settled before the door (phase 2): phase 1's gate could not read API 26 in deep
       Doze on the emulator (`phase-1.md` §1, *The verdict, taken*), so both G1 (one exact alarm on its
       minute, verdict 3's veto condition) and G2 (the second of two close Reminders) are unread on
-      API 26–30. A real Android 8 or 9 phone reads them, or `minSdk` rises.
+      API 26–30. A real Android 8–11 phone (API 26–30) reads them, or `minSdk` rises.
 - [x] **Replace the placeholder mark.** A capsule with a check punched through it, 2026-11-12;
       provenance in `art/README.md`.
 - [ ] **Read the themed launcher icon.** Unthemed is read (API 33 emulator, 2026-11-12); themed is
