@@ -71,3 +71,8 @@ and a foreground-service declaration for a few events a day.
   an action.
 - **The lock screen** shows a public version that names no Medicine, deferring to the user's own
   setting for sensitive content.
+- **An alarm replaced before it lands still posts.** Arming replaces the pending alarm, so the planner
+  stores the instant it armed for, and any re-plan that finds it passed posts what that alarm would
+  have, under the same bound, before arming the next.
+- **One Reminder per Medicine in the tray** (owner, 2026-11-13). Posting a Dose's Reminder removes the
+  same Medicine's earlier Reminders; those Doses stay Due on Today.
