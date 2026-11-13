@@ -192,9 +192,45 @@ for the real one.
 G3 is taken with the same apparatus but is not a verdict input: it chooses between the two fallback
 banner bodies in §6, by a threshold also fixed now (15 minutes).
 
-### The verdict, taken *(date)*
+### The verdict, taken *(2026-11-13)*
 
-Not yet taken.
+> **Verdict 1 on API 36; API 26 is unread, not failed.** The third verdict did not come in. Verdict
+> 1's API 26 condition cannot be met on the emulators: the API 26 image never puts AlarmManager into
+> idle, so its runs are not deep-Doze readings. Whether D waits for an API 26 reading on a real phone
+> is the owner's call.
+
+**API 36 (G1, G2): verdict 1's conditions hold.** G1 fired 322, 312 and 508 ms late, three runs of
+three, each with `deviceidle get deep` reading `IDLE` at the firing, the process started from killed
+and `posted=true`. G2's second alarm, armed from inside the first firing, fired 5 ms and 6 ms late in
+two runs, with Doze forced across both firings. The alarms read `exactAllowReason=permission
+flags=0x5` in `dumpsys alarm`, and the second ones carried a live `device_idle` policy term, so
+AlarmManager was idling. D is built on ADR-0010 as written.
+
+**API 26: not a reading.** The `urgent-api26` image (`android-26` `google_apis` x86_64, the only API 26
+image on this machine) has no significant-motion sensor: `dumpsys deviceidle` shows
+`mMotionSensor=null`. On Android 8 that makes `DeviceIdleController` skip `AlarmManager.setIdleUntil`,
+so `deviceidle get deep` reads `IDLE` while `dumpsys alarm` shows no *Idling until* and
+`mAllowWhileIdleMinTime=+5s0ms`, not the 9-minute idle limit. Its G1 (31, 65, 28 ms) and G2 second
+alarms (0, 1 ms) are what an awake API 26 phone does, and say nothing about the allow-while-idle
+limit G2 was set to catch. `dumpsys deviceidle step deep` and a fresh `force-idle deep` did not change
+it. *Known gaps* and `DOD.md`'s `minSdk` item carry that the number is still owed.
+
+**G3: the first banner body.** The fallback landed 2 min 15.5 s, 2 min 16.0 s and 1 min 44.0 s late on
+API 36, inside 15 minutes in every run, so §6 takes the first body.
+
+**What neither verdict anticipated:**
+
+- **G3 measures the fallback's window, and the window grows with the lead.** Each fallback alarm read
+  `window=+2m14s999ms` in `dumpsys alarm`, which is three quarters of the probe's three-minute lead,
+  and every landing fell inside it. Other apps' inexact alarms on the same phone read windows of
+  22 min 30 s and 1 h. A real Reminder armed hours ahead, such as 21:00 for 9:00, may land far later
+  than G3 shows. R4 should arm with a realistic lead before §6's choice is treated as settled.
+- **A never-opened fresh install's alarm is deferred about a year.** It sat in standby bucket 50
+  (*never*), and `dumpsys alarm` read `app_standby=+364d`. One launch moved it to *active*. A user
+  always opens the app to save a Schedule, so the risk lands on readings, not users: every D and E
+  reading starts by opening the app once.
+- **`am kill <pkg>` leaves a cached process alive on API 26.** `am kill --user 0 <pkg>` kills it.
+  Confirm `pidof` reads empty either way, as *Readings* already says.
 
 ## 2. The schema (B)
 
@@ -599,7 +635,9 @@ Device behaviour is not here: whether the alarm fired on its minute is a reading
   if it is still in the tray.
 - **A Taken tapped by mistake on a Reminder cannot be undone in this phase.** Undo exists only on
   Today's snackbar; changing an answer after the fact belongs with History.
-- **Close pairs on API 26–30**, by whatever G2 measures there (gate verdict 1).
+- **Close pairs on API 26–30**, by whatever G2 measures there (gate verdict 1). Still unmeasured:
+  the API 26 emulator image cannot put AlarmManager into idle (§1, *The verdict, taken*), so the
+  number needs a real API 26–30 phone.
 
 ## Readings
 
@@ -630,9 +668,9 @@ Device state each reading depends on, and how it is set:
 
 | # | Reading | Command | Result |
 | --- | --- | --- | --- |
-| G1 | The gate: an exact alarm in deep Doze, process killed, posts within 60 s of its time, three runs | `adb shell am broadcast -n <pkg>/app.takeyourmeds.debug.AlarmProbeReceiver --ei minutes 3 --ez exact true`, then deep Doze and kill as above, then `adb logcat -s AlarmProbe` | |
-| G2 | The gate: the second of two exact alarms five minutes apart, in deep Doze | as G1 with `--ez chain true` | |
-| G3 | The fallback's lateness in deep Doze with the grant refused, three runs (chooses §6's banner body) | `appops … deny`, then as G1 with `--ez exact false` | |
+| G1 | The gate: an exact alarm in deep Doze, process killed, posts within 60 s of its time, three runs | `adb shell am broadcast -n <pkg>/app.takeyourmeds.debug.AlarmProbeReceiver -f 0x00000020 --ei minutes 3 --ez exact true`, then deep Doze and kill as above, then `adb logcat -s AlarmProbe` | 2026-11-13. **API 36** (`pixel-api36`, grant `allow`): `lateMs=322`, `312`, `508`; `deviceidle get deep` `IDLE` at each firing, `posted=true`, a new pid each time. **API 26** (`urgent-api26`): `lateMs=31`, `65`, `28`, **not deep Doze**: `mMotionSensor=null`, no *Idling until* in `dumpsys alarm` (§1, *The verdict, taken*). `-f 0x00000020` is needed because a fresh install is a stopped package. On API 26 the kill is `am kill --user 0 <pkg>`. |
+| G2 | The gate: the second of two exact alarms five minutes apart, in deep Doze | as G1 with `--ez chain true` | 2026-11-13. **API 36**, two runs with Doze forced across both firings: first `lateMs=259` and ≤318 (that log line rotated out, so the figure is the notification's `when`), second **`5`** and **`6`**. The second alarm was armed between the firings, `flags=0x5` with a live `device_idle` term. **API 26**: second `0` and `1`, not deep Doze, as G1. |
+| G3 | The fallback's lateness in deep Doze with the grant refused, three runs (chooses §6's banner body) | `appops … deny`, then as G1 with `--ez exact false` | 2026-11-13, **API 36**: `lateMs=135510`, `136010`, `104047` (≤ 2 min 16 s). Each alarm read `window=+2m14s999ms flags=0x20`. The third run is on a read-only `fold-api36`, the same image and fingerprint, after another session reinstalled over `pixel-api36`; it read *Idling until* in `dumpsys alarm` and was opened once to leave standby bucket 50. Under 15 min, so §6 takes the first body. API 26 not run: there is no grant to refuse below API 31. |
 | R1 | A Reminder on its minute in deep Doze, from the real planner | a Medicine with a Time three minutes ahead, deep Doze, kill, `adb logcat -s Reminders` | |
 | R2a | After a reboot, a Reminder whose Time falls after boot arrives on its minute | arm, `adb reboot`, `adb logcat -s Reminders` | |
 | R2b | After a reboot, a Dose whose Time passed while the phone was off is re-posted at boot inside the bound, and one past the bound is not | Times one before and one beyond the bound, `adb emu kill` over both, boot, `dumpsys notification` | |
