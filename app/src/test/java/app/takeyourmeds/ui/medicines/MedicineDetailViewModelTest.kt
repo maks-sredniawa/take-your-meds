@@ -9,7 +9,6 @@ import app.takeyourmeds.ui.FakeMedicineDao
 import app.takeyourmeds.ui.FakeReminders
 import app.takeyourmeds.ui.FakeScheduleDao
 import app.takeyourmeds.ui.FakeSnoozeDao
-import app.takeyourmeds.work.Replan
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.launch
@@ -33,7 +32,7 @@ class MedicineDetailViewModelTest {
     @After fun resetMain() = Dispatchers.resetMain()
 
     @Test
-    fun `deleting a Medicine takes its Reminders out of the tray and re-plans`() =
+    fun `deleting a Medicine goes through the Reminders, which withdraw its Reminders under their lock`() =
         runTest {
             val detail =
                 MedicineDetailViewModel(
@@ -51,7 +50,6 @@ class MedicineDetailViewModelTest {
             detail.delete()
 
             assertEquals(emptyList<MedicineEntity>(), medicines.rows.value)
-            assertEquals(listOf("metformin"), reminders.cancelledMedicines)
-            assertEquals(listOf<Replan>(Replan.Arm), reminders.replans)
+            assertEquals(listOf("metformin"), reminders.deletedMedicines)
         }
 }

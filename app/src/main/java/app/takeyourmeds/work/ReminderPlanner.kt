@@ -41,7 +41,11 @@ interface Reminders {
         write: suspend () -> T,
     ): T
 
-    fun cancelMedicine(medicineId: String)
+    /** Deletes a Medicine with [delete] and takes its Reminders out of the tray under the same lock as [answer]. */
+    suspend fun deleteMedicine(
+        medicineId: String,
+        delete: suspend () -> Unit,
+    )
 }
 
 /** The one alarm and the Reminders it posts (`docs/phase-1.md` §5, ADR-0010). */
@@ -84,7 +88,18 @@ class ReminderPlanner(
         replanNow(Replan.Arm)
     }
 
-    override fun cancelMedicine(medicineId: String) {
+    override suspend fun deleteMedicine(
+        medicineId: String,
+        delete: suspend () -> Unit,
+    ) {
+        lock.withLock {
+            delete()
+            cancelReminders(medicineId)
+        }
+        replan(Replan.Arm)
+    }
+
+    private fun cancelReminders(medicineId: String) {
         notifications.activeNotifications
             .filter { it.id == REMINDER_ID && it.tag?.let(DoseKey::parse)?.medicineId == medicineId }
             .forEach { notifications.cancel(it.tag, it.id) }
