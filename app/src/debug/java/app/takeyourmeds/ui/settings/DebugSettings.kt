@@ -33,7 +33,7 @@ fun DebugSettings() {
 
     SectionHeader(stringResource(R.string.debug_section))
     DebugRow(stringResource(R.string.debug_seed)) {
-        scope.launch { SampleData.seed(app.container.medicines, app.container.doses) }
+        scope.launch { SampleData.seed(app.container.medicines) }
     }
     DebugRow(stringResource(R.string.debug_wipe)) {
         scope.launch { SampleData.wipe(app.container.medicines) }
