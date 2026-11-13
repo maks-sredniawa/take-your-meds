@@ -13,7 +13,7 @@ class MedicineRepository(
 
     suspend fun count(): Int = dao.count()
 
-    suspend fun save(medicine: MedicineEntity) = dao.insert(medicine)
+    suspend fun save(medicine: MedicineEntity) = dao.upsert(medicine)
 
     suspend fun delete(medicine: MedicineEntity) = dao.delete(medicine)
 }

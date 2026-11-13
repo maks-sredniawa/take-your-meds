@@ -28,30 +28,28 @@ class SchemaGateTest {
     /**
      * **Extend this on every schema bump.**
      *
-     * List every schema version a *released* build ever wrote, and assert each can reach the
-     * current one. The skipped-version case is the one that bites: a phone that sat on version 1
-     * through three releases upgrades straight to 4, walking three migrations in a row, and nobody
-     * ever tests that path by hand.
-     *
-     * At schema 1 there is nothing to walk yet, so this asserts the honest thing — that the set is
-     * empty *because* the app has only ever written one version. The moment [APP_SCHEMA_VERSION]
-     * climbs, replace this with the real list.
+     * Every schema version a *released* build ever wrote, each asserted to reach the current one.
+     * The skipped-version case is the one that bites: a phone that sat on version 1 through three
+     * releases upgrades straight to 4, walking three migrations in a row, and nobody ever tests
+     * that path by hand.
      */
     @Test
     fun `the shipped migrations reach this build's version`() {
-        if (APP_SCHEMA_VERSION == 1) {
-            assertTrue(
-                "schema 1 has nothing to migrate from — replace this with the real list on the first bump",
-                shipped.isEmpty(),
-            )
-            return
-        }
         for (from in 1 until APP_SCHEMA_VERSION) {
             assertTrue(
                 "$from → $APP_SCHEMA_VERSION is not reachable by the registered migrations",
                 migrationPathExists(from, APP_SCHEMA_VERSION, shipped),
             )
         }
+    }
+
+    /** 0.2.0 on internal testing holds schema 1 (phase-1.md §2): its upgrade must open, not refuse. */
+    @Test
+    fun `a release build holding 0_2_0's schema 1 is let through to schema 2`() {
+        assertEquals(
+            SchemaGate.Open,
+            schemaGateDecision(onDiskVersion = 1, appSchemaVersion = 2, steps = shipped, destructiveAllowed = false),
+        )
     }
 
     // ---------------------------------------------------------------------------------------

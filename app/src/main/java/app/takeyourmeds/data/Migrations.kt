@@ -1,6 +1,36 @@
 package app.takeyourmeds.data
 
 import androidx.room.migration.Migration
+import androidx.sqlite.db.SupportSQLiteDatabase
+
+/** Phase 1: Schedules, answers and Snoozes join `medicines`, which is not touched. */
+val MIGRATION_1_2 =
+    object : Migration(1, 2) {
+        override fun migrate(db: SupportSQLiteDatabase) {
+            db.execSQL(
+                "CREATE TABLE IF NOT EXISTS `schedules` (`id` TEXT NOT NULL, `medicineId` TEXT NOT NULL, " +
+                    "`times` TEXT NOT NULL, `validFrom` TEXT NOT NULL, `validUntil` TEXT, " +
+                    "`createdAt` INTEGER NOT NULL, PRIMARY KEY(`id`), FOREIGN KEY(`medicineId`) " +
+                    "REFERENCES `medicines`(`id`) ON UPDATE NO ACTION ON DELETE CASCADE )",
+            )
+            db.execSQL("CREATE INDEX IF NOT EXISTS `index_schedules_medicineId` ON `schedules` (`medicineId`)")
+            db.execSQL(
+                "CREATE TABLE IF NOT EXISTS `dose_records` (`medicineId` TEXT NOT NULL, " +
+                    "`scheduledAt` TEXT NOT NULL, `answer` TEXT NOT NULL, `answeredAt` INTEGER NOT NULL, " +
+                    "`medicineName` TEXT NOT NULL, `medicineAmount` TEXT NOT NULL, " +
+                    "PRIMARY KEY(`medicineId`, `scheduledAt`))",
+            )
+            db.execSQL(
+                "CREATE INDEX IF NOT EXISTS `index_dose_records_scheduledAt` ON `dose_records` (`scheduledAt`)",
+            )
+            db.execSQL(
+                "CREATE TABLE IF NOT EXISTS `snoozes` (`medicineId` TEXT NOT NULL, " +
+                    "`scheduledAt` TEXT NOT NULL, `until` INTEGER NOT NULL, " +
+                    "PRIMARY KEY(`medicineId`, `scheduledAt`), FOREIGN KEY(`medicineId`) " +
+                    "REFERENCES `medicines`(`id`) ON UPDATE NO ACTION ON DELETE CASCADE )",
+            )
+        }
+    }
 
 /**
  * Every migration this build can run, in the order they were written.
@@ -13,15 +43,15 @@ import androidx.room.migration.Migration
  * and `*APP_MIGRATIONS` spreads an array into one. `SchemaGate` converts it to a list of integer
  * pairs so the reachability rule can be a pure function.
  */
-val APP_MIGRATIONS: Array<Migration> = arrayOf()
+val APP_MIGRATIONS: Array<Migration> = arrayOf(MIGRATION_1_2)
 
 /*
  * ---------------------------------------------------------------------------------------------
  * Writing the next one
  * ---------------------------------------------------------------------------------------------
  *
- *     val MIGRATION_1_2 =
- *         object : Migration(1, 2) {
+ *     val MIGRATION_x_y =
+ *         object : Migration(x, y) {
  *             override fun migrate(db: SupportSQLiteDatabase) {
  *                 db.execSQL("ALTER TABLE `medicines` ADD COLUMN `favourite` INTEGER NOT NULL DEFAULT 0")
  *             }

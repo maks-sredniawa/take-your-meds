@@ -49,8 +49,8 @@ class MedicineDaoTest {
                 MedicineEntity(name = "newer", amount = "1 tablet", createdAt = java.time.Instant.ofEpochMilli(2_000))
             // Inserted in the wrong order on purpose: the ORDER BY is the thing under test, and a
             // test that inserts in display order passes with no ORDER BY at all.
-            dao.insert(older)
-            dao.insert(newer)
+            dao.upsert(older)
+            dao.upsert(newer)
 
             assertEquals(listOf("newer", "older"), dao.all().map { it.name })
         }
@@ -61,7 +61,7 @@ class MedicineDaoTest {
             // This is what makes "screens collect a Flow and never call refresh" true, so it is
             // worth asserting rather than assuming.
             assertEquals(0, dao.observeAll().first().size)
-            dao.insert(MedicineEntity(name = "one", amount = "5 ml"))
+            dao.upsert(MedicineEntity(name = "one", amount = "5 ml"))
             assertEquals(1, dao.observeAll().first().size)
         }
 
@@ -69,14 +69,14 @@ class MedicineDaoTest {
     fun anInstantSurvivesTheRoundTripThroughTheConverter() =
         runTest {
             val at = java.time.Instant.ofEpochMilli(1_712_345_678_901)
-            dao.insert(MedicineEntity(id = "fixed", name = "n", amount = "a", createdAt = at))
+            dao.upsert(MedicineEntity(id = "fixed", name = "n", amount = "a", createdAt = at))
             assertEquals(at, dao.observeById("fixed").first()?.createdAt)
         }
 
     @Test
     fun anAbsentNoteStaysNullAndTheAmountComesBackVerbatim() =
         runTest {
-            dao.insert(MedicineEntity(id = "m", name = "Vitamin D", amount = "1 capsule, or 2 in winter"))
+            dao.upsert(MedicineEntity(id = "m", name = "Vitamin D", amount = "1 capsule, or 2 in winter"))
             val read = dao.observeById("m").first()
             assertEquals("1 capsule, or 2 in winter", read?.amount)
             assertNull(read?.note)
