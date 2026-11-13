@@ -1,5 +1,21 @@
 # Changelog
 
+## [0.4.0](https://github.com/maks-sredniawa/take-your-meds/compare/v0.3.0...v0.4.0) (2026-11-13)
+
+
+### Features
+
+* snooze a Reminder for ten minutes ([4278191](https://github.com/maks-sredniawa/take-your-meds/commit/427819112d457e5a9bc8df2c35c4c2f3b6261c54))
+
+
+### Bug Fixes
+
+* arm the alarm before the Snooze cleanup, and let no cleanup failure stop a re-plan ([4b1d930](https://github.com/maks-sredniawa/take-your-meds/commit/4b1d930ab871bcb672e78b00b246adbe5273f885))
+* delete a Medicine under the planner's lock ([72804b6](https://github.com/maks-sredniawa/take-your-meds/commit/72804b66be15dd99784269603033d0904cd465bf))
+* post an overdue Reminder once when a queued firing follows a re-plan ([cc24fc2](https://github.com/maks-sredniawa/take-your-meds/commit/cc24fc207bc75815713f04bfc72961fa8ad1e836))
+* say the next dose is tomorrow when Times exist but none falls today ([df6a897](https://github.com/maks-sredniawa/take-your-meds/commit/df6a897f1cd6e868dab557c23a9d800b1c379a96))
+* show Snoozed until on Today only while that time is ahead ([5af0df5](https://github.com/maks-sredniawa/take-your-meds/commit/5af0df5382fa12f80c6455ee7a803537a4d8944c))
+
 ## [0.3.0](https://github.com/maks-sredniawa/take-your-meds/compare/v0.2.0...v0.3.0) (2026-11-13)
 
 
