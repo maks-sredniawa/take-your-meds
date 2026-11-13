@@ -1,6 +1,7 @@
 package app.takeyourmeds.work
 
 import app.takeyourmeds.data.DAY
+import app.takeyourmeds.data.DoseKey
 import app.takeyourmeds.data.DoseSources
 import app.takeyourmeds.data.SnoozeEntity
 import app.takeyourmeds.data.WARSAW
@@ -26,8 +27,9 @@ class ReminderPlanTest {
         trigger: Replan,
         now: Instant,
         from: DoseSources = sources,
+        lastArmed: Instant? = null,
     ): Pair<List<Pair<String, LocalDateTime>>, Instant?> {
-        val plan = planReminders(trigger, now, WARSAW, from)
+        val plan = planReminders(trigger, now, WARSAW, from, lastArmed)
         return plan.post.map { it.medicineId to it.scheduledAt } to plan.armFor
     }
 
@@ -50,6 +52,45 @@ class ReminderPlanTest {
     @Test
     fun `a re-plan that only arms posts nothing, however much is Due`() {
         assertEquals(emptyList<Pair<String, LocalDateTime>>() to instant(21), plan(Replan.Arm, instant(9, 30)))
+    }
+
+    @Test
+    fun `a re-plan that only arms posts nothing while its armed alarm is still ahead`() {
+        assertEquals(
+            emptyList<Pair<String, LocalDateTime>>() to instant(9),
+            plan(Replan.Arm, instant(8, 30), lastArmed = instant(9)),
+        )
+    }
+
+    @Test
+    fun `a re-plan that only arms, after its armed time and before the alarm lands, posts what the alarm would have`() {
+        assertEquals(
+            listOf("a" to at(9), "b" to at(9, 5)) to instant(21),
+            plan(Replan.Arm, instant(9, 30), lastArmed = instant(9)),
+        )
+    }
+
+    @Test
+    fun `an overdue armed alarm is still bound by the re-post limit`() {
+        assertEquals(
+            listOf("b" to at(9, 5)) to instant(21),
+            plan(Replan.Arm, instant(11, 4), lastArmed = instant(9)),
+        )
+    }
+
+    @Test
+    fun `a firing later than an alarm a re-plan replaced posts from the earlier one`() {
+        assertEquals(
+            listOf("a" to at(9), "b" to at(9, 5)) to instant(21),
+            plan(Replan.Fired(instant(9, 5)), instant(9, 6), lastArmed = instant(9)),
+        )
+    }
+
+    @Test
+    fun `a posted Dose takes the same Medicine's earlier Reminders out of the tray, and no other's`() {
+        val posted = planReminders(Replan.Fired(instant(21)), instant(21), WARSAW, sources, null).post
+        val showing = listOf(DoseKey("a", at(9)), DoseKey("b", at(9, 5)), DoseKey("a", at(21)))
+        assertEquals(listOf(DoseKey("a", at(9))), remindersReplacedBy(posted, showing))
     }
 
     @Test
@@ -91,8 +132,8 @@ class ReminderPlanTest {
             for (trigger in listOf(Replan.Fired(now.minusSeconds(3 * 3600)), Replan.Repost, Replan.Arm)) {
                 assertEquals(
                     "$trigger at $now",
-                    planReminders(trigger, now, WARSAW, everything),
-                    planReminders(trigger, now, WARSAW, read),
+                    planReminders(trigger, now, WARSAW, everything, now.minusSeconds(3600)),
+                    planReminders(trigger, now, WARSAW, read, now.minusSeconds(3600)),
                 )
             }
         }

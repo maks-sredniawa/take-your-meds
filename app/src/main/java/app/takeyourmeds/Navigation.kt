@@ -10,6 +10,7 @@ import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
@@ -31,6 +32,7 @@ import app.takeyourmeds.ui.support.LicencesScreen
 import app.takeyourmeds.ui.support.SupportScreen
 import app.takeyourmeds.ui.support.TipSection
 import app.takeyourmeds.ui.today.TodayScreen
+import kotlinx.coroutines.flow.Flow
 
 /**
  * What every back-stack entry is wrapped in — above all, **one `ViewModelStore` per entry**.
@@ -63,9 +65,16 @@ internal fun appEntryDecorators(): List<NavEntryDecorator<NavKey>> =
  * Today → Settings → Today → Settings and need four Backs to leave.
  */
 @Composable
-fun MainNavigation(modifier: Modifier = Modifier) {
+fun MainNavigation(
+    openTodayRequests: Flow<Unit>,
+    modifier: Modifier = Modifier,
+) {
     val backStack = rememberNavBackStack(Today)
     val activity = LocalActivity.current
+
+    LaunchedEffect(openTodayRequests) {
+        openTodayRequests.collect { backStack.showToday() }
+    }
 
     // Which top-level destination the bar should show as selected. Derived from the *bottom* of the
     // stack rather than the top, so a detail screen pushed on top does not deselect its own tab.
@@ -199,4 +208,18 @@ private fun AppNavigationBar(
 private fun NavBackStack<NavKey>.showTopLevel(destination: TopLevelDestination) {
     clear()
     add(destination.key)
+}
+
+/**
+ * A Reminder's tap. Today goes on top of a deeper stack rather than replacing it, so Back returns to
+ * whatever was open there, an unsaved editor included; a stack holding Today already drops back to it,
+ * since one key cannot appear twice.
+ */
+internal fun NavBackStack<NavKey>.showToday() {
+    val today = indexOf(Today)
+    when {
+        today >= 0 -> while (size > today + 1) removeLastOrNull()
+        size <= 1 -> showTopLevel(TopLevelDestination.TodayTab)
+        else -> add(Today)
+    }
 }

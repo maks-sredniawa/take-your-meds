@@ -16,7 +16,6 @@ import app.takeyourmeds.ui.FakeReminders
 import app.takeyourmeds.ui.FakeScheduleDao
 import app.takeyourmeds.ui.FakeSnoozeDao
 import app.takeyourmeds.ui.FakeTipAsk
-import app.takeyourmeds.work.Replan
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -137,14 +136,14 @@ class TodayViewModelTest {
         }
 
     @Test
-    fun `marking a Dose taken here takes its Reminder out of the tray and re-plans`() =
+    fun `marking a Dose taken here writes it through the Reminders, which withdraw it under their lock`() =
         runTest {
             val today = today()
 
             today.markTaken(DoseKey("metformin", at(8)))
 
-            assertEquals(listOf(DoseKey("metformin", at(8))), reminders.cancelled)
-            assertEquals(listOf<Replan>(Replan.Arm), reminders.replans)
+            assertEquals(listOf(DoseKey("metformin", at(8))), reminders.answered)
+            assertEquals(1, records.rows.value.size)
         }
 
     @Test

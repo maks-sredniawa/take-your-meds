@@ -157,15 +157,19 @@ class FakeTipAsk(
 
 class FakeReminders : Reminders {
     val replans = mutableListOf<Replan>()
-    val cancelled = mutableListOf<DoseKey>()
+    val answered = mutableListOf<DoseKey>()
+    val cancelledMedicines = mutableListOf<String>()
 
     override fun replan(trigger: Replan) {
         replans += trigger
     }
 
-    override fun cancel(key: DoseKey) {
-        cancelled += key
-    }
+    override suspend fun <T> answer(
+        key: DoseKey,
+        write: suspend () -> T,
+    ): T = write().also { answered += key }
 
-    override fun cancelMedicine(medicineId: String) = Unit
+    override fun cancelMedicine(medicineId: String) {
+        cancelledMedicines += medicineId
+    }
 }
