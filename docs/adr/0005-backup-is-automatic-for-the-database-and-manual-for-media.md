@@ -96,5 +96,10 @@ notification channel do.
 A checkpoint that reports busy or throws **fails the backup run**: nothing is staged, so a `.db`
 missing its newest writes is never uploaded and the previous cloud backup stays. The framework counts
 `onFullBackup` as successful whatever it throws and would commit a backup holding no database, so the
-agent ends its own process instead; the stream then stops without its end marker and the run is
-recorded as an agent error.
+agent ends its own process instead; the stream then stops without its end marker and the backup
+service records the run as cancelled. The cost: a manual "back up now" also stops for the apps queued
+after this one, until the next run.
+
+The kill is safe only because the agent runs in restricted mode, in a process of its own. From
+targetSdk 36 the backup transport may otherwise choose non-restricted mode, so the manifest declares
+`android.app.backup.PROPERTY_USE_RESTRICTED_BACKUP_MODE` as `true`, which the platform always honours.
