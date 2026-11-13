@@ -1,7 +1,11 @@
 package app.takeyourmeds.work
 
 import android.Manifest
+import android.app.AlarmManager
+import android.app.PendingIntent
 import android.content.Context
+import android.content.Intent
+import android.database.sqlite.SQLiteFullException
 import android.os.Build
 import androidx.core.app.NotificationManagerCompat
 import androidx.datastore.preferences.core.PreferenceDataStoreFactory
@@ -19,18 +23,23 @@ import app.takeyourmeds.data.MedicineDao
 import app.takeyourmeds.data.MedicineEntity
 import app.takeyourmeds.data.MedicineRepository
 import app.takeyourmeds.data.SNOOZE_LENGTH
+import app.takeyourmeds.data.SnoozeDao
+import app.takeyourmeds.data.SnoozeEntity
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.joinAll
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
+import org.junit.Assert.assertNotNull
+import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
@@ -49,6 +58,7 @@ class ReminderPlannerLockTest {
     private val storeFile = File(context.cacheDir, "reminder-lock-test.preferences_pb")
     private lateinit var database: AppDatabase
     private lateinit var records: GatedRecords
+    private val preferences = AppPreferences(PreferenceDataStoreFactory.create(scope = scope) { storeFile })
 
     private val now = Instant.now().truncatedTo(ChronoUnit.MINUTES)
     private val due = LocalDateTime.ofInstant(now.minus(10, ChronoUnit.MINUTES), ZoneOffset.UTC)
@@ -89,6 +99,16 @@ class ReminderPlannerLockTest {
         override suspend fun all(): List<MedicineEntity> = gate.hold(real.all())
     }
 
+    /** A full disk: every Snooze delete throws. */
+    private class FullDiskSnoozes(
+        private val real: SnoozeDao,
+    ) : SnoozeDao by real {
+        override suspend fun delete(
+            medicineId: String,
+            scheduledAt: LocalDateTime,
+        ): Unit = throw SQLiteFullException("database or disk is full")
+    }
+
     private val medicine = MedicineEntity(id = "m", name = "Metformin", amount = "1 tablet")
 
     @Before
@@ -106,20 +126,37 @@ class ReminderPlannerLockTest {
         assertTrue("notifications must be allowed for the re-plan to post", notifications.areNotificationsEnabled())
     }
 
-    private suspend fun planner(medicines: MedicineDao = database.medicineDao()): ReminderPlanner {
+    private suspend fun planner(
+        medicines: MedicineDao = database.medicineDao(),
+        snoozes: SnoozeDao = database.snoozeDao(),
+    ): ReminderPlanner {
         database.medicineDao().upsert(medicine)
-        val doses = DoseRepository(database.scheduleDao(), records, database.snoozeDao())
+        val doses = DoseRepository(database.scheduleDao(), records, snoozes)
         doses.saveTimes("m", listOf(due.toLocalTime()), due.minusDays(2))
         return ReminderPlanner(
             context,
             doses,
             MedicineRepository(medicines),
-            AppPreferences(PreferenceDataStoreFactory.create(scope = scope) { storeFile }),
+            preferences,
             scope,
             now = { now },
             zone = { ZoneOffset.UTC },
         )
     }
+
+    private fun armedAlarm(): PendingIntent? =
+        PendingIntent.getBroadcast(
+            context,
+            REMINDER_ALARM_REQUEST_CODE,
+            Intent(context, ReminderAlarmReceiver::class.java).setAction(ReminderAlarmReceiver.ACTION_FIRE),
+            PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_NO_CREATE,
+        )
+
+    private fun disarm() =
+        armedAlarm()?.let {
+            context.getSystemService(AlarmManager::class.java).cancel(it)
+            it.cancel()
+        }
 
     private fun reminderShowing() = notifications.activeNotifications.any { it.id == REMINDER_ID && it.tag == key.tag }
 
@@ -189,6 +226,26 @@ class ReminderPlannerLockTest {
 
             assertEquals(0, database.medicineDao().count())
             assertFalse("a deleted Medicine's Reminder is not left in the tray", reminderShowing())
+        }
+
+    @Test
+    fun aSnoozeCleanupThatThrowsStillLeavesTheAlarmArmed() =
+        runBlocking {
+            records.gate.release.complete(Unit)
+            database.snoozeDao().put(SnoozeEntity("m", due.minusDays(1), now.minus(1, ChronoUnit.DAYS)))
+            val planner = planner(snoozes = FullDiskSnoozes(database.snoozeDao()))
+            disarm()
+            assertNull(armedAlarm())
+
+            planner.replanNow(Replan.Arm)
+
+            try {
+                assertNotNull("the alarm is armed although the cleanup threw", armedAlarm())
+                assertNotNull("the plan is recorded after the arm", preferences.reminderArmedFor.first())
+                assertEquals("the outlived Snooze is left for the next re-plan", 1, database.snoozeDao().all().size)
+            } finally {
+                disarm()
+            }
         }
 
     private suspend fun answers() = database.doseRecordDao().between(due, due.plusMinutes(1))
