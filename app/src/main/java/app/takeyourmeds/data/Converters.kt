@@ -2,6 +2,24 @@ package app.takeyourmeds.data
 
 import androidx.room.TypeConverter
 import java.time.Instant
+import java.time.LocalDateTime
+import java.time.LocalTime
+import java.time.format.DateTimeFormatter
+import java.time.temporal.ChronoUnit
+import java.util.Locale
+
+/**
+ * The one shape every local date-time column takes (`scheduledAt`, `validFrom`, `validUntil`).
+ * Never `LocalDateTime.toString()`: it drops `:00` seconds on some values and keeps them on others,
+ * and the day query is a string range that sorts as time only at a fixed width (phase-1.md §2).
+ */
+val LOCAL_DATE_TIME: DateTimeFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm", Locale.ROOT)
+
+private val TIME_OF_DAY: DateTimeFormatter = DateTimeFormatter.ofPattern("HH:mm", Locale.ROOT)
+
+fun formatLocalDateTime(value: LocalDateTime): String = value.truncatedTo(ChronoUnit.MINUTES).format(LOCAL_DATE_TIME)
+
+fun parseLocalDateTime(text: String): LocalDateTime = LocalDateTime.parse(text, LOCAL_DATE_TIME)
 
 /**
  * How non-primitive types cross into SQLite.
@@ -27,6 +45,24 @@ class Converters {
 
     @TypeConverter
     fun epochMillisToInstant(value: Long?): Instant? = value?.let(Instant::ofEpochMilli)
+
+    @TypeConverter
+    fun localDateTimeToText(value: LocalDateTime?): String? = value?.let(::formatLocalDateTime)
+
+    @TypeConverter
+    fun textToLocalDateTime(value: String?): LocalDateTime? = value?.let(::parseLocalDateTime)
+
+    @TypeConverter
+    fun timesToText(value: List<LocalTime>?): String? = value?.joinToString(",") { it.format(TIME_OF_DAY) }
+
+    @TypeConverter
+    fun textToTimes(value: String?): List<LocalTime>? = value?.split(',')?.map { LocalTime.parse(it, TIME_OF_DAY) }
+
+    @TypeConverter
+    fun doseAnswerToName(value: DoseAnswer?): String? = value?.name
+
+    @TypeConverter
+    fun nameToDoseAnswer(value: String?): DoseAnswer? = value?.let { enumValueOf<DoseAnswer>(it) }
 
     @TypeConverter
     fun themeModeToName(value: ThemeMode?): String? = value?.name

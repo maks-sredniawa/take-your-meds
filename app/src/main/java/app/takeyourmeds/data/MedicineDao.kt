@@ -2,10 +2,9 @@ package app.takeyourmeds.data
 
 import androidx.room.Dao
 import androidx.room.Delete
-import androidx.room.Insert
-import androidx.room.OnConflictStrategy
 import androidx.room.Query
 import androidx.room.Update
+import androidx.room.Upsert
 import kotlinx.coroutines.flow.Flow
 
 /**
@@ -41,10 +40,10 @@ interface MedicineDao {
     @Query("SELECT COUNT(*) FROM medicines")
     suspend fun count(): Int
 
-    // REPLACE rather than ABORT because the editor saves an edited row through here too. With a
-    // UUID primary key a conflict only happens when it is genuinely the same row.
-    @Insert(onConflict = OnConflictStrategy.REPLACE)
-    suspend fun insert(medicine: MedicineEntity)
+    // Upsert, never REPLACE: REPLACE deletes the old row before inserting, and that delete cascades
+    // to the Medicine's Schedules and Snoozes.
+    @Upsert
+    suspend fun upsert(medicine: MedicineEntity)
 
     @Update
     suspend fun update(medicine: MedicineEntity)
