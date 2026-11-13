@@ -10,7 +10,7 @@ import app.takeyourmeds.BuildConfig
 /**
  * The schema version this build expects.
  *
- * The wipe guard reads the *file's* version out of the SQLite header before Room opens it and
+ * The wipe guard reads the *file's* version, `-wal` included, before Room opens it and
  * compares it against this (see `DatabasePreserve.kt`), so the two must stay in step — which is why
  * it is one constant used in both places.
  *
