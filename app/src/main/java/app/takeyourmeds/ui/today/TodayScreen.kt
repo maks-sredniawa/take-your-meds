@@ -1,5 +1,6 @@
 package app.takeyourmeds.ui.today
 
+import androidx.annotation.StringRes
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
@@ -87,7 +88,7 @@ fun TodayScreen(
             state.loading -> Unit
 
             state.groups.isEmpty() && !state.showTipAsk && !state.blocked && !state.late ->
-                EmptyState(message = stringResource(R.string.today_empty), modifier = Modifier.padding(insets))
+                EmptyState(message = stringResource(state.empty.message), modifier = Modifier.padding(insets))
 
             else ->
                 LazyColumn(
@@ -136,7 +137,7 @@ fun TodayScreen(
                         }
                     }
                     if (state.groups.isEmpty()) {
-                        item(key = "empty") { EmptyState(stringResource(R.string.today_empty)) }
+                        item(key = "empty") { EmptyState(stringResource(state.empty.message)) }
                     }
                     for (group in state.groups) {
                         item(key = "time-${group.time}") { TimeHeader(group) }
@@ -148,6 +149,13 @@ fun TodayScreen(
         }
     }
 }
+
+private val TodayEmpty.message: Int
+    @StringRes get() =
+        when (this) {
+            TodayEmpty.NoTimes -> R.string.today_empty
+            TodayEmpty.NoneLeftToday -> R.string.today_none_left
+        }
 
 @Composable
 private fun TimeHeader(group: TimeGroup) {
