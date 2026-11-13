@@ -12,6 +12,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import app.takeyourmeds.R
 import app.takeyourmeds.SchemaMismatch
+import app.takeyourmeds.data.UNREADABLE_USER_VERSION
 import app.takeyourmeds.theme.Spacing
 
 /**
@@ -51,22 +52,25 @@ fun SchemaMismatchScreen(
             text = stringResource(R.string.schema_mismatch_title),
             style = MaterialTheme.typography.headlineSmall,
         )
-        Text(
-            text =
-                stringResource(
-                    R.string.schema_mismatch_body,
-                    mismatch.fromVersion,
-                    mismatch.toVersion,
-                ),
-            style = MaterialTheme.typography.bodyLarge,
-            modifier = Modifier.padding(top = Spacing.base),
-        )
-        Text(
-            text = stringResource(R.string.schema_mismatch_copy, mismatch.preservedCopy.name),
-            style = MaterialTheme.typography.bodyMedium,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
-            modifier = Modifier.padding(top = Spacing.base),
-        )
+        if (mismatch.fromVersion == UNREADABLE_USER_VERSION) {
+            Text(
+                text = stringResource(R.string.schema_mismatch_unreadable, mismatch.preservedCopy.name),
+                style = MaterialTheme.typography.bodyLarge,
+                modifier = Modifier.padding(top = Spacing.base),
+            )
+        } else {
+            Text(
+                text = stringResource(R.string.schema_mismatch_body, mismatch.fromVersion, mismatch.toVersion),
+                style = MaterialTheme.typography.bodyLarge,
+                modifier = Modifier.padding(top = Spacing.base),
+            )
+            Text(
+                text = stringResource(R.string.schema_mismatch_copy, mismatch.preservedCopy.name),
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                modifier = Modifier.padding(top = Spacing.base),
+            )
+        }
         if (mismatch.wipeOnConsent) SchemaMismatchContinue(onContinue)
     }
 }

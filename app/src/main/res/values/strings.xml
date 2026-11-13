@@ -85,6 +85,7 @@
     <string name="schema_mismatch_title">This data was saved by a different version</string>
     <string name="schema_mismatch_body">The data on this phone was saved at version %1$d, and this build reads version %2$d.</string>
     <string name="schema_mismatch_copy">A copy has been kept as %1$s. Nothing has been deleted.</string>
+    <string name="schema_mismatch_unreadable">This app could not read the data saved on this phone. A copy has been kept as %1$s. Nothing has been deleted.</string>
 
     <!-- shared:support begin. Synced into every app by android-starter's scripts/sync-support.py:
          change it there, never in an app. -->
