@@ -7,8 +7,10 @@ import app.takeyourmeds.data.at
 import app.takeyourmeds.data.schedule
 import app.takeyourmeds.ui.FakeDoseRecordDao
 import app.takeyourmeds.ui.FakeMedicineDao
+import app.takeyourmeds.ui.FakeReminders
 import app.takeyourmeds.ui.FakeScheduleDao
 import app.takeyourmeds.ui.FakeSnoozeDao
+import app.takeyourmeds.work.Replan
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.UnconfinedTestDispatcher
@@ -27,6 +29,7 @@ class MedicineEditorViewModelTest {
     private val metformin = MedicineEntity(id = "metformin", name = "Metformin", amount = "1 tablet")
     private val medicines = FakeMedicineDao(metformin)
     private val schedules = FakeScheduleDao(schedule("metformin", "08:00", "20:00"))
+    private val reminders = FakeReminders()
 
     @Before fun setMain() = Dispatchers.setMain(UnconfinedTestDispatcher())
 
@@ -37,6 +40,7 @@ class MedicineEditorViewModelTest {
             medicineId = medicineId,
             repository = MedicineRepository(medicines),
             doses = DoseRepository(schedules, FakeDoseRecordDao(), FakeSnoozeDao()),
+            reminders = reminders,
             now = { at(12, 30) },
         )
 
@@ -125,5 +129,16 @@ class MedicineEditorViewModelTest {
                     .single { it.medicineId == added.id }
                     .times,
             )
+        }
+
+    @Test
+    fun `a save re-plans the alarm after its Times are written`() =
+        runTest {
+            val editor = editor()
+            editor.addTime(LocalTime.of(9, 0))
+
+            editor.save()
+
+            assertEquals(listOf<Replan>(Replan.Arm), reminders.replans)
         }
 }

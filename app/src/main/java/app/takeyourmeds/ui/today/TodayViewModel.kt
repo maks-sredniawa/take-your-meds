@@ -16,6 +16,8 @@ import app.takeyourmeds.data.MedicineEntity
 import app.takeyourmeds.data.MedicineRepository
 import app.takeyourmeds.data.stateAt
 import app.takeyourmeds.tip.HomeTipAsk
+import app.takeyourmeds.work.Reminders
+import app.takeyourmeds.work.Replan
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.Flow
@@ -68,6 +70,7 @@ class TodayViewModel(
     private val medicines: MedicineRepository,
     private val doses: DoseRepository,
     private val tipAsk: HomeTipAsk,
+    private val reminders: Reminders,
     ticks: Flow<Instant>,
     private val now: () -> Instant,
     private val zone: () -> ZoneId,
@@ -108,7 +111,10 @@ class TodayViewModel(
         if (row.state != DoseState.Due) return
         viewModelScope.launch {
             val medicine = medicines.observeById(key.medicineId).first() ?: return@launch
-            val record = doses.markTaken(medicine, key.scheduledAt, now()) ?: return@launch
+            val record = doses.markTaken(medicine, key.scheduledAt, now())
+            reminders.cancel(key)
+            reminders.replan(Replan.Arm)
+            if (record == null) return@launch
             justTaken.value = record
             offers.send(key)
         }
@@ -117,7 +123,10 @@ class TodayViewModel(
     fun undo(key: DoseKey) {
         val record = justTaken.value?.takeIf { DoseKey(it.medicineId, it.scheduledAt) == key } ?: return
         justTaken.value = null
-        viewModelScope.launch { doses.undo(record) }
+        viewModelScope.launch {
+            doses.undo(record)
+            reminders.replan(Replan.Arm)
+        }
     }
 
     fun undoExpired(key: DoseKey) {
@@ -137,6 +146,7 @@ class TodayViewModel(
                         app.container.medicines,
                         app.container.doses,
                         app.container.homeTipAsk,
+                        app.container.reminders,
                         minuteTicks(),
                         Instant::now,
                         ZoneId::systemDefault,

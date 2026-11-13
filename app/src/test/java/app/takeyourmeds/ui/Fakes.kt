@@ -1,6 +1,7 @@
 package app.takeyourmeds.ui
 
 import app.takeyourmeds.data.DoseAnswer
+import app.takeyourmeds.data.DoseKey
 import app.takeyourmeds.data.DoseRecordDao
 import app.takeyourmeds.data.DoseRecordEntity
 import app.takeyourmeds.data.MedicineDao
@@ -10,6 +11,8 @@ import app.takeyourmeds.data.ScheduleEntity
 import app.takeyourmeds.data.SnoozeDao
 import app.takeyourmeds.data.SnoozeEntity
 import app.takeyourmeds.tip.HomeTipAsk
+import app.takeyourmeds.work.Reminders
+import app.takeyourmeds.work.Replan
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.map
@@ -150,4 +153,19 @@ class FakeTipAsk(
         answered = true
         due.value = false
     }
+}
+
+class FakeReminders : Reminders {
+    val replans = mutableListOf<Replan>()
+    val cancelled = mutableListOf<DoseKey>()
+
+    override fun replan(trigger: Replan) {
+        replans += trigger
+    }
+
+    override fun cancel(key: DoseKey) {
+        cancelled += key
+    }
+
+    override fun cancelMedicine(medicineId: String) = Unit
 }

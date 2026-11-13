@@ -17,6 +17,7 @@ user-facing word genuinely differ, both are written here with the difference sta
 | **Due** / **Taken** / **Skipped** / **Missed** | a Dose's state. *Taken* and *Skipped* are the user's answers and are stored; *Due* and *Missed* are computed from the clock: a Dose is Due from the first second of its Time's minute while unanswered, and a Dose before its Time has no state, so Today shows only its Time. *Skipped* is a choice; *Missed* is no answer at all | done, ignored, late |
 | **Reminder** | the notification for one Dose, at its time, carrying Taken, Snooze and (later) Skip | alert, alarm (except where the Android API is meant) |
 | **Snooze** | push the Reminder back by a fixed time, without answering the Dose. Stored until the Dose is answered (ADR-0009) | postpone, delay |
+| **Re-plan** | a code word, never in the UI: re-derive the next Reminder time, arm the one alarm for it, and, after a boot, update or clock change, first re-post what is still Due (`docs/phase-1.md` §5) | reschedule, sync |
 | **Follow-up** | the one extra Reminder for a Dose still unanswered after a set time; after it the Dose becomes Missed | repeat, nag, escalation |
 | **Today** | the home screen: every Dose of the current day with its state | dashboard, overview |
 | **Supply** | how many units of a Medicine are left, counted down by each Taken Dose; with a *running-low* threshold. Optional per Medicine (phase 4) | stock, inventory, refill |

@@ -57,3 +57,17 @@ and a foreground-service declaration for a few events a day.
   says what a refusal costs; only `scripts/device-gate.py` can read it.
 - Exactness is proven by readings, not tests: phase 1 reads a Reminder in deep Doze, after reboot,
   after an update, and with the grant refused.
+
+## Amendment, 2026-11-13
+
+- **The gate's verdict** (phase 1, §1): one exact alarm holds on API 36 in deep Doze, including the
+  second of two five minutes apart. API 26–30 is unread on the emulators and owed before phase 2.
+- **The re-post bound.** A re-plan re-posts a Due Dose only within `DUE_REPOST_LIMIT` (2 hours) of
+  its Reminder time, and never once a later Dose of the same Medicine has reached its Time. The same
+  bound limits what a late firing posts, so a fallback alarm landing very late posts no stale
+  Reminder. Today is not bound by it.
+- **A Reminder is keyed by a tag**, `dose:<medicineId>:<scheduledAt>`, under one fixed id, and its
+  Taken action carries the same key as its `Intent` data, so two Doses never share a notification or
+  an action.
+- **The lock screen** shows a public version that names no Medicine, deferring to the user's own
+  setting for sensitive content.

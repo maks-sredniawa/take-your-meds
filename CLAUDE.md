@@ -112,7 +112,9 @@ app/src/main/java/<namespace>/
   tip/         the tip through Play Billing, held by AppContainer so a purchase finishes after its
                screen is gone, and the rule for its one ask on the home screen (ADR-0007)
   ui/          Compose screens + ViewModels, one package per area
-  work/        WorkManager, receivers, notification channels, permission asks
+  work/        the Reminder: ReminderPlanner (the one alarm and what it posts), ReminderPlan (its
+               pure half), the alarm, Taken, boot, update, time-change and grant receivers, the
+               daily sweep, notification channels, permission asks
 
 app/src/debug/    the developer-only build: the sample-data seeder, Settings' debug section and its
                   strings, the schema-mismatch screen's continue button, and SeedReceiver for the

@@ -34,11 +34,6 @@ val DEFAULT_REMINDER_TIME: LocalTime = LocalTime.of(9, 0)
  * firing with nothing to show for it. One sweep that asks "what is due today?" has none of those
  * states, because the answer is derived from the data every time.
  *
- * It ships doing almost nothing on purpose. What it proves is the path: that a worker runs at all,
- * that it survives a reboot, that it re-arms itself, and that it refuses to run over a database it
- * must not touch. Proving that on an empty database rather than underneath the first real reminder
- * means a missed notification later has one suspect instead of two.
- *
  * Kotlin note: `CoroutineWorker.doWork` is a `suspend` function, so the whole body already runs off
  * the main thread on WorkManager's own dispatcher — there is no `withContext(Dispatchers.IO)` to
  * add, and adding one would only move the work sideways.
@@ -65,11 +60,9 @@ class ReminderSweepWorker(
         // the app would go quiet until the next launch or reboot — a far worse outcome than one
         // missed morning. Give each independent job its own `runCatching` rather than one around
         // all of them, so a failure in one does not cost the others their morning.
-        runCatching {
-            val context = applicationContext.inAppLanguage()
-            context.ensureReminderChannels()
-            // → Derive what is due today and post it. Nothing to derive yet.
-        }
+        runCatching { applicationContext.inAppLanguage().ensureReminderChannels() }
+        // Arms and never re-posts: the backstop after a revoked grant (ADR-0003's amendment).
+        runCatching { applicationContext.reminderPlanner()?.replanNow(Replan.Arm) }
 
         // **The sweep re-arms itself, and this line is the whole chain.** A periodic work request
         // would be the obvious alternative and is worse: WorkManager's minimum period is 15 minutes

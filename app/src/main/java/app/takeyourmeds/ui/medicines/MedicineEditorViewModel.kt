@@ -11,6 +11,8 @@ import app.takeyourmeds.data.DoseRepository
 import app.takeyourmeds.data.MedicineEntity
 import app.takeyourmeds.data.MedicineRepository
 import app.takeyourmeds.data.normalisedTimes
+import app.takeyourmeds.work.Reminders
+import app.takeyourmeds.work.Replan
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -37,6 +39,7 @@ class MedicineEditorViewModel(
     private val medicineId: String?,
     private val repository: MedicineRepository,
     private val doses: DoseRepository,
+    private val reminders: Reminders,
     private val now: () -> LocalDateTime = LocalDateTime::now,
 ) : ViewModel() {
     private val _state = MutableStateFlow(MedicineEditorUiState())
@@ -92,6 +95,7 @@ class MedicineEditorViewModel(
                     ?: MedicineEntity(name = name, amount = amount, note = note)
             repository.save(medicine)
             doses.saveTimes(medicine.id, snapshot.times, now())
+            reminders.replan(Replan.Arm)
             _state.update { it.copy(saving = false, saved = true) }
         }
     }
@@ -101,7 +105,12 @@ class MedicineEditorViewModel(
             viewModelFactory {
                 initializer {
                     val app = this[APPLICATION_KEY] as MainApplication
-                    MedicineEditorViewModel(medicineId, app.container.medicines, app.container.doses)
+                    MedicineEditorViewModel(
+                        medicineId,
+                        app.container.medicines,
+                        app.container.doses,
+                        app.container.reminders,
+                    )
                 }
             }
     }

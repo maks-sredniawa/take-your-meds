@@ -67,3 +67,10 @@ the user's patience on nudges that do not need any of it. If everything is urgen
 The daily sweep also re-arms the next Reminder's exact alarm (ADR-0010). Revoking
 `SCHEDULE_EXACT_ALARM` cancels the app's alarms and stops it with no broadcast, so without the sweep
 no Reminder would fire until the user opened the app.
+
+## Amendment, 2026-11-13
+
+`BootReceiver` and `PackageReplacedReceiver` no longer do almost nothing: each re-posts the Reminders
+still Due and re-arms the one alarm (ADR-0010), then ensures the sweep. The sweep arms and never
+re-posts. Every entry point, the alarm, Taken, time-change and grant receivers included, asks
+`schemaBlocksBackgroundWork()` first. The table of triggers is `docs/phase-1.md` §5.

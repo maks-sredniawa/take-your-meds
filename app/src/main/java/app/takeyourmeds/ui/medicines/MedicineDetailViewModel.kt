@@ -10,6 +10,8 @@ import app.takeyourmeds.MainApplication
 import app.takeyourmeds.data.DoseRepository
 import app.takeyourmeds.data.MedicineEntity
 import app.takeyourmeds.data.MedicineRepository
+import app.takeyourmeds.work.Reminders
+import app.takeyourmeds.work.Replan
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
@@ -31,6 +33,7 @@ class MedicineDetailViewModel(
     medicineId: String,
     private val repository: MedicineRepository,
     doses: DoseRepository,
+    private val reminders: Reminders,
 ) : ViewModel() {
     private var current: MedicineEntity? = null
 
@@ -42,7 +45,11 @@ class MedicineDetailViewModel(
 
     fun delete() {
         val medicine = current ?: return
-        viewModelScope.launch { repository.delete(medicine) }
+        viewModelScope.launch {
+            repository.delete(medicine)
+            reminders.cancelMedicine(medicine.id)
+            reminders.replan(Replan.Arm)
+        }
     }
 
     companion object {
@@ -51,7 +58,12 @@ class MedicineDetailViewModel(
             viewModelFactory {
                 initializer {
                     val app = this[APPLICATION_KEY] as MainApplication
-                    MedicineDetailViewModel(medicineId, app.container.medicines, app.container.doses)
+                    MedicineDetailViewModel(
+                        medicineId,
+                        app.container.medicines,
+                        app.container.doses,
+                        app.container.reminders,
+                    )
                 }
             }
     }
