@@ -29,6 +29,7 @@ import app.takeyourmeds.ui.settings.SettingsScreen
 import app.takeyourmeds.ui.support.LicenceTextScreen
 import app.takeyourmeds.ui.support.LicencesScreen
 import app.takeyourmeds.ui.support.SupportScreen
+import app.takeyourmeds.ui.support.TipSection
 
 /**
  * What every back-stack entry is wrapped in — above all, **one `ViewModelStore` per entry**.
@@ -139,7 +140,11 @@ fun MainNavigation(modifier: Modifier = Modifier) {
                         )
                     }
                     entry<Support> {
-                        SupportScreen(onBack = { backStack.removeLastOrNull() })
+                        SupportScreen(
+                            onBack = { backStack.removeLastOrNull() },
+                            onOpenCredits = { backStack.add(Licences) },
+                            tip = { TipSection() },
+                        )
                     }
                     entry<Licences> {
                         LicencesScreen(
