@@ -1,5 +1,6 @@
 package app.takeyourmeds.data.backup
 
+import android.database.DatabaseErrorHandler
 import android.database.sqlite.SQLiteDatabase
 import android.database.sqlite.SQLiteException
 import java.io.File
@@ -21,7 +22,8 @@ import java.io.File
  * both, or checkpoint first.
  *
  * Opening a second connection alongside Room's own is safe — that is what SQLite's locking is for —
- * and takes no `Context`, so the agent can call it.
+ * and takes no `Context`, so the agent can call it. Its error handler does nothing because the
+ * platform's default deletes a database it finds corrupt.
  */
 fun checkpointDatabaseTo(
     databaseFile: File,
@@ -30,7 +32,7 @@ fun checkpointDatabaseTo(
     if (databaseFile.isFile) {
         try {
             SQLiteDatabase
-                .openDatabase(databaseFile.path, null, SQLiteDatabase.OPEN_READWRITE)
+                .openDatabase(databaseFile.path, null, SQLiteDatabase.OPEN_READWRITE, DatabaseErrorHandler {})
                 .use { database ->
                     // A PRAGMA that returns rows has to be run as a query; `execSQL` would refuse it.
                     database.rawQuery("PRAGMA wal_checkpoint(TRUNCATE)", null).use { it.moveToFirst() }
