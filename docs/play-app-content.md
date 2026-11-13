@@ -34,9 +34,9 @@ Read at **versionCode _, versionName _** by `publish-play.yml`'s verify step on 
 
 | Permission | Whose | What it is for | Console consequence |
 | --- | --- | --- | --- |
-| `POST_NOTIFICATIONS` | ours | reminder notifications, asked from a screen that explains them | none |
+| `POST_NOTIFICATIONS` | ours | reminder notifications, asked from a screen that explains them when the first Schedule is saved (API 33+) | none |
 | `RECEIVE_BOOT_COMPLETED` | ours | `BootReceiver` re-arms the sweep after a restart | none: normal, install-time |
-| `SCHEDULE_EXACT_ALARM` | ours | a reminder that must land on its minute (ADR-0003) | **none today, but watch it**: Play restricts exact alarms, and `USE_EXACT_ALARM` is forbidden outright |
+| `SCHEDULE_EXACT_ALARM` | ours | a reminder that must land on its minute (ADR-0003, ADR-0010); asked right after notifications, as a hand-off to system settings, and Today shows *Reminders may be late* while it is refused | **none today, but watch it**: Play restricts exact alarms, and `USE_EXACT_ALARM` is forbidden outright |
 | `WAKE_LOCK` | WorkManager | the worker's own wake lock | none |
 | `ACCESS_NETWORK_STATE` | WorkManager, and Play Billing's `datatransport` | WorkManager reads connectivity for job constraints, `datatransport` before its (blocked) log upload; neither opens anything | none, but a reviewer may ask why an app with no network reads it — this row is the answer |
 | `FOREGROUND_SERVICE` | WorkManager | its `SystemForegroundService`, never started by this app | none while nothing declares a foreground service *type* |

@@ -80,6 +80,7 @@ most languages.
 | Due | `dose_due`, `reminder_text_public` | pl: *do przyjęcia*, a state, not a deadline or a warning | *Do przyjęcia* |
 | Taken | `dose_taken_at`, `dose_mark_taken`, `dose_marked_taken`, `reminder_action_taken` | pl: impersonal *przyjęto* when it says what happened, so no gender is chosen for the user; *przyjętą* where it describes the Dose | *Przyjęto o 08:04* |
 | Snoozed | `dose_snoozed_until` | pl: *drzemka*, the word Polish alarm clocks use | *Drzemka do 12:10* |
+| Reminder | `today_blocked_*`, `today_late_*`, `ask_*`, `channel_reminders_name` | pl: *przypomnienie*, the notification for one Dose. *Alarm* only where Android's own setting is meant (*dokładne alarmy*) | *Przypomnienia mogą się spóźniać* |
 | Time (of a Dose) | `schedule_*` | pl: *godzina*, the clock time, never *czas* (a duration) | *Dodaj godzinę* |
 | Medicines (the tab) | `tab_medicines`, quoted in `today_empty` | one word everywhere: the empty line names the tab, so it uses the tab's exact word | *w zakładce Leki* |
 

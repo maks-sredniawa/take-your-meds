@@ -90,10 +90,10 @@ because resource shrinking would strip it from the bundle), so remove those in e
 
 ### Reminders and WorkManager
 
-This one is a pure deletion: outside `work/`, only `MainApplication` and Settings' *Reminders*
-section use it, and both are listed below. `startActivitySafely` lives in `ui/common/Intents.kt` and
-the background schema check in `data/BackgroundSchemaGuard.kt` because other code needs them after
-the reminders are gone.
+This one is a pure deletion: outside `work/`, only `MainApplication`, the asks after the first
+Schedule's save and Today's banners use it, and all three are listed below. `startActivitySafely`
+lives in `ui/common/Intents.kt` and the background schema check in `data/BackgroundSchemaGuard.kt`
+because other code needs them after the reminders are gone.
 
 - `work/ReminderSweep.kt`, `BootReceiver.kt`, `PackageReplacedReceiver.kt`, `ReceiverWork.kt`,
   `ExactAlarms.kt`, `ReminderChannels.kt`, its test and the `channel_reminders_*` strings;
@@ -122,14 +122,13 @@ the reminders are gone.
   (`app_alarms`, `armed`, `disarmed`), the channel pair (`channel_importance`, `set_channel`), the
   `--reboot` arm (`wait_for_unlock`, `reboot_and_wait`), and the exact-alarm line. Keep the autostart
   half while anything else runs in the background.
-- **Settings' *Reminders* section, and the ask and banner behind it** — the `SwitchRow`, the
-  `rememberNotificationPermissionAsk` call, the resumed re-read of `notificationsAllowed`, the
-  `WarningBanner`, and every `settings_reminders*` string, plus
-  `AppPreferences.remindersEnabled`, `Keys.REMINDERS_ENABLED` and its place in `Keys.SETTINGS`, and
-  the reminder lines in `AppPreferencesTest`. That whole block is `PLAN.md` rule 4 worked through
-  for one ask; it is the shape to copy for *your* first ask, so read it before deleting it.
-- "reminders" in `settings_restore_hint` and `settings_restore_confirm_body`, in every language, or
-  *Restore defaults* promises to reset something that is gone.
+- **The asks and the banners behind them** — `ui/asks/`, the `Asks` key and its entry in
+  `Navigation.kt`, `work/Asks.kt` and its test, the editor's `firstSchedule` and `onAsk`, Today's two
+  `WarningBanner`s with their resumed `readGrants()` re-read and the banner fields of
+  `TodayUiState`, and the `ask_*` and `today_blocked_*` / `today_late_*` strings in every language.
+  That whole block is `PLAN.md` rule 4 worked through for two asks: the app's own screen at the
+  moment the feature is switched on (`docs/phase-1.md` §4), then a banner the app can re-read on
+  every resume. It is the shape to copy for *your* first ask, so read it before deleting it.
 - ADR-0003 gets its amendment.
 
 ### The tip (Play Billing)
