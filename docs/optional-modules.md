@@ -90,8 +90,11 @@ because resource shrinking would strip it from the bundle), so remove those in e
 
 ### Reminders and WorkManager
 
-This one is a pure deletion: outside `work/`, only `MainApplication`, the asks after the first
-Schedule's save and Today's banners use it, and all three are listed below. `startActivitySafely`
+This one is a deletion with callers to cut. Outside `work/`, these use it, and each is listed below:
+`MainApplication`; `AppContainer`, which builds `ReminderPlanner` as `reminders`; the Medicine
+editor, Medicine detail and Today ViewModels, which call `reminders.replan(…)` (and Today
+`reminders.answer(…)`); the asks after the first Schedule's save; Today's banners; and the debug
+build's `SeedReceiver` and `AlarmProbeReceiver`. `startActivitySafely`
 lives in `ui/common/Intents.kt` and the background schema check in `data/BackgroundSchemaGuard.kt`
 because other code needs them after the reminders are gone.
 
@@ -109,6 +112,10 @@ because other code needs them after the reminders are gone.
   emoji2 registers there)
 - `MainApplication`'s `Configuration.Provider` and `ensureSweepEnqueued` call; Gradle's
   `work.runtime` and `work.testing`
+- `AppContainer`'s `reminders`, and the `Reminders` parameter of `MedicineEditorViewModel`,
+  `MedicineDetailViewModel` and `TodayViewModel` with their `replan`, `cancelMedicine` and `answer`
+  calls, and the fake in `test/…/ui/Fakes.kt`
+- `app/src/debug/`'s `AlarmProbeReceiver` and `SeedReceiver`'s `Replan` call
 - ⚠ **WorkManager merges three permissions your source never declares** — `WAKE_LOCK`,
   `ACCESS_NETWORK_STATE`, `FOREGROUND_SERVICE` — and `RECEIVE_BOOT_COMPLETED` for good measure. If you
   keep a boot receiver but drop WorkManager, **declare `RECEIVE_BOOT_COMPLETED` yourself first**, or the
