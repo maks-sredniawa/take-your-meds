@@ -25,8 +25,8 @@ was extracted from and the first app built from it settled on exactly this split
 - [x] **Phase P** — The pipeline, done 2026-11-12: upload key, Play entry, Play secrets, and 0.2.0
   (versionCode 22) on internal testing. That bundle went up in the Console, because Play knows no
   package until it has one (`RELEASING.md`); the service account reads the internal track through the
-  API, and CI's first upload is the next tag. The upload key's NordPass copy is unconfirmed
-  (`DOD.md`, *Before the first upload*)
+  API, and CI's first upload is the next tag. The upload key's NordPass copy was confirmed on
+  2026-11-13
 - [ ] **Phase 1** — The mechanism on the phone: a Medicine with one or more Times every day; a
   Reminder at the minute through an exact alarm, falling back when the grant is refused (ADR-0010);
   Taken and Snooze on the notification; Today showing each Dose as Due or Taken (ADR-0009); how old
@@ -154,13 +154,12 @@ profile README.
 ## Phase P — The pipeline
 
 Closed 2026-11-12 against `DOD.md`'s *Before the first upload*. The upload key exists and its table
-in `RELEASING.md` is filled in; its NordPass copy is not yet confirmed, and that item stays open in
-`DOD.md`. The Play entry for `com.maksforge.takeyourmeds` exists, the service account reads it, and
-the five Play secrets are set. 0.2.0 (versionCode 22), phase 0's build, is on internal testing, but
-it went up in the Console rather than through CI, because Play knows no package until a first bundle
-has been uploaded (`RELEASING.md`); CI's first upload is the next tag. The repository ruleset dates
-from 2026-11-11; `RELEASE_PLEASE_TOKEN` was replaced on 2026-11-12 with a PAT that expires
-2026-12-12.
+in `RELEASING.md` is filled in; its NordPass copy was confirmed on 2026-11-13. The Play entry for
+`com.maksforge.takeyourmeds` exists, the service account reads it, and the five Play secrets are set.
+0.2.0 (versionCode 22), phase 0's build, is on internal testing, but it went up in the Console rather
+than through CI, because Play knows no package until a first bundle has been uploaded
+(`RELEASING.md`); CI's first upload is the next tag. The repository ruleset dates from 2026-11-11;
+`RELEASE_PLEASE_TOKEN` was replaced on 2026-11-12 with a PAT that expires 2026-12-12.
 
 ## Not in this plan
 

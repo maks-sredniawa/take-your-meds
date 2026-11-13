@@ -448,7 +448,8 @@ set to hide sensitive content, the lock screen says a Reminder is due and nothin
 opens Today through an activity `PendingIntent`, never a receiver trampoline (refused from API 31).
 **Decided by the owner, 2026-11-13: the tap does not clear the task.** `SINGLE_TOP` brings the app
 forward and `MainActivity.onNewIntent` puts Today on top of whatever was open, so an unsaved editor is
-still there on Back.
+still there on Back. **Decided by the owner, 2026-11-13: the tap leaves the Reminder in the tray.** It
+opens Today and nothing more; only an answer clears it.
 Taken is a broadcast action to `ReminderActionReceiver` (exported false), whose `Intent` data is a
 `dose:` URI built from the same key: `PendingIntent` equality ignores extras, so two Reminders'
 *Taken* buttons sharing one `Intent` would record the wrong Medicine.
