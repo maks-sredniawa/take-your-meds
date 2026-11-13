@@ -138,3 +138,17 @@ Reminders: give a medicine its times of day, and a notification arrives at each 
 ```
 Przypomnienia: ustaw godziny przyjmowania leku, a o każdej z nich przyjdzie powiadomienie z przyciskiem Przyjęto. Nowa zakładka Dziś: dzisiejsze dawki, do przyjęcia lub przyjęte; każdą można jednym dotknięciem oznaczyć jako przyjętą, a pomyłkę cofnąć. Przy pierwszej ustawionej godzinie aplikacja prosi o zgodę na powiadomienia i dokładne alarmy. W Pomocy i opiniach jest adres do skopiowania oraz sekcja O aplikacji ze stroną, polityką prywatności, podziękowaniami i wersją.
 ```
+
+### 0.4.0
+
+**English** — 356/500:
+
+```
+Snooze: a reminder can now be put off for 10 minutes, and it comes back even if the phone restarts in between. Today shows until when a dose is snoozed. A reminder you swiped away no longer comes back by itself, and deleting a medicine no longer leaves its reminder behind. When every time you set starts tomorrow, Today now says the next dose is tomorrow.
+```
+
+**Polish** — 366/500:
+
+```
+Drzemka: przypomnienie można teraz odłożyć o 10 minut i wróci, nawet jeśli telefon w międzyczasie uruchomi się ponownie. Na karcie Dziś widać, do której trwa drzemka dawki. Odrzucone przypomnienie nie wraca już samo, a usunięcie leku nie zostawia jego przypomnienia. Gdy wszystkie ustawione godziny zaczynają się jutro, karta Dziś mówi, że następna dawka jest jutro.
+```
