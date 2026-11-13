@@ -49,6 +49,7 @@
     <string name="schedule_times_label">Times</string>
     <string name="schedule_add_time">Add a time</string>
     <string name="schedule_remove_time">Remove %1$s</string>
+    <string name="schedule_change_time">Change time</string>
     <string name="schedule_time_picker_title">Choose a time</string>
     <string name="schedule_time_picker_confirm">OK</string>
     <string name="schedule_every_day">Every day</string>

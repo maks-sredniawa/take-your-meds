@@ -36,6 +36,7 @@
     <string name="schedule_times_label">Godziny</string>
     <string name="schedule_add_time">Dodaj godzinę</string>
     <string name="schedule_remove_time">Usuń %1$s</string>
+    <string name="schedule_change_time">Zmień godzinę</string>
     <string name="schedule_time_picker_title">Wybierz godzinę</string>
     <string name="schedule_time_picker_confirm">OK</string>
     <string name="schedule_every_day">Codziennie</string>
