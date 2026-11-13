@@ -123,7 +123,7 @@ class ReminderPlanner(
             write().also { notifications.cancel(key.tag, REMINDER_ID) }
         }
 
-    // Armed before posting, so a Reminder that fails to post cannot also stop the chain.
+    // Armed first, so neither a Reminder that fails to post nor a Snooze cleanup that fails can stop the chain.
     private suspend fun replanLocked(trigger: Replan) {
         val at = now()
         val zone = zone()
@@ -132,7 +132,6 @@ class ReminderPlanner(
         val postedThrough = preferences.reminderPostedThrough.first()
         val sources = doses.sourcesBetween(start, end)
         val plan = planReminders(trigger, at, zone, sources, lastArmed, postedThrough)
-        doses.forgetSnoozes(sources.snoozes.filter { it.outlivedAt(at, zone) })
         val exact = arm(plan.armFor)
         preferences.setReminderPlan(plan.armFor, plan.postedThrough)
         val posted =
@@ -144,6 +143,13 @@ class ReminderPlanner(
                 Log.w(TAG, "posting failed: ${e.javaClass.name}")
                 0
             }
+        try {
+            doses.forgetSnoozes(sources.snoozes.filter { it.outlivedAt(at, zone) })
+        } catch (e: CancellationException) {
+            throw e
+        } catch (e: Exception) {
+            Log.w(TAG, "snooze cleanup failed: ${e.javaClass.name}")
+        }
         val armedFor = (trigger as? Replan.Fired)?.armedFor?.toEpochMilli()
         Log.i(
             TAG,
@@ -211,7 +217,7 @@ class ReminderPlanner(
     private fun alarmIntent(armedFor: Instant): PendingIntent =
         PendingIntent.getBroadcast(
             context,
-            ALARM_REQUEST_CODE,
+            REMINDER_ALARM_REQUEST_CODE,
             Intent(context, ReminderAlarmReceiver::class.java)
                 .setAction(ReminderAlarmReceiver.ACTION_FIRE)
                 .putExtra(ReminderAlarmReceiver.EXTRA_ARMED_FOR, armedFor.toEpochMilli()),
@@ -221,12 +227,13 @@ class ReminderPlanner(
     private companion object {
         /** Logs times and counts only, never a Medicine (ADR-0008). */
         const val TAG = "Reminders"
-        const val ALARM_REQUEST_CODE = 1
     }
 }
 
 /** Every Reminder shares this id; its Dose is in the tag, so no hash can make two Doses collide. */
 internal const val REMINDER_ID = 1
+
+internal const val REMINDER_ALARM_REQUEST_CODE = 1
 
 private val Replan.label: String
     get() =
