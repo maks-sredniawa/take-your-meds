@@ -127,18 +127,18 @@ Pierwsze wydanie.
 
 ### 0.3.0
 
-A holding note from phase 1's checkpoint B, which changes nothing on screen. No release goes out from
-B until checkpoint E has merged (`phase-1.md`, *Checkpoints*), so rewrite these before 0.3.0's release
-PR merges, about the Times, Today and the Reminders it ships.
+Covers what has merged so far: Today, the Times and the shared Help and feedback. No release goes out
+from phase 1's checkpoint B until E has merged (`phase-1.md`, *Checkpoints*), so add the Reminders to
+both notes when they land, before 0.3.0's release PR merges.
 
-**English** — 51/500:
-
-```
-Work under the hood. Nothing changes on screen yet.
-```
-
-**Polish** — 58/500:
+**English** — 315/500:
 
 ```
-Zmiany pod spodem. Na ekranie nic się jeszcze nie zmienia.
+New Today tab: today's doses, each one marked as taken with a tap, and Undo if it was a mistake. A medicine's editor now holds the times of day it is taken. Help and feedback gains a support address to copy, and an About section with the app's web page, privacy policy, credits, more MaksForge apps and the version.
+```
+
+**Polish** — 348/500:
+
+```
+Nowa zakładka Dziś: dzisiejsze dawki, każdą można jednym dotknięciem oznaczyć jako przyjętą, a pomyłkę cofnąć. W edytorze leku są teraz godziny, o których się go przyjmuje. W Pomocy i opiniach jest adres pomocy do skopiowania oraz sekcja O aplikacji ze stroną aplikacji, polityką prywatności, podziękowaniami, innymi aplikacjami MaksForge i wersją.
 ```
