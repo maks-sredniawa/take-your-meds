@@ -120,7 +120,6 @@ private fun TimeHeader(group: TimeGroup) {
     )
 }
 
-/** Due, Taken and a Dose still ahead differ in words and shape as well as colour; the row never moves when answered. */
 @Composable
 private fun DoseCard(
     dose: DoseRow,
