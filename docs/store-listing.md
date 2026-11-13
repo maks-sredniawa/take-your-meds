@@ -127,18 +127,14 @@ Pierwsze wydanie.
 
 ### 0.3.0
 
-Covers what has merged so far: Today, the Times and the shared Help and feedback. No release goes out
-from phase 1's checkpoint B until E has merged (`phase-1.md`, *Checkpoints*), so add the Reminders to
-both notes when they land, before 0.3.0's release PR merges.
-
-**English** — 315/500:
+**English** — 456/500:
 
 ```
-New Today tab: today's doses, each one marked as taken with a tap, and Undo if it was a mistake. A medicine's editor now holds the times of day it is taken. Help and feedback gains a support address to copy, and an About section with the app's web page, privacy policy, credits, more MaksForge apps and the version.
+Reminders: give a medicine its times of day, and a notification arrives at each one, on the minute, with a Taken button. New Today tab: today's doses, Due or Taken, each one marked as taken with a tap, and Undo if it was a mistake. The first time you set a time, the app asks to show notifications and to set exact alarms. Help and feedback gains a support address to copy, and an About section with the app's web page, privacy policy, credits and version.
 ```
 
-**Polish** — 348/500:
+**Polish** — 488/500:
 
 ```
-Nowa zakładka Dziś: dzisiejsze dawki, każdą można jednym dotknięciem oznaczyć jako przyjętą, a pomyłkę cofnąć. W edytorze leku są teraz godziny, o których się go przyjmuje. W Pomocy i opiniach jest adres pomocy do skopiowania oraz sekcja O aplikacji ze stroną aplikacji, polityką prywatności, podziękowaniami, innymi aplikacjami MaksForge i wersją.
+Przypomnienia: ustaw godziny przyjmowania leku, a o każdej z nich co do minuty przyjdzie powiadomienie z przyciskiem Przyjęto. Nowa zakładka Dziś: dzisiejsze dawki, do przyjęcia lub przyjęte; każdą można jednym dotknięciem oznaczyć jako przyjętą, a pomyłkę cofnąć. Przy pierwszej ustawionej godzinie aplikacja prosi o zgodę na powiadomienia i dokładne alarmy. W Pomocy i opiniach jest adres do skopiowania oraz sekcja O aplikacji ze stroną, polityką prywatności, podziękowaniami i wersją.
 ```
