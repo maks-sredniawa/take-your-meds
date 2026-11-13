@@ -16,8 +16,11 @@ import app.takeyourmeds.data.MedicineEntity
 import app.takeyourmeds.data.MedicineRepository
 import app.takeyourmeds.data.stateAt
 import app.takeyourmeds.tip.HomeTipAsk
+import app.takeyourmeds.work.Grants
+import app.takeyourmeds.work.ReminderChannel
 import app.takeyourmeds.work.Reminders
 import app.takeyourmeds.work.Replan
+import app.takeyourmeds.work.readGrants
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.Flow
@@ -51,11 +54,19 @@ data class TimeGroup(
     val doses: List<DoseRow>,
 )
 
-/** `loading` starts true so the empty state does not flash before the first read lands. */
+/**
+ * `loading` starts true so the empty state does not flash before the first read lands.
+ *
+ * The banners are `docs/phase-1.md` §6's, shown only while a Schedule exists. [blockedChannel] is
+ * the muted channel the blocked banner leads to, or null for the app's own notification page.
+ */
 data class TodayUiState(
     val groups: List<TimeGroup> = emptyList(),
     val loading: Boolean = true,
     val showTipAsk: Boolean = false,
+    val blocked: Boolean = false,
+    val blockedChannel: ReminderChannel? = null,
+    val late: Boolean = false,
 )
 
 private data class Moment(
@@ -74,7 +85,10 @@ class TodayViewModel(
     ticks: Flow<Instant>,
     private val now: () -> Instant,
     private val zone: () -> ZoneId,
+    grants: Grants,
 ) : ViewModel() {
+    private val grants = MutableStateFlow(grants)
+
     private val justTaken = MutableStateFlow<DoseRecordEntity?>(null)
 
     private val offers = Channel<DoseKey>(Channel.CONFLATED)
@@ -90,11 +104,21 @@ class TodayViewModel(
         }
 
     val state: StateFlow<TodayUiState> =
-        combine(today, medicines.observeAll(), tipAsk.due) { (moment, dayDoses), all, tip ->
+        combine(
+            today,
+            medicines.observeAll(),
+            tipAsk.due,
+            doses.observeAnyScheduled(),
+            this.grants,
+        ) { (moment, dayDoses), all, tip, scheduled, grants ->
+            val blocked = scheduled && (!grants.notificationsAllowed || grants.mutedChannel != null)
             TodayUiState(
                 groups = groupsOf(dayDoses, all.associateBy { it.id }, moment),
                 loading = false,
                 showTipAsk = tip,
+                blocked = blocked,
+                blockedChannel = grants.mutedChannel.takeIf { blocked && grants.notificationsAllowed },
+                late = scheduled && !grants.exactAlarmsAllowed,
             )
         }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), TodayUiState())
 
@@ -131,6 +155,11 @@ class TodayViewModel(
         justTaken.update { record -> record?.takeUnless { DoseKey(it.medicineId, it.scheduledAt) == key } }
     }
 
+    /** On every resume: the fix for either banner is a settings page the user comes back from. */
+    fun reread(grants: Grants) {
+        this.grants.value = grants
+    }
+
     fun answerTipAsk() {
         viewModelScope.launch { tipAsk.answer() }
     }
@@ -148,6 +177,7 @@ class TodayViewModel(
                         minuteTicks(),
                         Instant::now,
                         ZoneId::systemDefault,
+                        app.readGrants(),
                     )
                 }
             }

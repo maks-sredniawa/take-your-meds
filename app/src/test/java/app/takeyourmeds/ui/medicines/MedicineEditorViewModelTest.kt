@@ -19,6 +19,7 @@ import kotlinx.coroutines.test.runTest
 import kotlinx.coroutines.test.setMain
 import org.junit.After
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
@@ -129,6 +130,46 @@ class MedicineEditorViewModelTest {
                     .single { it.medicineId == added.id }
                     .times,
             )
+        }
+
+    @Test
+    fun `the first Schedule saved is the moment to ask`() =
+        runTest {
+            schedules.rows.value = emptyList()
+            val editor = editor(medicineId = null)
+            editor.setName("Vitamin D")
+            editor.setAmount("1 capsule")
+            editor.addTime(LocalTime.of(9, 0))
+
+            editor.save()
+
+            assertTrue(editor.state.value.firstSchedule)
+        }
+
+    @Test
+    fun `a Medicine saved without Times asks for nothing`() =
+        runTest {
+            schedules.rows.value = emptyList()
+            val editor = editor(medicineId = null)
+            editor.setName("Vitamin D")
+            editor.setAmount("1 capsule")
+
+            editor.save()
+
+            assertFalse(editor.state.value.firstSchedule)
+        }
+
+    @Test
+    fun `a Schedule saved beside one already in force asks for nothing`() =
+        runTest {
+            val editor = editor(medicineId = null)
+            editor.setName("Vitamin D")
+            editor.setAmount("1 capsule")
+            editor.addTime(LocalTime.of(9, 0))
+
+            editor.save()
+
+            assertFalse(editor.state.value.firstSchedule)
         }
 
     @Test

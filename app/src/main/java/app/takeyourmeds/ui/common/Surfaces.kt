@@ -116,6 +116,8 @@ fun EmptyState(
  * autostart toggle (`work/Autostart.kt`). Those get a permanent row that makes no claim: a banner
  * that could never clear would be the app asserting a state it has no way to observe.
  *
+ * The caller places it; the banner pads only its own content.
+ *
  * The body says what is lost, not what is switched off — "reminders will not arrive" rather than
  * "notifications are disabled", which the user can already see on the screen they are being sent to.
  */
@@ -126,15 +128,14 @@ fun WarningBanner(
     actionLabel: String,
     onAct: () -> Unit,
     modifier: Modifier = Modifier,
+    tone: BannerTone = BannerTone.Error,
 ) {
+    val colors = MaterialTheme.colorScheme
     Surface(
-        color = MaterialTheme.colorScheme.errorContainer,
-        contentColor = MaterialTheme.colorScheme.onErrorContainer,
+        color = if (tone == BannerTone.Error) colors.errorContainer else colors.tertiaryContainer,
+        contentColor = if (tone == BannerTone.Error) colors.onErrorContainer else colors.onTertiaryContainer,
         shape = MaterialTheme.shapes.medium,
-        modifier =
-            modifier
-                .fillMaxWidth()
-                .padding(start = Spacing.base, end = Spacing.base, top = Spacing.base),
+        modifier = modifier.fillMaxWidth(),
     ) {
         Column(modifier = Modifier.padding(Spacing.base)) {
             Text(text = title, style = MaterialTheme.typography.titleMedium)
@@ -148,6 +149,12 @@ fun WarningBanner(
             }
         }
     }
+}
+
+/** [Error] for a loss (nothing will arrive), [Tertiary] for a degradation (it may arrive late). */
+enum class BannerTone {
+    Error,
+    Tertiary,
 }
 
 /**

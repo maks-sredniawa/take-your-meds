@@ -30,6 +30,12 @@ abstract class ScheduleDao {
     @Query("SELECT * FROM schedules WHERE medicineId = :medicineId AND validUntil IS NULL")
     abstract suspend fun inForce(medicineId: String): ScheduleEntity?
 
+    @Query("SELECT EXISTS(SELECT 1 FROM schedules WHERE validUntil IS NULL)")
+    abstract fun observeAnyInForce(): Flow<Boolean>
+
+    @Query("SELECT EXISTS(SELECT 1 FROM schedules WHERE validUntil IS NULL)")
+    abstract suspend fun anyInForce(): Boolean
+
     @Query("SELECT * FROM schedules WHERE medicineId = :medicineId ORDER BY validFrom")
     abstract suspend fun allFor(medicineId: String): List<ScheduleEntity>
 

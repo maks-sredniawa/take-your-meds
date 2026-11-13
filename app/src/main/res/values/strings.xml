@@ -63,6 +63,22 @@
     <string name="dose_mark_taken">Mark as taken</string>
     <string name="dose_marked_taken">Marked as taken</string>
     <string name="dose_undo">Undo</string>
+    <!-- Today's banners (phase-1.md §6), said as what is lost, because a user who has just refused
+         a permission can already see that it is off. PLAN.md rule 4's third clause. -->
+    <string name="today_blocked_title">Reminders will not arrive</string>
+    <string name="today_blocked_body">Android is set to hide reminders from this app, so nothing will be shown when a dose is due.</string>
+    <string name="today_blocked_action">Open notification settings</string>
+    <string name="today_late_title">Reminders may be late</string>
+    <string name="today_late_body_minutes">Android lets this app set only inexact alarms, so a reminder can arrive a few minutes after its time.</string>
+    <string name="today_late_action">Allow exact alarms</string>
+    <!-- The asks made when the first Schedule is saved (phase-1.md §4), each before Android's own screen. -->
+    <string name="ask_notifications_title">Allow reminders</string>
+    <string name="ask_notifications_body">Take your meds shows a notification at each time you set. Android asks you to allow that first.</string>
+    <string name="ask_notifications_action">Continue</string>
+    <string name="ask_exact_title">Let reminders arrive on the minute</string>
+    <string name="ask_exact_body">Without this, Android can deliver a reminder several minutes late. The next screen has a switch for Take your meds.</string>
+    <string name="ask_exact_action">Open settings</string>
+    <string name="ask_not_now">Not now</string>
     <!-- The Reminder (phase-1.md §5). Its title is the Medicine's name. reminder_text: %1$s is the
          Amount, %2$s the Dose's Time. The public version is what a lock screen hiding sensitive
          content shows, so it names no Medicine. -->
@@ -86,20 +102,12 @@
     <string name="settings_language_system">System</string>
     <string name="settings_language_english" translatable="false">English</string>
     <string name="settings_language_polish" translatable="false">Polski</string>
-    <string name="settings_reminders">Reminders</string>
-    <string name="settings_reminders_enabled">Remind me</string>
-    <string name="settings_reminders_hint">A single daily check. Nothing is sent anywhere.</string>
-    <!-- The banner, not the switch: said as what is lost, because a user who has just refused a
-         permission can already see that it is off. PLAN.md rule 4's third clause. -->
-    <string name="settings_reminders_blocked_title">Reminders will not arrive</string>
-    <string name="settings_reminders_blocked_body">Android is set to hide reminders from this app, so nothing will be shown when something is due.</string>
-    <string name="settings_reminders_blocked_action">Open notification settings</string>
     <string name="settings_data">Data</string>
     <!-- Settings → Data: every setting, the app language included, back to how the app came, after a confirmation. Medicines are untouched. -->
     <string name="settings_restore">Restore default settings</string>
-    <string name="settings_restore_hint">Theme, colours, reminders and language</string>
+    <string name="settings_restore_hint">Theme, colours and language</string>
     <string name="settings_restore_confirm_title">Restore default settings?</string>
-    <string name="settings_restore_confirm_body">The theme, colours, reminders and language go back to how the app came. Your medicines stay as they are. This cannot be undone.</string>
+    <string name="settings_restore_confirm_body">The theme, colours and language go back to how the app came. Your medicines stay as they are. This cannot be undone.</string>
     <string name="settings_restore_confirm">Restore</string>
 
     <!-- Notification channels. The convention `channel_<id>_name` / `channel_<id>_description` is

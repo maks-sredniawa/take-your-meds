@@ -12,6 +12,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -19,21 +20,26 @@ import app.takeyourmeds.R
 import app.takeyourmeds.theme.Spacing
 import app.takeyourmeds.ui.appViewModelExtras
 import app.takeyourmeds.ui.common.DetailScaffold
+import app.takeyourmeds.work.nextAsk
+import app.takeyourmeds.work.readGrants
 
 @Composable
 fun MedicineEditorScreen(
     medicineId: String?,
     onDone: () -> Unit,
+    onAsk: () -> Unit,
     modifier: Modifier = Modifier,
     viewModel: MedicineEditorViewModel =
         viewModel(factory = MedicineEditorViewModel.factoryFor(medicineId), extras = appViewModelExtras()),
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
+    val context = LocalContext.current
 
     // Leave once the save has landed, not when the button is pressed: navigating first would cancel
     // the `viewModelScope` coroutine doing the write.
     LaunchedEffect(state.saved) {
-        if (state.saved) onDone()
+        if (!state.saved) return@LaunchedEffect
+        if (state.firstSchedule && nextAsk(context.readGrants(), asked = emptySet()) != null) onAsk() else onDone()
     }
 
     DetailScaffold(
