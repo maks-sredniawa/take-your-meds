@@ -17,14 +17,16 @@ import app.takeyourmeds.data.MedicineRepository
 import app.takeyourmeds.data.stateAt
 import app.takeyourmeds.tip.HomeTipAsk
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
-import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
@@ -52,8 +54,6 @@ data class TodayUiState(
     val groups: List<TimeGroup> = emptyList(),
     val loading: Boolean = true,
     val showTipAsk: Boolean = false,
-    /** A Dose just marked Taken here, which the snackbar can still undo. */
-    val undoable: DoseKey? = null,
 )
 
 private data class Moment(
@@ -65,33 +65,33 @@ private data class Moment(
 
 @OptIn(ExperimentalCoroutinesApi::class)
 class TodayViewModel(
-    medicines: MedicineRepository,
+    private val medicines: MedicineRepository,
     private val doses: DoseRepository,
     private val tipAsk: HomeTipAsk,
     ticks: Flow<Instant>,
     private val now: () -> Instant,
     private val zone: () -> ZoneId,
 ) : ViewModel() {
-    private val moments = ticks.map { Moment(it, zone()) }
-
     private val justTaken = MutableStateFlow<DoseRecordEntity?>(null)
 
-    private var medicinesById: Map<String, MedicineEntity> = emptyMap()
+    private val offers = Channel<DoseKey>(Channel.CONFLATED)
 
-    private val dayDoses =
-        moments
-            .map { it.day to it.zone }
-            .distinctUntilChanged()
-            .flatMapLatest { (day, zone) -> doses.observeDay(day, zone) }
+    /** Each Dose marked Taken here, once, for the snackbar that offers its Undo. */
+    val undoOffers: Flow<DoseKey> = offers.receiveAsFlow()
+
+    // One collection of the clock, so a Dose list is never paired with another day's minute.
+    private val today: Flow<Pair<Moment, List<Dose>>> =
+        ticks.flatMapLatest { now ->
+            val moment = Moment(now, zone())
+            doses.observeDay(moment.day, moment.zone).map { moment to it }
+        }
 
     val state: StateFlow<TodayUiState> =
-        combine(moments, dayDoses, medicines.observeAll(), tipAsk.due, justTaken) { moment, today, all, tip, taken ->
-            medicinesById = all.associateBy { it.id }
+        combine(today, medicines.observeAll(), tipAsk.due) { (moment, dayDoses), all, tip ->
             TodayUiState(
-                groups = groupsOf(today, medicinesById, moment),
+                groups = groupsOf(dayDoses, all.associateBy { it.id }, moment),
                 loading = false,
                 showTipAsk = tip,
-                undoable = taken?.let { DoseKey(it.medicineId, it.scheduledAt) },
             )
         }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), TodayUiState())
 
@@ -105,10 +105,12 @@ class TodayViewModel(
             state.value.groups
                 .flatMap { it.doses }
                 .find { it.key == key } ?: return
-        val medicine = medicinesById[key.medicineId] ?: return
         if (row.state != DoseState.Due) return
         viewModelScope.launch {
-            doses.markTaken(medicine, key.scheduledAt, now())?.let { justTaken.value = it }
+            val medicine = medicines.observeById(key.medicineId).first() ?: return@launch
+            val record = doses.markTaken(medicine, key.scheduledAt, now()) ?: return@launch
+            justTaken.value = record
+            offers.send(key)
         }
     }
 

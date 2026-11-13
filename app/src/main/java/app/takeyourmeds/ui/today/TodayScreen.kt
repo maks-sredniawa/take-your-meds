@@ -44,6 +44,7 @@ import app.takeyourmeds.theme.Spacing
 import app.takeyourmeds.ui.appViewModelExtras
 import app.takeyourmeds.ui.common.EmptyState
 import app.takeyourmeds.ui.common.rememberTimeFormatter
+import kotlinx.coroutines.flow.collectLatest
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -57,11 +58,12 @@ fun TodayScreen(
     val marked = stringResource(R.string.dose_marked_taken)
     val undo = stringResource(R.string.dose_undo)
 
-    LaunchedEffect(state.undoable) {
-        val key = state.undoable ?: return@LaunchedEffect
-        when (snackbar.showSnackbar(marked, actionLabel = undo, duration = SnackbarDuration.Long)) {
-            SnackbarResult.ActionPerformed -> viewModel.undo(key)
-            SnackbarResult.Dismissed -> viewModel.undoExpired(key)
+    LaunchedEffect(viewModel) {
+        viewModel.undoOffers.collectLatest { key ->
+            when (snackbar.showSnackbar(marked, actionLabel = undo, duration = SnackbarDuration.Long)) {
+                SnackbarResult.ActionPerformed -> viewModel.undo(key)
+                SnackbarResult.Dismissed -> viewModel.undoExpired(key)
+            }
         }
     }
 
