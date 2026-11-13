@@ -152,9 +152,14 @@ profile README.
 
 ## Phase P — The pipeline
 
-`DOD.md`'s *Before the first upload*: the upload key and its off-machine backup, the Play entry for
-`com.maksforge.takeyourmeds`, the Play secrets, and a green internal upload of phase 0's build.
-`RELEASE_PLEASE_TOKEN` and the repository ruleset are already in place (2026-11-11).
+Closed 2026-11-12 against `DOD.md`'s *Before the first upload*. The upload key exists and its table
+in `RELEASING.md` is filled in; its NordPass copy is not yet confirmed, and that item stays open in
+`DOD.md`. The Play entry for `com.maksforge.takeyourmeds` exists, the service account reads it, and
+the five Play secrets are set. 0.2.0 (versionCode 22), phase 0's build, is on internal testing, but
+it went up in the Console rather than through CI, because Play knows no package until a first bundle
+has been uploaded (`RELEASING.md`); CI's first upload is the next tag. The repository ruleset dates
+from 2026-11-11; `RELEASE_PLEASE_TOKEN` was replaced on 2026-11-12 with a PAT that expires
+2026-12-12.
 
 ## Not in this plan
 
