@@ -124,3 +124,21 @@ The first release.
 ```
 Pierwsze wydanie.
 ```
+
+### 0.3.0
+
+A holding note from phase 1's checkpoint B, which changes nothing on screen. No release goes out from
+B until checkpoint E has merged (`phase-1.md`, *Checkpoints*), so rewrite these before 0.3.0's release
+PR merges, about the Times, Today and the Reminders it ships.
+
+**English** — 51/500:
+
+```
+Work under the hood. Nothing changes on screen yet.
+```
+
+**Polish** — 58/500:
+
+```
+Zmiany pod spodem. Na ekranie nic się jeszcze nie zmienia.
+```
