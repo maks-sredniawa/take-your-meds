@@ -200,9 +200,9 @@ banner bodies in §6, by a threshold also fixed now (15 minutes).
 >
 > **Decided by the owner, 2026-11-13: verdict 1 is amended to hold on API 36, and D proceeds on it.**
 > G1 and G2 on API 26–30 are owed, and are settled before the door (phase 2) together with
-> `DOD.md`'s *Decide `minSdk` deliberately*: either a real Android 8 or 9 phone reads them, or
+> `DOD.md`'s *Decide `minSdk` deliberately*: either a real Android 8–11 phone (API 26–30) reads them, or
 > `minSdk` rises above the unread range. G1 there is still verdict 3's veto condition: a late or
-> unstarted G1 on that phone stops D's mechanism for those API levels.
+> unstarted G1 on that phone brings verdict 3 back as written, with D re-decided in a new ADR.
 
 **API 36 (G1, G2): verdict 1's conditions hold.** G1 fired 322, 312 and 508 ms late, three runs of
 three, each with `deviceidle get deep` reading `IDLE` at the firing, the process started from killed
@@ -618,7 +618,7 @@ Device behaviour is not here: whether the alarm fired on its minute is a reading
 - **A Taken tapped by mistake on a Reminder cannot be undone in this phase.** Undo exists only on
   Today's snackbar; changing an answer after the fact belongs with History.
 - **The gate on API 26–30: G1 and G2 both unread** (amended verdict 1). The API 26 emulator image
-  cannot put AlarmManager into idle (§1, *The verdict, taken*), so both need a real Android 8 or 9
+  cannot put AlarmManager into idle (§1, *The verdict, taken*), so both need a real Android 8–11 (API 26–30)
   phone before the door, or `minSdk` rises. G1 there is verdict 3's veto condition, so the reading
   does not stop at G2's close-pair number.
 
