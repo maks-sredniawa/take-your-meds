@@ -67,6 +67,12 @@ class TodayViewModelTest {
         return viewModel
     }
 
+    private fun TestScope.offersOf(viewModel: TodayViewModel): List<DoseKey> {
+        val offered = mutableListOf<DoseKey>()
+        backgroundScope.launch(UnconfinedTestDispatcher(testScheduler)) { viewModel.undoOffers.collect(offered::add) }
+        return offered
+    }
+
     private fun TodayViewModel.row(
         medicineId: String,
         hour: Int,
@@ -105,6 +111,7 @@ class TodayViewModelTest {
     fun `marking a Due Dose taken writes its answer and keeps the row in place`() =
         runTest {
             val today = today()
+            val offered = offersOf(today)
             val before =
                 today.state.value.groups
                     .map { group -> group.doses.map { it.key } }
@@ -122,18 +129,19 @@ class TodayViewModelTest {
                 today.state.value.groups
                     .map { group -> group.doses.map { it.key } },
             )
-            assertEquals(DoseKey("metformin", at(8)), today.state.value.undoable)
+            assertEquals(listOf(DoseKey("metformin", at(8))), offered)
         }
 
     @Test
     fun `a Dose ahead cannot be marked taken`() =
         runTest {
             val today = today()
+            val offered = offersOf(today)
 
             today.markTaken(DoseKey("metformin", at(20)))
 
             assertEquals(emptyList<Any>(), records.rows.value)
-            assertEquals(null, today.state.value.undoable)
+            assertEquals(emptyList<DoseKey>(), offered)
         }
 
     @Test
@@ -146,7 +154,6 @@ class TodayViewModelTest {
 
             assertEquals(emptyList<Any>(), records.rows.value)
             assertEquals(DoseState.Due, today.row("metformin", 8).state)
-            assertEquals(null, today.state.value.undoable)
         }
 
     @Test
@@ -159,7 +166,25 @@ class TodayViewModelTest {
             today.undo(DoseKey("metformin", at(8)))
 
             assertEquals(1, records.rows.value.size)
-            assertEquals(null, today.state.value.undoable)
+        }
+
+    @Test
+    fun `the Undo offer is made once per answer, not again to a recreated screen`() =
+        runTest {
+            val today = today()
+            val shown = mutableListOf<DoseKey>()
+            val screen =
+                backgroundScope.launch(UnconfinedTestDispatcher(testScheduler)) { today.undoOffers.collect(shown::add) }
+
+            today.markTaken(DoseKey("metformin", at(8)))
+            screen.cancel()
+            val recreated = offersOf(today)
+
+            assertEquals(listOf(DoseKey("metformin", at(8))), shown)
+            assertEquals(emptyList<DoseKey>(), recreated)
+
+            today.undo(DoseKey("metformin", at(8)))
+            assertEquals(emptyList<Any>(), records.rows.value)
         }
 
     @Test
