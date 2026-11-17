@@ -117,7 +117,7 @@ fun TodayScreen(
                         item(key = "late") {
                             WarningBanner(
                                 title = stringResource(R.string.today_late_title),
-                                body = stringResource(R.string.today_late_body_minutes),
+                                body = stringResource(R.string.today_late_body_long),
                                 actionLabel = stringResource(R.string.today_late_action),
                                 onAct = { context.openExactAlarmSettings() },
                                 modifier = Modifier.padding(top = Spacing.tight),
