@@ -27,12 +27,13 @@ was extracted from and the first app built from it settled on exactly this split
   package until it has one (`RELEASING.md`); the service account reads the internal track through the
   API, and CI's first upload is the next tag. The upload key's NordPass copy was confirmed on
   2026-11-13
-- [ ] **Phase 1** — The mechanism on the phone: a Medicine with one or more Times every day; a
-  Reminder at the minute through an exact alarm, falling back when the grant is refused (ADR-0010);
-  Taken and Snooze on the notification; Today showing each Dose as Due or Taken (ADR-0009); how old
-  a Due Dose may be before a re-plan stops re-posting its Reminder, since Missed waits for phase 2.
-  Asks: notifications and exact alarms, when the first Schedule is saved. Readings: a Reminder on
-  time in deep Doze, after a reboot, after an app update, and with the exact-alarm grant refused
+- [x] **Phase 1** — The mechanism on the phone, done 2026-11-17 ([`phase-1.md`](phase-1.md)): a
+  Medicine with one or more Times every day; a Reminder on its minute through one exact alarm, with
+  the fallback and its banner when the grant is refused (ADR-0010); Taken and Snooze on the
+  notification; Today with each Dose Due or Taken (ADR-0009); the re-post bound phase 2 adopts as
+  Missed; the asks at the first Schedule's save. Every reading an emulator can show is taken. **Owed
+  to a real phone:** G1 and G2 on API 26–30 (before the door, or `minSdk` rises), and R3b's release
+  half, 0.2.0 from Play updated to 0.3.0 (`DOD.md`)
 - [ ] **Phase 2** — Safe for a stranger ← **the door: closed testing opens here.** The Follow-up and
   Missed; Skip; editing a Schedule without rewriting past Doses, and deleting a Medicine with its
   answered Doses kept in History, behind a confirmation that says it cannot be undone
@@ -161,6 +162,17 @@ than through CI, because Play knows no package until a first bundle has been upl
 (`RELEASING.md`); CI's first upload is the next tag. The repository ruleset dates from 2026-11-11;
 `RELEASE_PLEASE_TOKEN` is the fine-grained PAT `take_your_meds`, regenerated on 2026-11-13, which
 expires 2027-11-11.
+
+## Phase 1 — The mechanism on the phone
+
+Closed 2026-11-17. Schema 2 adds Schedules, Dose records and Snoozes, the first migration (ADR-0001's
+gate, read on the emulator over 0.2.0's schema). One exact alarm arms for the earliest Reminder time
+and is re-planned on every firing, answer, Snooze, edit, boot, update, clock, zone and grant change;
+on API 36 it landed within a second of its minute in deep Doze, after a reboot and after an update.
+With the grant refused the fallback landed an hour late, so Today's banner says *an hour or more*.
+The gate on API 26–30 could not be read on the emulator, whose API 26 image never idles
+AlarmManager, so it is owed to a real Android 8–11 phone before the door. The probe that read the
+gate is gone; the readings and the tests behind them are in `phase-1.md`.
 
 ## Not in this plan
 

@@ -55,3 +55,8 @@ up to and including its valid-until. So a Schedule saved mid-day has no earlier 
 today's Doses before an edit keep the Schedule that made them. The rule and its edge cases are in
 `docs/phase-1.md` §2 and §3. The first migration is phase 1's (schema 2, additive); phase 3's is the
 second.
+
+An answer is not the only thing that deletes a Snooze. One nobody answers is deleted by the re-plan
+once nothing reads it: its end is `DUE_REPOST_LIMIT` (2 hours) past, so no re-plan would post it, and
+its Dose is before today, so Today no longer shows it (`SnoozeEntity.outlivedAt`, `docs/phase-1.md`
+§7). Without that, every unanswered Snooze would stay forever.

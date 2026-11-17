@@ -76,3 +76,9 @@ no Reminder would fire until the user opened the app.
 still Due and re-arms the one alarm (ADR-0010), then ensures the sweep. The sweep arms and never
 re-posts. Every entry point, the alarm, Taken, time-change and grant receivers included, asks
 `schemaBlocksBackgroundWork()` first. The table of triggers is `docs/phase-1.md` §5.
+
+Read on API 36 (phase 1, R2a, R2b, R3a): after a reboot `BootReceiver` re-posted a Dose whose Time
+passed with no alarm armed and re-armed the next, which then fired on its minute; after
+`adb install -r` `PackageReplacedReceiver` did the same; and the 0.2.0 → schema 2 upgrade opened
+through the receiver's migration (R3b). Revoking the grant removed the alarm and killed the process
+with no broadcast, as the 2026-11-11 amendment says (R4).

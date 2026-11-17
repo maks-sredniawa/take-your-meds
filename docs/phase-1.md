@@ -174,7 +174,8 @@ arms an alarm N minutes ahead, exact or fallback per an extra; the firing logs
 notification on `reminders`, and with the `chain` extra arms the next one five minutes on. It logs
 times only, never a Medicine. It stays in `src/debug/` until G closes, then goes: D's own receiver
 logs the same line, and a second alarm path left in the debug build is one the readings could mistake
-for the real one.
+for the real one. **Removed at G.** G1 and G2 on an API 26–30 phone are read through the real planner
+instead (*Readings*).
 
 ### The verdicts, decided now rather than argued about later
 
@@ -221,9 +222,10 @@ alarms (0, 1 ms) are what an awake API 26 phone does, and say nothing about the 
 limit G2 was set to catch. `dumpsys deviceidle step deep` and a fresh `force-idle deep` did not change
 it. *Known gaps* and `DOD.md`'s `minSdk` item carry that the number is still owed.
 
-**G3: the first banner body, provisional until R4.** The fallback landed 2 min 15.5 s, 2 min 16.0 s
-and 1 min 44.0 s late on API 36, inside 15 minutes in every run, so §6 takes the first body for now.
-Those runs used a three-minute lead; R4 reads a realistic one, and decides (below).
+**G3: the first banner body, overturned by R4.** The fallback landed 2 min 15.5 s, 2 min 16.0 s and
+1 min 44.0 s late on API 36, inside 15 minutes in every run, so §6 took the first body for now. Those
+runs used a three-minute lead. R4, armed with a realistic one, landed 60 minutes late, so §6 takes the
+second body (*Readings*, R4).
 
 **What neither verdict anticipated:**
 
@@ -232,7 +234,8 @@ Those runs used a three-minute lead; R4 reads a realistic one, and decides (belo
   and every landing fell inside it. Other apps' inexact alarms on the same phone read windows of
   22 min 30 s and 1 h. A real Reminder armed hours ahead, such as 21:00 for 9:00, may land far later
   than G3 shows, perhaps an hour, past §6's 15 minutes. So R4 arms a Reminder hours ahead (*Readings*),
-  and §6's banner body stays provisional until R4 is read.
+  and §6's banner body stays provisional until R4 is read. R4 read it: the window is capped at one
+  hour, and in deep Doze the alarm landed at its end.
 - **A never-opened fresh install's alarm is deferred about a year.** It sat in standby bucket 50
   (*never*), and `dumpsys alarm` read `app_standby=+364d`. One launch moved it to *active*. A user
   always opens the app to save a Schedule, so the risk lands on readings, not users: every D and E
@@ -388,7 +391,7 @@ Copy, English:
 | `ask_notifications_body` | Take your meds shows a notification at each time you set. Android asks you to allow that first. |
 | `ask_notifications_action` | Continue |
 | `ask_exact_title` | Let reminders arrive on the minute |
-| `ask_exact_body` | Without this, Android can deliver a reminder several minutes late. The next screen has a switch for Take your meds. |
+| `ask_exact_body` | Without this, Android can deliver a reminder well after its time, sometimes by an hour or more. The next screen has a switch for Take your meds. |
 | `ask_exact_action` | Open settings |
 | `ask_not_now` | Not now |
 
@@ -513,9 +516,9 @@ Above the list, re-read on every resume and shown only while at least one Schedu
   hand-off to the app's or the channel's settings (the logic `SettingsScreen` already has, moved).
 - **API 31+ and `canScheduleExactAlarms()` false** → *Reminders may be late*, with
   `openExactAlarmSettings()`. Its body is one of two, chosen by G3 against 15 minutes: the first if
-  the fallback landed within 15 minutes in every run, the second if not. G3 chose the first, but
-  **provisionally until R4**: G3's three-minute lead understates the window, so R4's landing from a
-  Reminder armed hours ahead decides, and over 15 minutes there means the second body.
+  the fallback landed within 15 minutes in every run, the second if not. G3 chose the first,
+  provisionally; **R4 chose the second**: armed hours ahead, the fallback landed 60 minutes late in
+  deep Doze. `ask_exact_body` (§4) follows it.
 
 The tip ask card moves from `ui/medicines/` to Today, the home screen it belongs to (ADR-0007), and
 `takenDoseCount` becomes the count of Taken records. `scripts/edge-to-edge.py`'s `TAB_BAR` and
@@ -628,6 +631,21 @@ that a failed insert rolls back, and that a day reads the Schedules the rule abo
 
 Device behaviour is not here: whether the alarm fired on its minute is a reading.
 
+**Reconciled at G (2026-11-13): planned five JVM tests, shipped eight, and one instrumented test the
+list did not name.** Every planned row exists as written. What arrived on top came with a rule the
+plan had not written yet (the overdue alarm, the posted-through mark, the tray rule, the Snooze
+cleanup and the planner's lock, all found while D and F were built and reviewed), which is `PLAN.md`
+rule 3 working:
+
+| Test | Proves | Fails in the direction of |
+| --- | --- | --- |
+| `ReminderPlanTest` (`planReminders`, `remindersReplacedBy`) | a firing posts `[armedFor, now]` and arms the next; a re-plan that finds its armed time passed posts what that alarm would have, under the bound; a queued firing posts nothing a re-plan already posted (`reminderPostedThrough`), and a re-post ignores that mark; one Reminder per Medicine in the tray; no Dose ahead, no alarm | a Reminder lost when arming replaces an alarm that has not landed, or a swiped-away one posted again |
+| `SnoozeCleanupTest` (`SnoozeEntity.outlivedAt`) | a Snooze carried past midnight is kept while its end is inside the bound, one on Today is kept all day, and deleting every outlived Snooze changes no plan and no Today | a pending Snooze deleted while it still reminds |
+| `DoseRepositorySnoozeTest` | a Snooze of an answered Dose is refused and writes nothing; another Medicine's answer at the same Time does not refuse it | a Snooze reminding a Dose already Taken |
+| `ReminderPlannerLockTest` (instrumented) | Taken, Snooze and a Medicine's delete each wait for a re-plan already reading, so no Reminder is posted after its answer or its Medicine; a Snooze cleanup that throws still leaves the alarm armed | a Reminder for a Dose already Taken, or one that outlives its Medicine |
+
+`SchemaGateTest` is a JVM test, not an instrumented one; it holds the 1 → 2 assertion named above.
+
 ## Documents this phase amends
 
 - **ADR-0003**: dated amendment. `BootReceiver` and `PackageReplacedReceiver` now re-plan and re-post
@@ -668,7 +686,9 @@ Device behaviour is not here: whether the alarm fired on its minute is a reading
 - **A revoked exact-alarm grant silences the app until the next sweep or the next open.** Revoking
   cancels the alarm and stops the app with no broadcast (ADR-0003's amendment); the sweep at 09:00 is
   the backstop, so the gap can be up to a day. Closing it would take a second, WorkManager-armed
-  layer per Reminder, the per-Dose work ADR-0003 rejected.
+  layer per Reminder, the per-Dose work ADR-0003 rejected. Read at G on API 36: the alarm moves to
+  *Removed alarms* with `Reason=exact_alarm_permission_revoked` and the process is killed (*Readings*,
+  R4).
 - **A force-stop does the same until the app is opened or the phone restarts.** Android cancels a
   force-stopped app's alarms; nothing the app owns runs until then.
 - **Xiaomi and kin without autostart.** The ROM does not start the process for the alarm; phase 2's
@@ -678,6 +698,10 @@ Device behaviour is not here: whether the alarm fired on its minute is a reading
   if it is still in the tray.
 - **A Taken tapped by mistake on a Reminder cannot be undone in this phase.** Undo exists only on
   Today's snackbar; changing an answer after the fact belongs with History.
+- **With the exact-alarm grant refused, a Reminder can land an hour late.** R4: AlarmManager gives an
+  inexact alarm armed more than 80 minutes ahead a one-hour window, and in deep Doze it landed at the
+  window's end. Today's banner says so and offers the grant; closing the gap means the grant, which
+  is why the app asks for it at the first Schedule's save.
 - **The gate on API 26–30: G1 and G2 both unread** (amended verdict 1). The API 26 emulator image
   cannot put AlarmManager into idle (§1, *The verdict, taken*), so both need a real Android 8–11 (API 26–30)
   phone before the door, or `minSdk` rises. G1 there is verdict 3's veto condition, so the reading
@@ -689,7 +713,17 @@ Device behaviour is not here: whether the alarm fired on its minute is a reading
 "it looked right". Derivations are proven by a test, not recorded here.
 
 On the emulators (`emulator-test`), API 36 and API 26, debug build unless the row says otherwise;
-`<pkg>` is `com.maksforge.takeyourmeds.debug`. A Xiaomi reading is phase 2's.
+`<pkg>` is `com.maksforge.takeyourmeds.debug`. A Xiaomi reading is phase 2's. R1–R11 were taken on
+`-read-only` instances launched for them, each from a fresh install with `bmgr enable false`, opened
+once before any timed reading: R1–R3, R5–R10 on 2026-11-13 from the debug build of `fd0892d`, R4,
+R8's API 26 half and R11 on 2026-11-17 from 0.4.0's. `SeedReceiver`'s `soon` variant (`--es variant soon --ei minutes N`)
+gives Vitamin D one Time N minutes ahead through the real save and re-plan.
+
+**Owed to a real phone** (amended verdict 1 and R3b): G1 and G2 on an Android 8–11 phone (API
+26–30), before the door, or `minSdk` rises (`DOD.md`); with the probe gone, G1 is R1's recipe and
+G2 is two Medicines with Times five minutes apart, the second alarm armed from inside the first
+firing as the planner always does. And R3b's release half: the Play install of 0.2.0 updated to
+0.3.0 from the internal track, opened, its Medicines still there.
 
 Device state each reading depends on, and how it is set:
 
@@ -706,8 +740,8 @@ Device state each reading depends on, and how it is set:
   allow|deny` sets it, and a deny stops the app, as on a phone.
 - **Notifications:** `adb shell pm grant|revoke <pkg> android.permission.POST_NOTIFICATIONS` for D's
   readings before E exists; E's readings start from a fresh install instead.
-- **Fire times:** `adb logcat -s AlarmProbe Reminders` for the logged `armedFor`, `firedAt` and
-  `lateMs`, and `adb shell dumpsys notification --noredact | grep -A3 'dose:'` for the posted
+- **Fire times:** `adb logcat -s Reminders` for the logged `trigger`, `armedFor`, `firedAt`,
+  `lateMs`, `posted` and `exact` (G1–G3 read the probe's `AlarmProbe` tag), and `adb shell dumpsys notification --noredact | grep -A3 'dose:'` for the posted
   Reminder.
 
 | # | Reading | Command | Result |
@@ -715,16 +749,16 @@ Device state each reading depends on, and how it is set:
 | G1 | The gate: an exact alarm in deep Doze, process killed, posts within 60 s of its time, three runs | `adb shell am broadcast -n <pkg>/app.takeyourmeds.debug.AlarmProbeReceiver -f 0x00000020 --ei minutes 3 --ez exact true`, then deep Doze and kill as above, then `adb logcat -s AlarmProbe` | 2026-11-13. **API 36** (`pixel-api36`, grant `allow`): `lateMs=322`, `312`, `508`; `deviceidle get deep` `IDLE` at each firing, `posted=true`, a new pid each time. The first alarm was armed before Doze was forced, so it reads `device_idle=--`; G2's live `device_idle` terms are what establish that AlarmManager idles on this image. **API 26** (`urgent-api26`): `lateMs=31`, `65`, `28`, **not deep Doze**: `mMotionSensor=null`, no *Idling until* in `dumpsys alarm` (§1, *The verdict, taken*). `-f 0x00000020` is needed because a fresh install is a stopped package. On API 26 the kill is `am kill --user 0 <pkg>`. |
 | G2 | The gate: the second of two exact alarms five minutes apart, in deep Doze | as G1 with `--ez chain true` | 2026-11-13. **API 36**, two runs with Doze forced across both firings: first `lateMs=259` and ≤318 (that log line rotated out, so the figure is the notification's `when`), second **`5`** and **`6`**. The second alarm was armed between the firings, `flags=0x5` with a live `device_idle` term. **API 26**: second `0` and `1`, not deep Doze, as G1. |
 | G3 | The fallback's lateness in deep Doze with the grant refused, three runs (chooses §6's banner body) | `appops … deny`, then as G1 with `--ez exact false` | 2026-11-13, **API 36**: `lateMs=135510`, `136010`, `104047` (≤ 2 min 16 s). Each alarm read `window=+2m14s999ms flags=0x20`. The third run is on a read-only `fold-api36`, the same image and fingerprint, after another session reinstalled over `pixel-api36`; it read *Idling until* in `dumpsys alarm` and was opened once to leave standby bucket 50. Under 15 min, so §6 takes the first body, **provisionally until R4**: a three-minute lead understates the window. API 26 not run: there is no grant to refuse below API 31. |
-| R1 | A Reminder on its minute in deep Doze, from the real planner | a Medicine with a Time three minutes ahead, deep Doze, kill, `adb logcat -s Reminders` | |
-| R2a | After a reboot, a Reminder whose Time falls after boot arrives on its minute | arm, `adb reboot`, `adb logcat -s Reminders` | |
-| R2b | After a reboot, a Dose whose Time passed while the phone was off is re-posted at boot inside the bound, and one past the bound is not | Times one before and one beyond the bound, `adb emu kill` over both, boot, `dumpsys notification` | |
-| R3a | After an update, a Reminder armed before it arrives on its minute | arm, `adb install -r` the next build, `adb logcat -s Reminders` | |
-| R3b | An upgrade from 0.2.0's schema keeps the Medicines and opens (`DOD.md`'s standing gate, item 5) | `git checkout v0.2.0`, `./gradlew installDebug -PreleaseShapedDebug`, two Medicines, then this phase's build `-PreleaseShapedDebug` over it, open | |
-| R4 | With the grant refused, a Reminder armed hours ahead arrives through the fallback, its lateness logged and held against §6's 15 minutes (over it, §6 takes the second body); Today shows *Reminders may be late*; granting through the hand-off removes the banner on resume and the next alarm reads exact | fresh install on API 36, opened once, a Time with a realistic lead, armed at 21:00 for 9:00 (a long lead stretches the fallback window to about an hour), deep Doze, `logcat`, then the banner's action, then `dumpsys alarm` | |
-| R5 | *Taken* on a Reminder with the process dead and the screen locked writes the record, removes the Reminder and shows Taken on Today | tap from the lock screen, then pull the database **with its `-wal`** and `PRAGMA wal_checkpoint(TRUNCATE)` on the host, `SELECT * FROM dose_records` | |
-| R6 | Snooze returns the Reminder ten minutes later, and survives a reboot during it | tap Snooze, `adb reboot`, `adb logcat -s Reminders` | |
-| R7 | A time-zone change re-plans: an answered 9:00 is not reminded again, an unanswered one is reminded at 9:00 in the new zone | automatic zone off, zone changed in Settings → System → Date & time; the command recorded here when taken | |
-| R8 | The asks: on API 36 the first Schedule's save shows the app's screen, then the dialog, then the exact-alarm hand-off; a refusal of each shows its banner; on API 26 nothing is asked | fresh install, add a Medicine with a Time, screenshots of each step | |
-| R9 | No ask before a Time: a Medicine saved without Times asks nothing | fresh install, add a Medicine with no Time, `adb shell dumpsys package <pkg> \| grep POST_NOTIFICATIONS` still not granted, no dialog | |
-| R10 | The merged permission set is unchanged | `python3 scripts/aab-permissions.py` against `bundleRelease` | |
-| R11 | Today and the editor with Times render edge to edge, English and Polish, light and dark | `python3 scripts/edge-to-edge.py` | |
+| R1 | A Reminder on its minute in deep Doze, from the real planner | a Medicine with a Time three minutes ahead, deep Doze, kill, `adb logcat -s Reminders` | 2026-11-13, `pixel-api36` (read-only, port 5740), grant `allow`, `pm grant` notifications: `seed soon 3` armed 18:38:00 exact (`window=0 exactAllowReason=permission flags=0x5`); home, `am kill`, `pidof` empty, deep Doze forced. `trigger=fired lateMs=341 posted=1 exact=true` from a new pid started *for broadcast* `ReminderAlarmReceiver`; `deviceidle get deep` `IDLE` after the firing; the Reminder on `reminders` (`importance=4`, `vis=PRIVATE`, a public version with no Medicine). **Pass.** |
+| R2a | After a reboot, a Reminder whose Time falls after boot arrives on its minute | arm, `adb reboot`, `adb logcat -s Reminders` | 2026-11-13, API 36: Time 19:06 armed at 19:05:05, `adb reboot` at 19:05:06; `BootReceiver`'s `trigger=repost` at 19:05:27 re-armed 19:06:00 exact; `trigger=fired lateMs=12 posted=1`. **Pass.** On this loaded host `BOOT_COMPLETED` reached the app up to 50 s after `sys.boot_completed`. |
+| R2b | After a reboot, a Dose whose Time passed while the phone was off is re-posted at boot inside the bound, and one past the bound is not | Times one before and one beyond the bound, `adb emu kill` over both, boot, `dumpsys notification` | 2026-11-13, API 36, `seed today` then `seed soon 1` (Vitamin D's new Time 19:09): armed 19:09:00 at 19:08:41, `adb reboot` at 19:08:42, so no alarm existed at 19:09:00; `BootReceiver` at 19:09:08 `trigger=repost posted=1`, the tray holding only `dose:…:2026-11-13T19:09`. Salbutamol 13:00 (6 h Due) and Vitamin D 08:00 (11 h, and capped by a later Dose) stayed Due on Today and were not posted. **Pass.** Taken with `adb reboot`, not `adb emu kill`: a `-read-only` emulator keeps nothing across a kill, so the phone is down for 15 to 25 s, not hours; the bound itself is `RepostBoundTest`'s. |
+| R3a | After an update, a Reminder armed before it arrives on its minute | arm, `adb install -r` the next build, `adb logcat -s Reminders` | 2026-11-13, API 36: Time 19:14 armed at 19:12:02, `adb install -r` the same debug APK at 19:12:02; `PackageReplacedReceiver`'s `trigger=repost` at 19:12:02 re-armed 19:14:00 exact; `trigger=fired lateMs=12 posted=1`. **Pass.** |
+| R3b | An upgrade from 0.2.0's schema keeps the Medicines and opens (`DOD.md`'s standing gate, item 5) | `git checkout v0.2.0`, `./gradlew installDebug -PreleaseShapedDebug`, two Medicines, then this phase's build `-PreleaseShapedDebug` over it, open | 2026-11-13, **emulator half**, API 36: `v0.2.0` built `-PreleaseShapedDebug` (versionCode 22) installed fresh, Ibuprofen and Melatonin added through the editor; this branch `-PreleaseShapedDebug` (versionCode 78, schema 2) `adb install -r` over it without opening it. `PackageReplacedReceiver` started the process and re-planned (`trigger=repost next=none`), the app opened on Today, Medicines listed both with their Amounts, and Room's triggers on `snoozes` in `dumpsys dbinfo` show schema 2's tables open. No crash in `logcat -b crash`. **Pass.** The release-shaped build is not debuggable, so `run-as` cannot pull the database. **Owed to a real phone:** the Play install of 0.2.0 updated to 0.3.0 from the internal track, the upgrade that build actually ships. |
+| R4 | With the grant refused, a Reminder armed hours ahead arrives through the fallback, its lateness logged and held against §6's 15 minutes (over it, §6 takes the second body); Today shows *Reminders may be late*; granting through the hand-off removes the banner on resume and the next alarm reads exact | fresh install on API 36, opened once, a Time with a realistic lead, armed at 21:00 for 9:00 (a long lead stretches the fallback window to about an hour), deep Doze, `logcat`, then the banner's action, then `dumpsys alarm` | 2026-11-17, `pixel-api36` (read-only, port 5760), fresh install, `SCHEDULE_EXACT_ALARM` mode `default` (refused), `pm grant` notifications, opened once. **The window:** a Time armed 12 h ahead (11:56 for 23:56) read `window=+1h0m0s0ms flags=0x20`, and so did one armed 90 min ahead: AlarmManager caps an inexact alarm's window at one hour, so any lead over 80 min gets the same window as 21:00 for 9:00. **The landing:** Time 13:26 armed at 11:56:22, `am kill`, deep Doze forced and `IDLE` at every 30 s poll from 11:56 to 14:26. `trigger=fired lateMs=3600029 posted=1 exact=false`: **60 min late**, at the window's end. Over 15 min, so §6 takes the second body, and the exact-alarm ask's *several minutes* went with it (`fix:` in this branch). **The hand-off:** Today showed *Reminders may be late* with the second body; *Allow exact alarms* opened *Alarms & reminders*, the switch on gave `SCHEDULE_EXACT_ALARM: allow`, the grant broadcast re-planned `exact=true`, Back to Today showed no banner, and `dumpsys alarm` read `window=0 exactAllowReason=permission flags=0x5`. **Revoking**, 2026-11-13 on an exact alarm: `appops … deny` and `… default` each listed it under *Removed alarms* with `Reason=exact_alarm_permission_revoked` and killed the process (`schedule_exact_alarm revoked`). **Pass**, with the second body. |
+| R5 | *Taken* on a Reminder with the process dead and the screen locked writes the record, removes the Reminder and shows Taken on Today | tap from the lock screen, then pull the database **with its `-wal`** and `PRAGMA wal_checkpoint(TRUNCATE)` on the host, `SELECT * FROM dose_records` | 2026-11-13, API 36, a swipe lock set with `locksettings set-disabled false`: the 18:38 Reminder on the lock screen, `am kill` first so `pidof` was empty, *Taken* tapped with the keyguard still showing (`showing=true`). The process started *for broadcast* `ReminderActionReceiver`, the Reminder left the tray, and the pulled `takeyourmeds.db` with its `-wal`, after `PRAGMA wal_checkpoint(TRUNCATE)`, read `…\|2026-11-13T18:38\|Taken\|1794591549394\|Vitamin D\|1 capsule`, no Snooze row. Today read *Taken at 6:39 PM*. **Pass.** |
+| R6 | Snooze returns the Reminder ten minutes later, and survives a reboot during it | tap Snooze, `adb reboot`, `adb logcat -s Reminders` | 2026-11-13, API 36: *Snooze 10 min* on the 18:48 Reminder at 18:49:34 armed 18:59:34 exact and took it out of the tray; `adb reboot` at 18:49:41; `BootReceiver`'s `trigger=repost posted=0` re-armed 18:59:34 from the stored row; `trigger=fired lateMs=19 posted=1`, the same Dose's tag back in the tray. Today then showed it Due without *Snoozed until*, its end being past. **Pass.** A first attempt was lost: that emulator exited during its reboot. |
+| R7 | A time-zone change re-plans: an answered 9:00 is not reminded again, an unanswered one is reminded at 9:00 in the new zone | automatic zone off, zone changed in Settings → System → Date & time; the command recorded here when taken | 2026-11-13, API 36. `cmd time_zone_detector set_auto_detection_enabled false`, then `cmd alarm set-timezone <zone>`, which sends `TIMEZONE_CHANGED` as the Settings screen does. **Answered:** Vitamin D's 18:48 Dose marked Taken on Today, then Warsaw → `Europe/London` (wall clock 19:00 → 18:00, so 18:48 ahead again): `trigger=repost posted=0 next=` 20:00 London, Metformin's next Time, not 18:48. **Unanswered:** in London a Time 19:04 saved at 18:00, then → `Europe/Warsaw` (wall 19:00): `trigger=repost next=` 19:04 CET, `trigger=fired lateMs=10 posted=1`. **Pass.** The Settings UI was not driven; the broadcast it sends was. |
+| R8 | The asks: on API 36 the first Schedule's save shows the app's screen, then the dialog, then the exact-alarm hand-off; a refusal of each shows its banner; on API 26 nothing is asked | fresh install, add a Medicine with a Time, screenshots of each step | **API 36**, 2026-11-13, two fresh installs. Aspirin given 8:00 AM and saved: *Allow reminders* (the app's screen), *Continue*, the system dialog. *Don't allow* went straight to Today with *Reminders will not arrive* above *Reminders may be late* and no exact-alarm screen. On the second install *Allow* led to *Let reminders arrive on the minute*; *Open settings* opened *Alarms & reminders* on the app's own switch (`SpaActivity`); Back without granting left Today with *Reminders may be late* alone. **API 26** (`urgent-api26`, Polish system locale), 2026-11-17, fresh install: the same save went straight back to Medicines with no screen and no dialog, Today showed no banner, and the planner armed `exact=true`. **Pass.** |
+| R9 | No ask before a Time: a Medicine saved without Times asks nothing | fresh install, add a Medicine with no Time, `adb shell dumpsys package <pkg> \| grep POST_NOTIFICATIONS` still not granted, no dialog | 2026-11-13, API 36, fresh install (`bmgr enable false`, debug package uninstalled), opened once: Aspirin saved with an Amount and no Time. No screen and no dialog; Medicines listed it; `dumpsys package` read `POST_NOTIFICATIONS: granted=false`. **Pass.** |
+| R10 | The merged permission set is unchanged | `python3 scripts/aab-permissions.py` against `bundleRelease` | 2026-11-13: `./gradlew bundleRelease`, then `python3 scripts/aab-permissions.py app-release.aab`: *8 permissions, all accounted for; none of the 6 forbidden ones present; 0 `<uses-feature>`; 0 of the 4 activities lock their orientation*. The same eight as phase 0. **Pass.** |
+| R11 | Today and the editor with Times render edge to edge, English and Polish, light and dark | `python3 scripts/edge-to-edge.py` | 2026-11-17, API 36, `python3 scripts/edge-to-edge.py --scene today,today-bottom,today-blocked,today-late,medicine-editor-times --locale en\|pl --assert-clean` under `cmd uimode night no` and `yes`: all four configurations, English and Polish, light and dark, *nothing drawn under a system inset*. One soft finding in every run: in `landscape-threebutton` the editor's two *Remove* buttons' 48 dp touch targets overlap the navigation bar by 1 px. The first run reached `medicine-editor-times` in neither landscape cell, because the driver did not scroll to the heading it aligns; fixed in this branch. Two runs lost a configuration to an empty `uiautomator` dump while seeding and were re-run for that configuration. **Pass.** |
