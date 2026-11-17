@@ -84,6 +84,9 @@ and a foreground-service declaration for a few events a day.
   Reminder alarm under *Removed alarms* with `Reason=exact_alarm_permission_revoked`, and the process
   is killed, for `appops … deny` and `appops … default` alike. Granting it again re-plans through the
   grant broadcast and arms exact. So the sweep stays the backstop this ADR names.
+
+## Amendment, 2026-11-17
+
 - **The fallback, read** (phase 1, R4, API 36): AlarmManager caps an inexact alarm's window at one
   hour, so a Reminder armed hours ahead with the grant refused can land up to an hour late, and in
   deep Doze it landed at the window's end, 60 minutes late. Today's banner and the exact-alarm ask say
