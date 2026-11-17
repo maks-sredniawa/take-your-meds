@@ -28,6 +28,15 @@ close. Whenever `APP_SCHEMA_VERSION` changes, all five hold before the release g
 
 `scripts/schema-gate.py` enforces 1–3 mechanically in CI. Items 4 and 5 are yours.
 
+## Owed from phase 1, on a real phone
+
+Every reading an emulator can show is taken (`phase-1.md`, *Readings*). These two it cannot:
+
+- [ ] **Schema 2's upgrade, from Play.** The Play install of 0.2.0 (schema 1) updated to 0.3.0 from
+      the internal track, opened, its Medicines still there: the standing gate's item 5 for this bump.
+      The emulator read the same upgrade with `-PreleaseShapedDebug` builds of both (R3b).
+- [ ] **G1 and G2 on API 26–30**, under *Decide `minSdk` deliberately* below.
+
 ## Before the first upload
 
 - [x] **Delete what the app does not need.** The photo pipeline and the manual backup, 2026-11-12,

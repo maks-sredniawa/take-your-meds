@@ -76,3 +76,15 @@ and a foreground-service declaration for a few events a day.
   have, under the same bound, before arming the next.
 - **One Reminder per Medicine in the tray** (owner, 2026-11-13). Posting a Dose's Reminder removes the
   same Medicine's earlier Reminders; those Doses stay Due on Today.
+- **A queued firing posts nothing twice.** Every re-plan that posts stores the minute it posted
+  through, beside the armed time, and a later posting pass starts after it, so a firing already
+  queued when a re-plan replaced its alarm does not bring back a Reminder the user swiped away. A
+  re-post after a boot, update or clock change ignores the mark and sets it to its own time.
+- **Revoking the grant, read** (phase 1, *Readings*, API 36): `dumpsys alarm` lists the armed
+  Reminder alarm under *Removed alarms* with `Reason=exact_alarm_permission_revoked`, and the process
+  is killed, for `appops … deny` and `appops … default` alike. Granting it again re-plans through the
+  grant broadcast and arms exact. So the sweep stays the backstop this ADR names.
+- **The fallback, read** (phase 1, R4, API 36): AlarmManager caps an inexact alarm's window at one
+  hour, so a Reminder armed hours ahead with the grant refused can land up to an hour late, and in
+  deep Doze it landed at the window's end, 60 minutes late. Today's banner and the exact-alarm ask say
+  *an hour or more*, not *a few minutes*.
