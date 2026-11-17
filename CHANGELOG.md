@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.4.1](https://github.com/maks-sredniawa/take-your-meds/compare/v0.4.0...v0.4.1) (2026-11-17)
+
+
+### Bug Fixes
+
+* say a reminder without exact alarms can arrive an hour late ([6c81f06](https://github.com/maks-sredniawa/take-your-meds/commit/6c81f06e6de209b66d584945479aafe0907c2570))
+
 ## [0.4.0](https://github.com/maks-sredniawa/take-your-meds/compare/v0.3.0...v0.4.0) (2026-11-13)
 
 
