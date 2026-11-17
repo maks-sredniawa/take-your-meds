@@ -54,13 +54,13 @@
     <string name="today_blocked_body">Android ukrywa przypomnienia tej aplikacji, więc nic nie zostanie wyświetlone, gdy dawka będzie do przyjęcia.</string>
     <string name="today_blocked_action">Otwórz ustawienia powiadomień</string>
     <string name="today_late_title">Przypomnienia mogą się spóźniać</string>
-    <string name="today_late_body_minutes">Android pozwala tej aplikacji ustawiać tylko niedokładne alarmy, więc przypomnienie może przyjść kilka minut po swojej godzinie.</string>
+    <string name="today_late_body_long">Android pozwala tej aplikacji ustawiać tylko niedokładne alarmy, więc przypomnienie może przyjść długo po swojej godzinie, czasem o godzinę lub więcej.</string>
     <string name="today_late_action">Zezwól na dokładne alarmy</string>
     <string name="ask_notifications_title">Zezwól na przypomnienia</string>
     <string name="ask_notifications_body">Take your meds pokazuje powiadomienie o każdej ustawionej godzinie. Android najpierw pyta, czy na to zezwalasz.</string>
     <string name="ask_notifications_action">Dalej</string>
     <string name="ask_exact_title">Niech przypomnienia przychodzą co do minuty</string>
-    <string name="ask_exact_body">Bez tego Android może dostarczyć przypomnienie z kilkuminutowym opóźnieniem. Na następnym ekranie jest przełącznik dla Take your meds.</string>
+    <string name="ask_exact_body">Bez tego Android może dostarczyć przypomnienie długo po jego godzinie, czasem o godzinę lub więcej. Na następnym ekranie jest przełącznik dla Take your meds.</string>
     <string name="ask_exact_action">Otwórz ustawienia</string>
     <string name="ask_not_now">Nie teraz</string>
     <string name="reminder_text">%1$s · dawka o %2$s</string>
