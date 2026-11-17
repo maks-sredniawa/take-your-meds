@@ -152,3 +152,17 @@ Snooze: a reminder can now be put off for 10 minutes, and it comes back even if 
 ```
 Drzemka: przypomnienie można teraz odłożyć o 10 minut i wróci, nawet jeśli telefon w międzyczasie uruchomi się ponownie. Na karcie Dziś widać, do której trwa drzemka dawki. Opóźniony alarm nie przywraca już odrzuconego przypomnienia, a usunięcie leku nie zostawia jego przypomnienia. Gdy wszystkie ustawione godziny zaczynają się jutro, karta Dziś mówi, że następna dawka jest jutro.
 ```
+
+### 0.4.1
+
+**English** — 195/500:
+
+```
+Without permission to set exact alarms, Android can deliver a reminder an hour late or more. The banner on Today and the screen that asks for that permission now say so, instead of a few minutes.
+```
+
+**Polish** — 202/500:
+
+```
+Bez zgody na dokładne alarmy Android może dostarczyć przypomnienie z godzinnym lub większym opóźnieniem. Mówią o tym teraz baner na karcie Dziś i ekran, który prosi o tę zgodę, zamiast o kilku minutach.
+```
